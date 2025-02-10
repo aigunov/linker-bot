@@ -7,10 +7,11 @@ public enum ChatState {
     TRACK("track-state"),
     TAGS("tags-state"),
     FILTERS("filters-state"),
+    UNTRACKED("untracked-state"),
     LIST("list-state"),
-    UPDATES("updates-state"),
     HELP("help-state"),
     REGISTER("register-state"),
+    NONE("none-state");
     ;
 
 

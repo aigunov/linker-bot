@@ -2,13 +2,24 @@ package backend.academy.bot;
 
 import com.pengrad.telegrambot.UpdatesListener;
 import com.pengrad.telegrambot.model.Update;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import java.util.List;
 
+@Slf4j
+@RequiredArgsConstructor
 @Component("botListener")
 public class BotListener implements UpdatesListener {
+
+    private final UpdateHandler updateHandler;
+
     @Override
     public int process(List<Update> list) {
-        return 0;
+        log.info("Processing updates: {}", list.size());
+        for (Update update : list) {
+            updateHandler.handleUpdate(update);
+        }
+        return CONFIRMED_UPDATES_ALL;
     }
 }
