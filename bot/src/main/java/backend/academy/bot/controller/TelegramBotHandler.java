@@ -1,7 +1,9 @@
 package backend.academy.bot.controller;
 
+import backend.academy.bot.service.BotService;
 import backend.academy.bot.state.Handler;
 import com.pengrad.telegrambot.model.Update;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 
@@ -11,7 +13,10 @@ import org.springframework.stereotype.Controller;
  */
 @Slf4j
 @Controller
+@RequiredArgsConstructor
 public class TelegramBotHandler {
+
+    private final BotService botService;
 
     @Handler("/menu")
     public void handleMenuCommand(Long chatId, Update update){
