@@ -1,6 +1,7 @@
-package backend.academy.bot;
+package backend.academy.bot.controller;
 
-import backend.academy.bot.controller.TelegramBotHandler;
+import backend.academy.bot.state.ChatState;
+import backend.academy.bot.state.Handler;
 import com.pengrad.telegrambot.model.Update;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

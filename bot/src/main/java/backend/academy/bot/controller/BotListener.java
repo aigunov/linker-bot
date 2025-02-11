@@ -1,4 +1,4 @@
-package backend.academy.bot;
+package backend.academy.bot.controller;
 
 import com.pengrad.telegrambot.UpdatesListener;
 import com.pengrad.telegrambot.model.Update;

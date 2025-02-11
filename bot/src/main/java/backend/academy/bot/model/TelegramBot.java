@@ -1,6 +1,6 @@
 package backend.academy.bot.model;
 
-import backend.academy.bot.BotConfig;
+import backend.academy.bot.configs.BotConfig;
 import backend.academy.bot.exception.TelegramApiException;
 import com.pengrad.telegrambot.UpdatesListener;
 import com.pengrad.telegrambot.request.AbstractSendRequest;

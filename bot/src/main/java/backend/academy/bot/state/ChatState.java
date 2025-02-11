@@ -1,4 +1,4 @@
-package backend.academy.bot;
+package backend.academy.bot.state;
 
 import jakarta.annotation.Nullable;
 
