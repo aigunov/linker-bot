@@ -1,4 +1,5 @@
 package backend.academy.bot.model;
 
-public class AddLinkRequest {
-}
+import java.util.List;
+
+public record AddLinkRequest(String uri, List<String> tags, List<String> filters) { }

@@ -2,6 +2,7 @@ package backend.academy.bot.clients;
 
 import backend.academy.bot.model.AddLinkRequest;
 import backend.academy.bot.model.ListLinkResponse;
+import backend.academy.bot.model.RegisterChatRequest;
 import backend.academy.bot.model.RemoveLinkRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpMethod;
@@ -17,9 +18,10 @@ public class ScrapperClient {
     private final WebClient scrapperWebClient;
 
     //TODO: Поменять возвращаемый тип
-    public Mono<Void> registerChat(final Long chatId){
+    public Mono<Void> registerChat(final RegisterChatRequest chat){
         return scrapperWebClient.post()
-            .uri("/tg-chat/{id}", chatId)
+            .uri("/tg-chat/{id}", chat.id())
+            .bodyValue(chat)
             .retrieve()
             .bodyToMono(Void.class);
     }

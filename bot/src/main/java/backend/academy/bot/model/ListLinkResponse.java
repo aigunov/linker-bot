@@ -1,4 +1,6 @@
 package backend.academy.bot.model;
 
-public class ListLinkResponse {
+import java.util.List;
+
+public record ListLinkResponse(List<LinkResponse> linkResponses, int size) {
 }

@@ -3,6 +3,7 @@ package backend.academy.bot.controller;
 import backend.academy.bot.state.ChatState;
 import backend.academy.bot.state.Handler;
 import com.pengrad.telegrambot.model.Update;
+import com.pengrad.telegrambot.model.User;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

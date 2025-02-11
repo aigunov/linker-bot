@@ -1,4 +1,4 @@
 package backend.academy.bot.model;
 
-public class RemoveLinkRequest {
+public record RemoveLinkRequest (String uri){
 }
