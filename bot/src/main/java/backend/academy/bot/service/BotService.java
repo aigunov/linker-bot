@@ -1,6 +1,10 @@
 package backend.academy.bot.service;
 
+import backend.academy.bot.clients.ScrapperClient;
+import backend.academy.bot.configs.TelegramBot;
 import backend.academy.bot.model.LinkUpdate;
+import backend.academy.bot.model.RegisterChatRequest;
+import backend.academy.bot.state.ChatState;
 import com.pengrad.telegrambot.model.Update;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -9,20 +13,40 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class BotService {
 
-    private final StateManager stateManager;
+    private final TelegramBot bot;
+    private final ScrapperClient client;
+    private final ChatStateService stateService;
+
 
     //TODO: метод для отображения уведомлений в бот тг=
     public void processUpdate(LinkUpdate update) {
     }
 
 
-    public void showMenu(Long chatId, Update update){}
+    public void showMenu(Long chatId, Update update, ChatState menu){
+
+    }
 
     public void untrackLink(Long chatId, Update update){}
 
     public void helpUser(Long chatId, Update update){}
 
-    public void startUser(Long chatId, Update update){}
+    public void startUser(Long chatId, Update update, ChatState menu){
+        var message = update.message();
+        var tgUser = message.from();
+        var username = tgUser.username() != null ?  "@" + tgUser.username() : tgUser.firstName();
+
+
+
+        var registerChat = RegisterChatRequest.builder()
+            .id(chatId)
+            .name(username)
+            .build();
+
+        var response = client.registerChat(registerChat);
+        if (response.)
+
+    }
 
     public void insertLinkToTrack(Long chatId, Update update){}
 

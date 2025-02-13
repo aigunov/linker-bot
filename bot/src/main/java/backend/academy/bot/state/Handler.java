@@ -9,4 +9,5 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Handler {
     String value() default "";
+    ChatState state() default ChatState.MENU;
 }

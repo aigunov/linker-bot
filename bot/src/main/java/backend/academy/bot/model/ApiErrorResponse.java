@@ -1,12 +1,16 @@
 package backend.academy.bot.model;
 
+import lombok.Builder;
 import java.util.List;
 
-public record ApiErrorResponse(
-    String description,
-    String code,
-    String exceptionName,
-    String exceptionMessage,
-    List<String> stacktrace
-) {
+@Builder
+public class ApiErrorResponse extends RuntimeException {
+
+    private String description;
+    private String code;
+    private String exceptionName;
+    private String exceptionMessage;
+    private List<String> stacktrace;
+
+
 }
