@@ -6,5 +6,8 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component("list-state")
 public class ListState extends StateImpl{
-    private final ChatState state = ChatState.LIST;
+
+    public ListState() {
+        super(ChatState.LIST, "Список обновлений уведомлений");
+    }
 }

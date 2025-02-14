@@ -6,6 +6,7 @@ import backend.academy.bot.state.Handler;
 import com.pengrad.telegrambot.model.Update;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Controller;
 
 
@@ -59,10 +60,10 @@ public class TelegramBotHandler {
     /**
      * This method is required for create User entity and registry him in system
      */
-    @Handler("/start")
+    @Handler(value = "/start", state = ChatState.REGISTER)
     public void handleStartCommand(Long chatId, Update update){
         log.info("handling command /start from chatId: {}", chatId);
-        botService.startUser(chatId, update, ChatState.MENU);
+        botService.startUser(chatId, update, ChatState.REGISTER);
     }
 
 }

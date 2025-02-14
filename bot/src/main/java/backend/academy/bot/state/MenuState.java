@@ -6,5 +6,9 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component("menu-state")
 public class MenuState extends StateImpl{
-    private final ChatState state = ChatState.MENU;
+
+    public MenuState() {
+        super(ChatState.MENU, "Главное меню");
+    }
+
 }

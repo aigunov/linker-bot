@@ -5,12 +5,21 @@ import backend.academy.bot.exception.TelegramApiException;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.model.request.ParseMode;
 import com.pengrad.telegrambot.request.SendMessage;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+@Getter
 @Slf4j
 public class StateImpl implements State {
+    protected final ChatState state;
+    protected final String message;
 
     private TelegramBot bot;
+
+    public StateImpl(ChatState state, String message) {
+        this.state = state;
+        this.message = message;
+    }
 
     @Override
     public void show() {

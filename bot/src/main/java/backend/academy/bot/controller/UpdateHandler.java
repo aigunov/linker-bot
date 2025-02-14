@@ -58,6 +58,11 @@ public class UpdateHandler {
             String messageText = update.message().text();
             ChatState currentState = chatStateService.getChatState(String.valueOf(chatId));
 
+            if (messageText.equals("/start")){
+                invokeHandler(commandHandlers.get("/start"), chatId,update);
+                return;
+            }
+
             getCommandHandler(messageText).ifPresent(method -> {
                 invokeHandler(method, chatId, update);
                 return;

@@ -1,7 +1,13 @@
 package backend.academy.bot.state;
 
+import backend.academy.bot.service.StateFactory;
 import jakarta.annotation.Nullable;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import java.util.Arrays;
 
+@Getter
+@RequiredArgsConstructor
 public enum ChatState {
     MENU("menu-state"),
     TRACK("track-state"),
@@ -11,24 +17,25 @@ public enum ChatState {
     LIST("list-state"),
     HELP("help-state"),
     REGISTER("register-state"),
-    NONE("none-state");
+    NONE("none-state")
     ;
-
 
     private final String id;
 
-    ChatState(String id) {
-        this.id = id;
+    private static StateFactory stateFactory;
+
+    public static void setStateFactory(StateFactory factory) {
+        stateFactory = factory;
     }
 
-    @Nullable
-    public ChatState fromId(String id) {
-        for(var state: ChatState.values()){
-            if(state.id.equals(id)){
-                return state;
-            }
-        }
-        return null;
+    public State getState() {
+        return stateFactory.getState(this);
     }
 
+    public static ChatState fromId(String id) {
+        return Arrays.stream(ChatState.values())
+            .filter(state -> state.id.equals(id))
+            .findFirst()
+            .orElse(null);
+    }
 }

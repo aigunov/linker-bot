@@ -6,5 +6,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component("help-state")
 public class HelpState extends StateImpl{
-    private final ChatState state = ChatState.HELP;
+    public HelpState() {
+        super(ChatState.HELP, "Список поддерживаемых команд:");
+    }
 }

@@ -4,13 +4,10 @@ import lombok.Builder;
 import java.util.List;
 
 @Builder
-public class ApiErrorResponse extends RuntimeException {
-
+public class ApiErrorResponse {
     private String description;
     private String code;
     private String exceptionName;
     private String exceptionMessage;
     private List<String> stacktrace;
-
-
 }

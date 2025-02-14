@@ -6,17 +6,25 @@ import backend.academy.bot.model.LinkUpdate;
 import backend.academy.bot.model.RegisterChatRequest;
 import backend.academy.bot.state.ChatState;
 import com.pengrad.telegrambot.model.Update;
+import com.pengrad.telegrambot.request.SendMessage;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
 public class BotService {
 
-    private final TelegramBot bot;
     private final ScrapperClient client;
     private final ChatStateService stateService;
 
+    private TelegramBot telegramBot;
+
+    @Autowired
+    public void setTelegramBot(@Lazy TelegramBot telegramBot) {
+        this.telegramBot = telegramBot;
+    }
 
     //TODO: метод для отображения уведомлений в бот тг=
     public void processUpdate(LinkUpdate update) {
@@ -44,7 +52,10 @@ public class BotService {
             .build();
 
         var response = client.registerChat(registerChat);
-        if (response.)
+        if (response.getStatusCode().is2xxSuccessful()) {
+            telegramBot.execute(new SendMessage(chatId, "Вы успешно зарегистрированы"));
+            stateService.setChatStates(String.valueOf(chatId), ChatState.MENU);
+        }
 
     }
 

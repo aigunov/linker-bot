@@ -6,5 +6,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component("tags-state")
 public class TagsState extends StateImpl{
-    private final ChatState state = ChatState.TAGS;
+    public TagsState() {
+        super(ChatState.TAGS, "Добавьте теги к ссылке для кластеризации(опционально):");
+    }
 }

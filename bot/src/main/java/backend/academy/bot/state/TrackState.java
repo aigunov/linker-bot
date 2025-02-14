@@ -6,5 +6,8 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component("track-state")
 public class TrackState extends StateImpl{
-    private final ChatState state = ChatState.TRACK;
+    public TrackState() {
+        super(ChatState.TRACK, "Введите ссылку для отслеживания");
+    }
+
 }
