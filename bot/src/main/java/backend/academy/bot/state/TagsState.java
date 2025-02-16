@@ -70,7 +70,7 @@ public class TagsState extends StateImpl{
         bot.execute(new SendMessage(chatId, "Ранее отправленная ссылка будет удалена")
             .parseMode(ParseMode.HTML));
         trackLinkService.clearLinkRequest(chatId);
-        stateManager.navigateReturning(chatId, ChatState.MENU, returningDeep);
+        stateManager.navigate(chatId, ChatState.MENU);
     }
 
     private void continueWithoutTags(Long chatId) {

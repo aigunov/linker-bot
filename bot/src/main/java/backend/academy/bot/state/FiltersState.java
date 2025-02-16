@@ -71,7 +71,7 @@ public class FiltersState extends StateImpl{
     private void addFiltersToLink(Long chatId, String message) {
         log.info("Adding filters {}", message);
         trackLinkService.updateLinkRequestFilters(chatId, message);
-        stateManager.navigateReturning(chatId, ChatState.MENU, returningDeep);
+        stateManager.navigate(chatId, ChatState.MENU);
     }
 
     private void cancelLinkInsertion(Long chatId) {
@@ -79,11 +79,11 @@ public class FiltersState extends StateImpl{
         bot.execute(new SendMessage(chatId, "Ранее отправленная ссылка будет удалена")
             .parseMode(ParseMode.HTML));
         trackLinkService.clearLinkRequest(chatId);
-        stateManager.navigateReturning(chatId, ChatState.MENU, returningDeep);
+        stateManager.navigate(chatId, ChatState.MENU);
     }
 
     private void continueWithoutFilters(Long chatId) {
         log.info("Link will be tracked without filters");
-        stateManager.navigateReturning(chatId, ChatState.MENU, returningDeep);
+        stateManager.navigate(chatId, ChatState.MENU);
     }
 }

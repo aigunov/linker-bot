@@ -44,7 +44,7 @@ public class TrackState extends StateImpl{
             var message = update.message().text();
             var chatId = update.message().chat().id();
             if (back_button.equals(message)) {
-                stateManager.navigateReturning(chatId, ChatState.MENU, returningDeep);
+                stateManager.navigate(chatId, ChatState.MENU);
             } else {
                 insertLinkHandle(chatId, message);
             }

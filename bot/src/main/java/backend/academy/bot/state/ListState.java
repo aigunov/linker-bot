@@ -41,7 +41,7 @@ public class ListState extends StateImpl{
         if (update.message().text() != null &&
             update.message().text().equals(back_button)) {
             var chatId = update.message().chat().id();
-            stateManager.navigateReturning(chatId, ChatState.MENU, returningDeep);
+            stateManager.navigate(chatId, ChatState.MENU);
         } else {
             showUnsupportedActionMessage(update);
         }

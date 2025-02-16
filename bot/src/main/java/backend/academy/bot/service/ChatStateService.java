@@ -7,6 +7,7 @@ import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
@@ -35,12 +36,12 @@ public class ChatStateService {
         return stateStack.pollLast();
     }
 
-    public ChatState peekLastChatState(String chatId) {
+    public Optional<ChatState> peekLastChatState(String chatId) {
         Deque<ChatState> stateStack = chatStates.get(chatId);
         if (stateStack == null || stateStack.isEmpty()) {
-            return null;
+            return Optional.empty();
         }
-        return stateStack.peekLast();
+        return Optional.ofNullable(stateStack.peekLast());
     }
 
     public List<ChatState> getAllChatStates(String chatId) {

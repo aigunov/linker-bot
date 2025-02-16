@@ -46,13 +46,4 @@ public class TelegramBot {
         return response;
     }
 
-
-    public void removeKeyboard(Long chatId, int messageId) {
-        try {
-            execute(new EditMessageReplyMarkup(chatId, messageId));
-        } catch (TelegramApiException e) {
-            log.warn("Unable to remove keyboard: {}", e.getMessage());
-        }
-    }
-
 }

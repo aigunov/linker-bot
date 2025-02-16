@@ -34,7 +34,7 @@ public class UpdateHandler {
                 stateManager.navigate(update.message().chat().id(), ChatState.REGISTER);
                 return;
             }
-            ChatState currentState = chatStateService.peekLastChatState(String.valueOf(chatId));
+            ChatState currentState = chatStateService.peekLastChatState(String.valueOf(chatId)).orElse(ChatState.MENU);
 
             for (var state : states) {
                 if (currentState.getState().equals(state)) {

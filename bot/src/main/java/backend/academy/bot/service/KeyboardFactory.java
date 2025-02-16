@@ -32,8 +32,7 @@ public class KeyboardFactory {
         List<KeyboardButton[]> rows = new ArrayList<>();
 
         rows.add(new KeyboardButton[]{
-            new KeyboardButton("Назад"),
-            new KeyboardButton("Далее")
+            new KeyboardButton("Назад")
         });
 
         return new ReplyKeyboardMarkup(rows.toArray(new KeyboardButton[0][]))
