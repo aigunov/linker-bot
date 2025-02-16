@@ -13,7 +13,6 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ChatStateService {
     private static final int MAX_STACK_SIZE = 10;
     private final Map<String, Deque<ChatState>> chatStates = new ConcurrentHashMap<>();
-    private final Map<Long, AddLinkRequest> linkRequests = new ConcurrentHashMap<>();
 
 
     public void setChatState(String chatId, ChatState chatState) {
@@ -49,31 +48,4 @@ public class ChatStateService {
     }
 
 
-//TODO: вынести управление состоянием добавления ссылки в отдельный сервис
-    // Методы для управления AddLinkRequest по chatId
-    public void createLinkRequest(Long chatId, String uri) {
-        linkRequests.put(chatId, AddLinkRequest.builder().uri(uri).build());
-    }
-
-    public AddLinkRequest getLinkRequest(Long chatId) {
-        return linkRequests.get(chatId);
-    }
-
-    public void updateLinkRequestTags(Long chatId, String tags) {
-        linkRequests.computeIfPresent(chatId, (k, v) -> {
-            v.tags(List.of(tags.split(" ")));
-            return v;
-        });
-    }
-
-    public void updateLinkRequestFilters(Long chatId, String filters) {
-        linkRequests.computeIfPresent(chatId, (k, v) -> {
-            v.filters(List.of(filters.split(" ")));
-            return v;
-        });
-    }
-
-    public void clearLinkRequest(Long chatId) {
-        linkRequests.remove(chatId);
-    }
 }

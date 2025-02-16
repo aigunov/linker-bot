@@ -19,7 +19,7 @@ public class KeyboardFactory {
         });
 
         rows.add(new KeyboardButton[]{
-            new KeyboardButton(link+"/list"),
+            new KeyboardButton("/list"),
             new KeyboardButton("/help")
         });
         return new ReplyKeyboardMarkup(rows.toArray(new KeyboardButton[0][]))
@@ -28,7 +28,7 @@ public class KeyboardFactory {
             .selective(true);
     }
 
-    public ReplyKeyboardMarkup getTagsKeyboard() {
+    public ReplyKeyboardMarkup getBackStateKeyboard() {
         List<KeyboardButton[]> rows = new ArrayList<>();
 
         rows.add(new KeyboardButton[]{
@@ -42,7 +42,7 @@ public class KeyboardFactory {
             .selective(true);
     }
 
-    public ReplyKeyboardMarkup getFiltersKeyboard() {
+    public ReplyKeyboardMarkup getNextAndBackButtonKeyboard() {
         List<KeyboardButton[]> rows = new ArrayList<>();
 
         rows.add(new KeyboardButton[]{

@@ -1,12 +1,21 @@
 package backend.academy.bot.state;
 
+import backend.academy.bot.exception.TelegramApiException;
+import com.pengrad.telegrambot.model.Update;
+import com.pengrad.telegrambot.model.request.ParseMode;
 import com.pengrad.telegrambot.request.SendMessage;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component("menu-state")
 public class MenuState extends StateImpl{
+    private static final String track_button = "/track";
+    private static final String untrack_button = "/untrack";
+    private static final String list_button = "/list";
+    private static final String help_button = "/help";
+    private static final List<String> buttons = List.of(track_button, untrack_button, list_button, help_button);
 
     public MenuState() {
         super(ChatState.MENU, "Главное меню");
@@ -15,6 +24,31 @@ public class MenuState extends StateImpl{
     @Override
     public void show(long chatId) {
         log.info("Current state: {}", state);
-        bot.execute(new SendMessage(chatId, message));
+        try {
+            bot.execute(new SendMessage(chatId, "Добро пожаловать в TG-Bot-Link-Tracker")
+                .replyMarkup(keyboardFactory.getMainMenuKeyboard())
+                .parseMode(ParseMode.HTML));
+            bot.execute(new SendMessage(chatId, message));
+        } catch (TelegramApiException e) {
+            log.info("Error while sending feedback request message: {}", e.getMessage());
+        }
     }
+
+    @Override
+    public void handle(Update update) {
+        if (buttons.contains(update.message().text())) {
+            var button = update.message().text();
+            var chatId = update.message().chat().id();
+            switch (button) {
+                case track_button -> stateManager.navigate(chatId, ChatState.TRACK);
+                case untrack_button -> stateManager.navigate(chatId, ChatState.UNTRACKED);
+                case list_button -> stateManager.navigate(chatId, ChatState.LIST);
+                case help_button -> stateManager.navigate(chatId, ChatState.HELP);
+            }
+        } else {
+            showUnsupportedActionMessage(update);
+        }
+    }
+
+
 }
