@@ -31,6 +31,7 @@ public class ScrapperClient {
 
     private final RestClient restClient;
 
+
     private <T, E> ResponseEntity<Object> makeAndSendRequest(
         String uri,
         HttpMethod httpMethod,
@@ -79,6 +80,7 @@ public class ScrapperClient {
                 .body(errorResponse);
         }
     }
+
 
     public ResponseEntity<Object> registerChat(final RegisterChatRequest chat) {
         log.info("Request: register chat {}", chat);

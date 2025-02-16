@@ -10,17 +10,46 @@ import org.springframework.stereotype.Component;
 public class KeyboardFactory {
 
     public ReplyKeyboardMarkup getMainMenuKeyboard() {
+        var link = "🔗";
         List<KeyboardButton[]> rows = new ArrayList<>();
 
         rows.add(new KeyboardButton[]{
-            new KeyboardButton("Добавить ссылку"),
-            new KeyboardButton("Отменить отслеживание")
+            new KeyboardButton("/track"),
+            new KeyboardButton("/untrack")
         });
 
         rows.add(new KeyboardButton[]{
-            new KeyboardButton("Уведомления"),
-            new KeyboardButton("Список команды")
+            new KeyboardButton(link+"/list"),
+            new KeyboardButton("/help")
         });
+        return new ReplyKeyboardMarkup(rows.toArray(new KeyboardButton[0][]))
+            .resizeKeyboard(true)
+            .oneTimeKeyboard(true)
+            .selective(true);
+    }
+
+    public ReplyKeyboardMarkup getTagsKeyboard() {
+        List<KeyboardButton[]> rows = new ArrayList<>();
+
+        rows.add(new KeyboardButton[]{
+            new KeyboardButton("Назад"),
+            new KeyboardButton("Далее")
+        });
+
+        return new ReplyKeyboardMarkup(rows.toArray(new KeyboardButton[0][]))
+            .resizeKeyboard(true)
+            .oneTimeKeyboard(true)
+            .selective(true);
+    }
+
+    public ReplyKeyboardMarkup getFiltersKeyboard() {
+        List<KeyboardButton[]> rows = new ArrayList<>();
+
+        rows.add(new KeyboardButton[]{
+            new KeyboardButton("Назад"),
+            new KeyboardButton("Далее")
+        });
+
         return new ReplyKeyboardMarkup(rows.toArray(new KeyboardButton[0][]))
             .resizeKeyboard(true)
             .oneTimeKeyboard(true)

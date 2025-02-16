@@ -22,10 +22,6 @@ import java.util.concurrent.TimeUnit;
 @Component("telegramBot")
 public class TelegramBot {
 
-    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-    private volatile boolean canSend = true;
-
-
     private final UpdatesListener updatesListener;
     private final BotConfig botProperties;
     private com.pengrad.telegrambot.TelegramBot bot;
@@ -39,9 +35,6 @@ public class TelegramBot {
     }
 
     public <T extends BaseRequest<T, R>, R extends BaseResponse> R execute(BaseRequest<T, R> request) {
-        if (request instanceof AbstractSendRequest) {
-            acquireRequest();
-        }
         R response = bot.execute(request);
         if (response.errorCode() == 403 || response.errorCode() == 429) {
             log.warn(response.description());
@@ -59,23 +52,6 @@ public class TelegramBot {
             execute(new EditMessageReplyMarkup(chatId, messageId));
         } catch (TelegramApiException e) {
             log.warn("Unable to remove keyboard: {}", e.getMessage());
-        }
-    }
-
-    private void acquireRequest() {
-        long start = System.currentTimeMillis();
-        while (!canSend) {
-            try {
-                TimeUnit.MILLISECONDS.sleep(1);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-        }
-        canSend = false; // Запрещаем отправку, пока не пройдет 33 мс
-
-        long elapsed = System.currentTimeMillis() - start;
-        if (elapsed > 1000) {
-            log.warn("Too many sending requests detected (sleep {} ms)", elapsed);
         }
     }
 

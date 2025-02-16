@@ -7,14 +7,16 @@ import com.pengrad.telegrambot.model.request.ParseMode;
 import com.pengrad.telegrambot.request.SendMessage;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @Getter
 @Slf4j
-public class StateImpl implements State {
+public abstract class StateImpl implements State {
     protected final ChatState state;
     protected final String message;
 
-    private TelegramBot bot;
+    @Autowired
+    protected TelegramBot bot;
 
     public StateImpl(ChatState state, String message) {
         this.state = state;
@@ -22,7 +24,7 @@ public class StateImpl implements State {
     }
 
     @Override
-    public void show() {
+    public void show(long chatId) {
     }
 
     @Override

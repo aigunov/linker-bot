@@ -1,11 +1,12 @@
 package backend.academy.bot.state;
 
 import backend.academy.bot.service.StateFactory;
-import jakarta.annotation.Nullable;
+import java.util.Arrays;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import java.util.Arrays;
+import lombok.ToString;
 
+@ToString(of = {"id"})
 @Getter
 @RequiredArgsConstructor
 public enum ChatState {

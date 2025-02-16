@@ -1,5 +1,6 @@
 package backend.academy.bot.controller;
 
+import backend.academy.bot.service.BotService;
 import backend.academy.bot.service.ChatStateService;
 import backend.academy.bot.state.ChatState;
 import backend.academy.bot.state.Handler;
@@ -18,14 +19,15 @@ public class UpdateHandler {
 
     private final Map<String, Method> commandHandlers = new HashMap<>();
     private final Map<ChatState, Method> stateHandlers = new HashMap<>();
-    //    private final Map<Method, Object> handlerInstances = new HashMap<>();
     private final TelegramBotHandler handler;
     private final ChatStateService chatStateService;
+    private final BotService botService;
 
     @Autowired
-    public UpdateHandler(TelegramBotHandler handler, ChatStateService chatStateService) {
+    public UpdateHandler(TelegramBotHandler handler, ChatStateService chatStateService, BotService botService) {
         this.handler = handler;
         this.chatStateService = chatStateService;
+        this.botService = botService;
         scanHandlers();
     }
 
@@ -35,9 +37,6 @@ public class UpdateHandler {
                 Handler annotation = method.getAnnotation(Handler.class);
 
                 try {
-//                    Object instance = handlerClass.getDeclaredConstructor().newInstance();
-//                    handlerInstances.put(method, instance);
-
                     if (!annotation.value().isEmpty()) {
                         commandHandlers.put(annotation.value(), method);
                     }
@@ -52,26 +51,35 @@ public class UpdateHandler {
     }
 
     public void handleUpdate(Update update) {
-        if (update.message() != null){
+        if (update.message() != null && update.message().text() != null) {
 
             var chatId = update.message().chat().id();
             String messageText = update.message().text();
-            ChatState currentState = chatStateService.getChatState(String.valueOf(chatId));
+            ChatState currentState = chatStateService.peekLastChatState(String.valueOf(chatId));
 
-            if (messageText.equals("/start")){
-                invokeHandler(commandHandlers.get("/start"), chatId,update);
-                return;
+            switch (messageText) {
+                case "Назад":
+                    botService.backButtonCLick(chatId);
+                    break;
+                case "Далее":
+                    botService.nextButtonClick(chatId, update, currentState);
+                    break;
+                default:
+                    if (messageText.equals("/start")) {
+                        invokeHandler(commandHandlers.get("/start"), chatId, update);
+                        return;
+                    }
+
+                    getCommandHandler(messageText).ifPresent(method -> {
+                        invokeHandler(method, chatId, update);
+                        return;
+                    });
+
+                    getStateHandler(currentState).ifPresent(method -> {
+                        invokeHandler(method, chatId, update);
+                        return;
+                    });
             }
-
-            getCommandHandler(messageText).ifPresent(method -> {
-                invokeHandler(method, chatId, update);
-                return;
-            });
-
-            getStateHandler(currentState).ifPresent(method -> {
-                invokeHandler(method, chatId, update);
-                return;
-            });
         }
     }
 
@@ -92,7 +100,4 @@ public class UpdateHandler {
         return Optional.ofNullable(stateHandlers.get(state));
     }
 
-//    public Object getInstance(Method method) {
-//        return handlerInstances.get(method);
-//    }
 }

@@ -6,7 +6,6 @@ import backend.academy.bot.state.Handler;
 import com.pengrad.telegrambot.model.Update;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Controller;
 
 
@@ -23,22 +22,25 @@ public class TelegramBotHandler {
     @Handler(value = "/menu", state = ChatState.MENU)
     public void handleMenuCommand(Long chatId, Update update){
         log.info("handling command /menu from chatId: {}", chatId);
-        botService.showMenu(chatId, update, ChatState.MENU);
+        botService.menuStateHandle(chatId, update, ChatState.MENU);
     }
 
     @Handler(value = "/track", state = ChatState.TRACK)
     public void handleTrackCommand(Long chatId, Update update){
         log.info("handling command /track from chatId: {}", chatId);
+        botService.insertLinkToTrack(chatId, update, ChatState.TRACK);
     }
 
     @Handler(value = "/tags", state = ChatState.TAGS)
     public void handleTagsCommand(Long chatId, Update update){
         log.info("handling command /tags from chatId: {}", chatId);
+        botService.insertTagsToLink(chatId, update, ChatState.TAGS);
     }
 
     @Handler(value = "/filters", state = ChatState.FILTERS)
     public void handleFiltersCommand(Long chatId, Update update){
         log.info("handling command /filters from chatId: {}", chatId);
+        botService.insertFiltersToLink(chatId, update, ChatState.FILTERS);
     }
 
     @Handler(value = "/untrack", state = ChatState.UNTRACKED)
@@ -63,7 +65,7 @@ public class TelegramBotHandler {
     @Handler(value = "/start", state = ChatState.REGISTER)
     public void handleStartCommand(Long chatId, Update update){
         log.info("handling command /start from chatId: {}", chatId);
-        botService.startUser(chatId, update, ChatState.REGISTER);
+        botService.chatRegistration(chatId, update, ChatState.REGISTER);
     }
 
 }

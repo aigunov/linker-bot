@@ -1,5 +1,15 @@
 package backend.academy.bot.model;
 
 import java.util.List;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
 
-public record AddLinkRequest(String uri, List<String> tags, List<String> filters) { }
+@Setter
+@Getter
+@Builder
+public class AddLinkRequest {
+    private String uri;
+    private List<String> tags;
+    private List<String> filters;
+}

@@ -4,7 +4,7 @@ import com.pengrad.telegrambot.model.Update;
 
 public interface State {
 
-    void show();
+    void show(long chatId);
 
     void handle(Update update);
 }

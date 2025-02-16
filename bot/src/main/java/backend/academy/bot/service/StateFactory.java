@@ -23,11 +23,10 @@ public class StateFactory {
 
     @PostConstruct
     public void init() {
-        for (State state : states) {
-            if (state instanceof StateImpl stateImpl) {
-                stateMap.put(stateImpl.state(), stateImpl);
-            }
+        for (var state : states) {
+            stateMap.put(state.state(), state);
         }
+        ChatState.setStateFactory(this);
     }
 
     public State getState(ChatState chatState) {
