@@ -1,10 +1,10 @@
 package backend.academy.scrapper.controller;
 
-import backend.academy.scrapper.model.AddLinkRequest;
-import backend.academy.scrapper.model.ApiErrorResponse;
-import backend.academy.scrapper.model.LinkResponse;
-import backend.academy.scrapper.model.ListLinkResponse;
-import backend.academy.scrapper.model.RemoveLinkRequest;
+import dto.AddLinkRequest;
+import dto.ApiErrorResponse;
+import dto.LinkResponse;
+import dto.ListLinkResponse;
+import dto.RemoveLinkRequest;
 import backend.academy.scrapper.service.ScrapperService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

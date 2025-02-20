@@ -1,9 +1,6 @@
 package backend.academy.bot.state;
 
 import backend.academy.bot.exception.TelegramApiException;
-import backend.academy.bot.model.ApiErrorResponse;
-import backend.academy.bot.model.LinkResponse;
-import backend.academy.bot.model.ListLinkResponse;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.model.request.ParseMode;
 import com.pengrad.telegrambot.request.SendMessage;

@@ -1,10 +1,10 @@
 package backend.academy.scrapper.service;
 
-import backend.academy.scrapper.model.AddLinkRequest;
-import backend.academy.scrapper.model.LinkResponse;
-import backend.academy.scrapper.model.ListLinkResponse;
-import backend.academy.scrapper.model.RegisterChatRequest;
-import backend.academy.scrapper.model.RemoveLinkRequest;
+import dto.AddLinkRequest;
+import dto.LinkResponse;
+import dto.ListLinkResponse;
+import dto.RegisterChatRequest;
+import dto.RemoveLinkRequest;
 import org.springframework.stereotype.Component;
 
 @Component

@@ -3,17 +3,16 @@ package backend.academy.bot.service;
 import backend.academy.bot.clients.ScrapperClient;
 import backend.academy.bot.configs.TelegramBot;
 import backend.academy.bot.exception.TelegramApiException;
-import backend.academy.bot.model.LinkUpdate;
-import backend.academy.bot.model.ListLinkResponse;
-import backend.academy.bot.model.RegisterChatRequest;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.request.SendMessage;
+import dto.LinkUpdate;
+import dto.RegisterChatRequest;
+import dto.RemoveLinkRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import java.util.Collections;
 
 @Slf4j
 @Service
@@ -29,7 +28,6 @@ public class BotService {
         this.telegramBot = telegramBot;
     }
 
-    //TODO: метод для отображения уведомлений в бот тг
     public void processUpdate(LinkUpdate update) {
     }
 
@@ -77,17 +75,48 @@ public class BotService {
 
     }
 
-    public void commitLinkTracking(Long chatId){
-        var linkRequest = addLinkRequestService.getLinkRequest(chatId);
-        if (linkRequest == null) {
-            telegramBot.execute(new SendMessage(chatId, "Произошла ошибка. Попробуйте снова."));
-            return;
+    public Object commitLinkTracking(Long chatId) {
+        try {
+            var linkRequest = addLinkRequestService.getLinkRequest(chatId);
+            if (linkRequest == null) {
+                throw new IllegalArgumentException("Link request is null");
+            }
+
+            var responseEntity = client.addTrackedLink(chatId, linkRequest);
+
+            if (responseEntity.getStatusCode().is2xxSuccessful()) {
+                addLinkRequestService.clearLinkRequest(chatId);
+                log.info("Successfully track link for chatId: {}", chatId);
+            } else {
+                log.warn("Failed to track link for chatId: {}. Status code: {}",
+                    chatId, responseEntity.getStatusCode());
+            }
+            return responseEntity.getBody();
+        } catch (Exception ex) {
+            log.error("Unexpected error while fetching tracked links for chatId: {}", chatId, ex);
+            throw new TelegramApiException("Произошла ошибка взаимодействия с сервисом Scrapper. Попробуйте позже.");
         }
 
-        telegramBot.execute(new SendMessage(chatId, "Ссылка успешно добавлена в отслеживание!"));
-        client.addTrackedLink(chatId, linkRequest);
-        addLinkRequestService.clearLinkRequest(chatId);
     }
 
+    public Object commitLinkUntrack(Long chatId, String message) {
+        try {
+            var responseEntity = client.removeTrackedLink(
+                chatId,
+                new RemoveLinkRequest(message)
+            );
+            log.info("Remove link: {}", responseEntity);
 
+            if (responseEntity.getStatusCode().is2xxSuccessful()) {
+                log.info("Successfully untrack link for chatId: {}", chatId);
+            } else {
+                log.warn("Failed to untrack tracked link for chatId: {}. Status code: {}",
+                    chatId, responseEntity.getStatusCode());
+            }
+            return responseEntity.getBody();
+        } catch (Exception ex) {
+            log.error("Unexpected error while fetching tracked links for chatId: {}", chatId, ex);
+            throw new TelegramApiException("Произошла ошибка взаимодействия с сервисом Scrapper. Попробуйте позже.");
+        }
+    }
 }

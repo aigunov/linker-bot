@@ -1,16 +1,16 @@
 package backend.academy.bot.clients;
 
-import backend.academy.bot.model.AddLinkRequest;
-import backend.academy.bot.model.ApiErrorResponse;
-import backend.academy.bot.model.LinkResponse;
-import backend.academy.bot.model.ListLinkResponse;
-import backend.academy.bot.model.RegisterChatRequest;
-import backend.academy.bot.model.RemoveLinkRequest;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import dto.AddLinkRequest;
+import dto.ApiErrorResponse;
+import dto.LinkResponse;
+import dto.ListLinkResponse;
+import dto.RegisterChatRequest;
+import dto.RemoveLinkRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;

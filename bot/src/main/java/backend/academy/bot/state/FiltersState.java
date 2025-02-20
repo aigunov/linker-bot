@@ -5,7 +5,6 @@ import backend.academy.bot.service.AddLinkRequestService;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.model.request.ParseMode;
 import com.pengrad.telegrambot.request.SendMessage;
-import java.util.Arrays;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -15,7 +14,6 @@ import org.springframework.stereotype.Component;
 public class FiltersState extends StateImpl{
     private final AddLinkRequestService trackLinkService;
 
-    private final Integer returningDeep = 3;
     private static final String next_button = "Далее";
     private static final String message = """
         Добавьте фильтры к отслеживаемой ссылке (опционально):
@@ -49,23 +47,49 @@ public class FiltersState extends StateImpl{
 
     @Override
     public void handle(Update update) {
+        try {
         if (update.message().text() != null) {
             var message = update.message().text();
             var chatId = update.message().chat().id();
             switch (message) {
                 case back_button -> cancelLinkInsertion(chatId);
                 case next_button -> {
+                    commitTracking(chatId);
                     continueWithoutFilters(chatId);
-                    botService.commitLinkTracking(chatId);
                 }
                 default -> {
+                    commitTracking(chatId);
                     addFiltersToLink(chatId, message);
-                    botService.commitLinkTracking(chatId);
                 }
             }
         } else {
             showUnsupportedActionMessage(update);
         }
+        } catch (Exception ex) {
+            bot.execute(new SendMessage(update.message().chat().id(),
+                "Непредвиденная ошибка" + ex.getMessage()));
+        }
+    }
+
+    private void commitTracking(Long chatId) {
+        log.info("Link will be committed: {}", chatId);
+        var response = botService.commitLinkTracking(chatId);
+        switch (response) {
+            case LinkResponse link -> {
+                bot.execute(new SendMessage(chatId, "Ссылка успешно добавлена в отслеживание!"));
+            }
+            case ApiErrorResponse error -> {
+                bot.execute(new SendMessage(chatId,
+                    String.format("У нас не получилось добавить к отслеживанию ссылку по причине: %s",
+                        error.description()))
+                    .parseMode(ParseMode.HTML));
+            }
+            default -> {
+                log.error("Undefined response type: {}", response.getClass().getSimpleName());
+                throw new TelegramApiException("Неизвестный тип");
+            }
+        }
+
     }
 
     private void addFiltersToLink(Long chatId, String message) {
@@ -74,16 +98,16 @@ public class FiltersState extends StateImpl{
         stateManager.navigate(chatId, ChatState.MENU);
     }
 
+    private void continueWithoutFilters(Long chatId) {
+        log.info("Link will be tracked without filters");
+        stateManager.navigate(chatId, ChatState.MENU);
+    }
+
     private void cancelLinkInsertion(Long chatId) {
         log.info("Cancelling link insertion: {}", chatId);
         bot.execute(new SendMessage(chatId, "Ранее отправленная ссылка будет удалена")
             .parseMode(ParseMode.HTML));
         trackLinkService.clearLinkRequest(chatId);
-        stateManager.navigate(chatId, ChatState.MENU);
-    }
-
-    private void continueWithoutFilters(Long chatId) {
-        log.info("Link will be tracked without filters");
         stateManager.navigate(chatId, ChatState.MENU);
     }
 }

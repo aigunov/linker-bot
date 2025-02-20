@@ -1,6 +1,5 @@
 package backend.academy.bot.service;
 
-import backend.academy.bot.model.AddLinkRequest;
 import backend.academy.bot.state.ChatState;
 import org.springframework.stereotype.Service;
 import java.util.Deque;

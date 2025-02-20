@@ -1,6 +1,6 @@
 package backend.academy.bot.service;
 
-import backend.academy.bot.model.AddLinkRequest;
+import dto.AddLinkRequest;
 import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Map;

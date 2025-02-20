@@ -1,7 +1,7 @@
 package backend.academy.bot.controller;
 
-import backend.academy.bot.model.LinkUpdate;
 import backend.academy.bot.service.BotService;
+import dto.LinkUpdate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;

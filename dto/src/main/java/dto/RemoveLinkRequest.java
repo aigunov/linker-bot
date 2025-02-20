@@ -1,4 +1,4 @@
-package backend.academy.scrapper.model;
+package dto;
 
 public record RemoveLinkRequest (String uri){
 }
