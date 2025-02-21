@@ -15,7 +15,7 @@ import lombok.Setter;
 @Builder(toBuilder = true)
 public class Link {
     private UUID id;
-    private UUID userId;
+    private UUID chatId;
     private String url;
     private List<String> tags;
     private List<String> filters;
