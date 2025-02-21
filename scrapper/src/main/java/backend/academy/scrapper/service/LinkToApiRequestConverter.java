@@ -19,7 +19,6 @@ public class LinkToApiRequestConverter {
             throw new IllegalArgumentException(STR."Invalid GitHub URL format: \{githubUrl}");
         }
 
-        // Extract user/repository from the URL
         String repoPath = githubUrl.replace("https://github.com/", "").replaceAll("/$", "");
         return STR."\{GITHUB.APi_URL()}/\{repoPath}";
     }

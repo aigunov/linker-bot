@@ -5,6 +5,7 @@ import dto.LinkResponse;
 import dto.ListLinkResponse;
 import dto.RegisterChatRequest;
 import dto.RemoveLinkRequest;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -28,4 +29,9 @@ public class ScrapperService {
     public LinkResponse removeTrackedLink(Long chatId, RemoveLinkRequest request) {
         return null;
     }
+
+
+
+    @Scheduled(fixedRate = 300000)
+    public void scrapper() {}
 }
