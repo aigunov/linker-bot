@@ -1,15 +1,14 @@
 package backend.academy.scrapper.controller;
 
+import backend.academy.scrapper.service.ScrapperService;
 import dto.AddLinkRequest;
-import dto.ApiErrorResponse;
 import dto.LinkResponse;
 import dto.ListLinkResponse;
 import dto.RemoveLinkRequest;
-import backend.academy.scrapper.service.ScrapperService;
+import io.micrometer.tracing.Link;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -24,50 +23,30 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/links") // Общий путь для контроллера LinksController
+@RequestMapping("/links")
 public class LinksController {
 
     private final ScrapperService scrapperService;
 
     @GetMapping
-    public ResponseEntity<?> getAllTrackedLinks(@RequestHeader("Tg-Chat-Id") Long chatId) {
-        try {
-            ListLinkResponse response = scrapperService.getAllTrackedLinks(chatId);
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            log.error("Ошибка получения ссылок: {}", e.getMessage(), e);
-            return ResponseEntity.badRequest().body(createErrorResponse(e, "400"));
-        }
+    public ResponseEntity<ListLinkResponse> getAllTrackedLinks(@RequestHeader("Tg-Chat-Id") Long chatId) {
+        log.info("Getting all tracked links");
+        var response = scrapperService.getAllTrackedLinks(chatId);
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping
-    public ResponseEntity<?> addTrackedLink(@RequestHeader("Tg-Chat-Id") Long chatId, @Valid @RequestBody AddLinkRequest request) {
-        try {
-            LinkResponse response = scrapperService.addTrackedLink(chatId, request);
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            log.error("Ошибка добавления ссылки: {}", e.getMessage(), e);
-            return ResponseEntity.badRequest().body(createErrorResponse(e, "400"));
-        }
+    public ResponseEntity<LinkResponse> addTrackedLink(@RequestHeader("Tg-Chat-Id") Long chatId, @Valid @RequestBody AddLinkRequest request) {
+        log.info("Adding tracked link: {}", request);
+        LinkResponse response = scrapperService.addTrackedLink(chatId, request);
+        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping
-    public ResponseEntity<?> removeTrackedLink(@RequestHeader("Tg-Chat-Id") Long chatId, @Valid @RequestBody RemoveLinkRequest request) {
-        try {
-            LinkResponse response = scrapperService.removeTrackedLink(chatId, request);
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            log.error("Ошибка удаления ссылки: {}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(createErrorResponse(e, "404"));
-        }
+    public ResponseEntity<LinkResponse> removeTrackedLink(@RequestHeader("Tg-Chat-Id") Long chatId, @Valid @RequestBody RemoveLinkRequest request) {
+        log.info("Removing tracked link: {}", request);
+        LinkResponse response = scrapperService.removeTrackedLink(chatId, request);
+        return ResponseEntity.ok(response);
     }
 
-    private ApiErrorResponse createErrorResponse(Exception e, String code) {
-        return ApiErrorResponse.builder()
-            .description(e.getMessage())
-            .code(code)
-            .exceptionName(e.getClass().getSimpleName())
-            .exceptionMessage(e.getMessage())
-            .build();
-    }
 }

@@ -1,15 +1,18 @@
 package backend.academy.scrapper.controller;
 
-import dto.ApiErrorResponse;
-import dto.RegisterChatRequest;
 import backend.academy.scrapper.service.ScrapperService;
+import dto.RegisterChatRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
 @Validated
@@ -21,33 +24,18 @@ public class TgChatController {
     private final ScrapperService scrapperService;
 
     @PostMapping("/{id}")
-    public ResponseEntity<?> registerChat(@PathVariable Long id, @Valid @RequestBody RegisterChatRequest request) {
-        try {
-            scrapperService.registerChat(id, request);
-            return ResponseEntity.ok().build();
-        } catch (Exception e) {
-            log.error("Ошибка регистрации чата: {}", e.getMessage(), e);
-            return ResponseEntity.badRequest().body(createErrorResponse(e, "400"));
-        }
+    public ResponseEntity<String> registerChat(@PathVariable Long id, @Valid @RequestBody RegisterChatRequest request) {
+        log.info("Registering chat with id {}", id);
+        var responseString = scrapperService.registerChat(id, request);
+        return ResponseEntity.ok().body(responseString);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteChat(@PathVariable Long id) {
-        try {
-            scrapperService.deleteChat(id);
-            return ResponseEntity.ok().build();
-        } catch (Exception e) {
-            log.error("Ошибка удаления чата: {}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(createErrorResponse(e, "404"));
-        }
+        log.info("Deleting chat with id {}", id);
+        var responseString = scrapperService.deleteChat(id);
+        return ResponseEntity.ok().body(responseString);
     }
 
-    private ApiErrorResponse createErrorResponse(Exception e, String code) {
-        return ApiErrorResponse.builder()
-            .description(e.getMessage())
-            .code(code)
-            .exceptionName(e.getClass().getSimpleName())
-            .exceptionMessage(e.getMessage())
-            .build();
-    }
+
 }

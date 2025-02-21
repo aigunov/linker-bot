@@ -9,11 +9,12 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class ScrapperService {
-    public void registerChat(Long id, RegisterChatRequest request) {
-
+    public String registerChat(Long id, RegisterChatRequest request) {
+        return null;
     }
 
-    public void deleteChat(Long id) {
+    public String deleteChat(Long id) {
+        return null;
     }
 
     public ListLinkResponse getAllTrackedLinks(Long chatId) {
