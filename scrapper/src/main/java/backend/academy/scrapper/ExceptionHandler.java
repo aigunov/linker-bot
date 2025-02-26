@@ -24,7 +24,15 @@ public class ExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(createErrorResponse(e, "404"));
     }
 
-    private ApiErrorResponse createErrorResponse(Exception e, String code) {
+    @org.springframework.web.bind.annotation.ExceptionHandler(Throwable.class)
+    public ResponseEntity<ApiErrorResponse> handleAll(Throwable e) {
+        log.error("Неизвестная ошибка: {} - {}", e.getClass().getSimpleName(), e.getMessage(), e);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+            .body(createErrorResponse(e, "500"));
+    }
+
+
+    private ApiErrorResponse createErrorResponse(Throwable e, String code) {
         return ApiErrorResponse.builder()
             .description(e.getMessage())
             .code(code)
