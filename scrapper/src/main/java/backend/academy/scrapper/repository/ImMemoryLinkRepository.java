@@ -1,7 +1,9 @@
 package backend.academy.scrapper.repository;
 
 import backend.academy.scrapper.model.Link;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -9,14 +11,18 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Slf4j
 @Qualifier(value = "linkRepository")
-@org.springframework.stereotype.Repository
+@Component
 public class ImMemoryLinkRepository implements Repository<Link>{
     private final Map<UUID, Link> storage = new ConcurrentHashMap<>();
 
     @Override
     public Link save(Link link) {
-        return storage.put(link.id(), link);
+        storage.put(link.id(), link);
+        link = storage.get(link.id());
+        log.info("Link saved: {}", link);
+        return link;
     }
 
     @Override
@@ -44,10 +50,11 @@ public class ImMemoryLinkRepository implements Repository<Link>{
         return storage.remove(id);
     }
 
-    public Optional<Link> deleteByChatIdAndLinkUrl(UUID id, String uri) {
+
+    public Optional<Link> findByChatIdAndLink(UUID chatId, String uri) {
         for (Link link : storage.values()) {
-            if (link.url().equals(uri) && link.chatId().equals(id)) {
-                return Optional.of(storage.remove(link.id()));
+            if (link.chatId().equals(chatId) && link.url().equals(uri)) {
+                return Optional.of(link);
             }
         }
         return Optional.empty();

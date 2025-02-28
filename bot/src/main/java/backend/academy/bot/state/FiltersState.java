@@ -5,6 +5,8 @@ import backend.academy.bot.service.AddLinkRequestService;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.model.request.ParseMode;
 import com.pengrad.telegrambot.request.SendMessage;
+import dto.ApiErrorResponse;
+import dto.LinkResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -52,14 +54,14 @@ public class FiltersState extends StateImpl{
             var message = update.message().text();
             var chatId = update.message().chat().id();
             switch (message) {
-                case back_button -> cancelLinkInsertion(chatId);
+                case back_button -> cancelLinkInsertion(update);
                 case next_button -> {
                     commitTracking(chatId);
-                    continueWithoutFilters(chatId);
+                    continueWithoutFilters(update);
                 }
                 default -> {
                     commitTracking(chatId);
-                    addFiltersToLink(chatId, message);
+                    addFiltersToLink(update, message);
                 }
             }
         } else {
@@ -92,22 +94,24 @@ public class FiltersState extends StateImpl{
 
     }
 
-    private void addFiltersToLink(Long chatId, String message) {
+    private void addFiltersToLink(Update update, String message) {
+        var chatId = update.message().chat().id();
         log.info("Adding filters {}", message);
         trackLinkService.updateLinkRequestFilters(chatId, message);
-        stateManager.navigate(chatId, ChatState.MENU);
+        stateManager.navigate(update, ChatState.MENU);
     }
 
-    private void continueWithoutFilters(Long chatId) {
+    private void continueWithoutFilters(Update update) {
         log.info("Link will be tracked without filters");
-        stateManager.navigate(chatId, ChatState.MENU);
+        stateManager.navigate(update, ChatState.MENU);
     }
 
-    private void cancelLinkInsertion(Long chatId) {
+    private void cancelLinkInsertion(Update update) {
+        var chatId = update.message().chat().id();
         log.info("Cancelling link insertion: {}", chatId);
         bot.execute(new SendMessage(chatId, "Ранее отправленная ссылка будет удалена")
             .parseMode(ParseMode.HTML));
         trackLinkService.clearLinkRequest(chatId);
-        stateManager.navigate(chatId, ChatState.MENU);
+        stateManager.navigate(update, ChatState.MENU);
     }
 }

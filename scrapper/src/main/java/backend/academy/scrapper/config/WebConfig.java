@@ -1,26 +1,34 @@
-package backend.academy.bot.configs;
+package backend.academy.scrapper.config;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
+import org.springframework.context.annotation.Primary;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
-import org.springframework.web.reactive.function.client.WebClient;
 
 @Configuration
-public class WebClientConfig {
+public class WebConfig {
 
     @Bean
-    public RestClient scrapperRestClient(@Value("${scrapper.api.url}") String scrapperApiUrl) {
+    @Primary
+    public RestClient restClient(@Value("${bot.api.url}") String botUrl) {
         return RestClient.builder()
+            .baseUrl(botUrl)
             .requestFactory(clientHttpRequestFactory())
-            .baseUrl(scrapperApiUrl)
             .build();
     }
+
+    @Bean
+    @Qualifier("trackClient")
+    public RestClient trackClient(){
+        return RestClient.builder()
+            .requestFactory(clientHttpRequestFactory())
+            .build();
+    }
+
 
     @Bean
     public ClientHttpRequestFactory clientHttpRequestFactory() {

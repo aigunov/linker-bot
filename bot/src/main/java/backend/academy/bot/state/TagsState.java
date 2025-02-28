@@ -48,33 +48,34 @@ public class TagsState extends StateImpl{
     public void handle(Update update) {
         if (update.message().text() != null) {
             var message = update.message().text();
-            var chatId = update.message().chat().id();
             switch (message) {
-                case next_button -> continueWithoutTags(chatId);
-                case back_button -> cancelLinkInsertion(chatId);
-                default -> addTagsToLink(chatId, message);
+                case next_button -> continueWithoutTags(update);
+                case back_button -> cancelLinkInsertion(update);
+                default -> addTagsToLink(update, message);
             }
         } else {
             showUnsupportedActionMessage(update);
         }
     }
 
-    private void addTagsToLink(Long chatId, String message) {
+    private void addTagsToLink(Update update, String message) {
+        var chatId = update.message().chat().id();
         log.info("Adding tags {}", message);
         trackLinkService.updateLinkRequestTags(chatId, message);
-        stateManager.navigate(chatId, ChatState.FILTERS);
+        stateManager.navigate(update, ChatState.FILTERS);
     }
 
-    private void cancelLinkInsertion(Long chatId) {
+    private void cancelLinkInsertion(Update update) {
+        var chatId = update.message().chat().id();
         log.info("Cancelling link insertion: {}", chatId);
         bot.execute(new SendMessage(chatId, "Ранее отправленная ссылка будет удалена")
             .parseMode(ParseMode.HTML));
         trackLinkService.clearLinkRequest(chatId);
-        stateManager.navigate(chatId, ChatState.MENU);
+        stateManager.navigate(update, ChatState.MENU);
     }
 
-    private void continueWithoutTags(Long chatId) {
+    private void continueWithoutTags(Update update) {
         log.info("Link will be tracked without tags");
-        stateManager.navigate(chatId, ChatState.FILTERS);
+        stateManager.navigate(update, ChatState.FILTERS);
     }
 }

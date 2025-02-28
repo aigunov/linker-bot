@@ -1,12 +1,8 @@
 package dto;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
 import java.util.List;
+import lombok.Builder;
 
-@Getter
-@Setter
 @Builder
 public record ListLinkResponse(List<LinkResponse> linkResponses, int size) {
 }

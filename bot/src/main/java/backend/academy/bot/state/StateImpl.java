@@ -57,7 +57,7 @@ public abstract class StateImpl implements State {
         bot.execute(new SendMessage(update.message().chat().id(), "Неподдерживаемая функциональность")
             .parseMode(ParseMode.HTML)
         );
-        stateManager.navigate(update.message().chat().id(), ChatState.MENU);
+        stateManager.navigate(update, ChatState.MENU);
     }
 
     //TODO: переделать

@@ -44,20 +44,21 @@ public class TrackState extends StateImpl{
             var message = update.message().text();
             var chatId = update.message().chat().id();
             if (back_button.equals(message)) {
-                stateManager.navigate(chatId, ChatState.MENU);
+                stateManager.navigate(update, ChatState.MENU);
             } else {
-                insertLinkHandle(chatId, message);
+                insertLinkHandle(update, message);
             }
         } else {
             showUnsupportedActionMessage(update);
         }
     }
 
-    private void insertLinkHandle(Long chatId, String message) {
+    private void insertLinkHandle(Update update, String message) {
+        var chatId = update.message().chat().id();
         if (isValidURL(message)) {
             log.info("Link {} inserted into chat {}", message, chatId);
             trackLinkService.createLinkRequest(chatId, message);
-            stateManager.navigate(chatId, ChatState.TAGS);
+            stateManager.navigate(update, ChatState.TAGS);
         } else {
             bot.execute(new SendMessage(chatId, "Неверный формат ссылки.")
                 .parseMode(ParseMode.HTML));

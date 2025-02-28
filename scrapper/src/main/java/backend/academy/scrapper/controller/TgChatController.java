@@ -25,14 +25,14 @@ public class TgChatController {
 
     @PostMapping("/{id}")
     public ResponseEntity<String> registerChat(@PathVariable Long id, @Valid @RequestBody RegisterChatRequest request) {
-        log.info("Registering chat with id {}", id);
+        log.info("Registering chat with chatId {}", id);
         var responseString = scrapperService.registerChat(id, request);
         return ResponseEntity.ok().body(responseString);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteChat(@PathVariable Long id) {
-        log.info("Deleting chat with id {}", id);
+        log.info("Deleting chat with chatId {}", id);
         var responseString = scrapperService.deleteChat(id);
         return ResponseEntity.ok().body(responseString);
     }

@@ -1,5 +1,6 @@
 package backend.academy.scrapper.model;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
@@ -19,4 +20,5 @@ public class Link {
     private String url;
     private List<String> tags;
     private List<String> filters;
+    private LocalDateTime lastUpdate;
 }

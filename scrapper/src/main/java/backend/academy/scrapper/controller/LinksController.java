@@ -36,7 +36,7 @@ public class LinksController {
     }
 
     @PostMapping
-    public ResponseEntity<LinkResponse> addTrackedLink(@RequestHeader("Tg-Chat-Id") Long chatId, @Valid @RequestBody AddLinkRequest request) {
+    public ResponseEntity<LinkResponse> addTrackedLink(@RequestHeader("Tg-Chat-Id") Long chatId, @RequestBody AddLinkRequest request) {
         log.info("Adding tracked link: {}", request);
         LinkResponse response = scrapperService.addTrackedLink(chatId, request);
         return ResponseEntity.ok(response);

@@ -4,6 +4,9 @@ import backend.academy.bot.exception.TelegramApiException;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.model.request.ParseMode;
 import com.pengrad.telegrambot.request.SendMessage;
+import dto.ApiErrorResponse;
+import dto.LinkResponse;
+import dto.ListLinkResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -38,7 +41,7 @@ public class ListState extends StateImpl{
         if (update.message().text() != null &&
             update.message().text().equals(back_button)) {
             var chatId = update.message().chat().id();
-            stateManager.navigate(chatId, ChatState.MENU);
+            stateManager.navigate(update, ChatState.MENU);
         } else {
             showUnsupportedActionMessage(update);
         }

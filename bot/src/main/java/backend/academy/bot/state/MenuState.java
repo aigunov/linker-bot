@@ -40,10 +40,10 @@ public class MenuState extends StateImpl{
             var button = update.message().text();
             var chatId = update.message().chat().id();
             switch (button) {
-                case track_button -> stateManager.navigate(chatId, ChatState.TRACK);
-                case untrack_button -> stateManager.navigate(chatId, ChatState.UNTRACKED);
-                case list_button -> stateManager.navigate(chatId, ChatState.LIST);
-                case help_button -> stateManager.navigate(chatId, ChatState.HELP);
+                case track_button -> stateManager.navigate(update, ChatState.TRACK);
+                case untrack_button -> stateManager.navigate(update, ChatState.UNTRACKED);
+                case list_button -> stateManager.navigate(update, ChatState.LIST);
+                case help_button -> stateManager.navigate(update, ChatState.HELP);
             }
         } else {
             showUnsupportedActionMessage(update);

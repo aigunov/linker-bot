@@ -7,6 +7,8 @@ import com.pengrad.telegrambot.request.SendMessage;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import dto.ApiErrorResponse;
+import dto.LinkResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -38,9 +40,10 @@ public class UntrackedState extends StateImpl{
             var message = update.message().text();
             var chatId = update.message().chat().id();
             if (back_button.equals(message)) {
-                stateManager.navigate(chatId, ChatState.MENU);
+                stateManager.navigate(update, ChatState.MENU);
             } else {
                 untrackLink(message, chatId);
+                stateManager.navigate(update, ChatState.MENU);
             }
         } else {
             showUnsupportedActionMessage(update);
@@ -55,6 +58,7 @@ public class UntrackedState extends StateImpl{
                 case LinkResponse link -> {
                     bot.execute(new SendMessage(chatId, String.format("Ссылка %s была отменена пользователем", link.url()))
                             .parseMode(ParseMode.HTML));
+
                 }
                 case ApiErrorResponse error -> {
                     bot.execute(new SendMessage(chatId,

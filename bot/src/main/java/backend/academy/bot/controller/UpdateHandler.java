@@ -31,7 +31,7 @@ public class UpdateHandler {
 
             var chatId = update.message().chat().id();
             if (update.message().text().equals("/start")) {
-                stateManager.navigate(update.message().chat().id(), ChatState.REGISTER);
+                stateManager.navigate(update, ChatState.REGISTER);
                 return;
             }
             ChatState currentState = chatStateService.peekLastChatState(String.valueOf(chatId)).orElse(ChatState.MENU);

@@ -21,3 +21,8 @@ springdoc:
   swagger-ui:
     enabled: true
     path: /swagger-ui
+
+
+bot:
+  api:
+    url: http://localhost:8080

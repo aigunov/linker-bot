@@ -1,7 +1,9 @@
 package backend.academy.scrapper.repository;
 
 import backend.academy.scrapper.model.Chat;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -9,14 +11,18 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Slf4j
 @Qualifier(value = "chatRepository")
-@org.springframework.stereotype.Repository
+@Component
 public class ImMemoryChatRepository implements Repository<Chat>{
     private final Map<UUID, Chat> storage = new ConcurrentHashMap<>();
 
     @Override
     public Chat save(Chat chat) {
-        return storage.put(chat.id(), chat);
+        storage.put(chat.id(), chat);
+        chat = storage.get(chat.id());
+        log.info("Зарегистрирован новый чат: {}", chat.id());
+        return chat;
     }
 
     @Override

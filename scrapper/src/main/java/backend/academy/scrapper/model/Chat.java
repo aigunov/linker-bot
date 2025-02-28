@@ -15,12 +15,13 @@ import java.util.UUID;
 @Setter
 @RequiredArgsConstructor
 @AllArgsConstructor
-@NoArgsConstructor
 @Builder(toBuilder = true)
 public class Chat {
+    @NotNull
     private UUID id;
     @NotNull
     private Long chatId;
+    @NotNull
     private String username;
     @CreatedDate
     private LocalDateTime creationDate;

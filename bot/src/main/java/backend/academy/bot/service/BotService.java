@@ -2,9 +2,12 @@ package backend.academy.bot.service;
 
 import backend.academy.bot.clients.ScrapperClient;
 import backend.academy.bot.configs.TelegramBot;
+import backend.academy.bot.exception.FailedIncomingUpdatesHandleException;
 import backend.academy.bot.exception.TelegramApiException;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.request.SendMessage;
+import dto.AddLinkRequest;
+import dto.ApiErrorResponse;
 import dto.LinkUpdate;
 import dto.RegisterChatRequest;
 import dto.RemoveLinkRequest;
@@ -13,6 +16,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import static backend.academy.bot.clients.ScrapperClient.convertStackTraceToList;
 
 @Slf4j
 @Service
@@ -22,13 +28,11 @@ public class BotService {
     private final ScrapperClient client;
     private final AddLinkRequestService addLinkRequestService;
     private TelegramBot telegramBot;
+    private final ExecutorService executorService = Executors.newFixedThreadPool(10);
 
     @Autowired
     public void setTelegramBot(@Lazy TelegramBot telegramBot) {
         this.telegramBot = telegramBot;
-    }
-
-    public void processUpdate(LinkUpdate update) {
     }
 
     public Object getTrackingLinks(Long chatId) {
@@ -48,36 +52,34 @@ public class BotService {
         }
     }
 
-    public void chatRegistration(Update update) {
+    public Object chatRegistration(Update update) {
         var message = update.message();
         var tgUser = message.from();
         var chatId = update.message().chat().id();
         var username = tgUser.username() != null ? "@" + tgUser.username() : tgUser.firstName();
 
-
         var registerChat = RegisterChatRequest.builder()
-            .id(chatId)
+            .chatId(chatId)
             .name(username)
             .build();
 
         try {
             var response = client.registerChat(registerChat);
-//        var response = new ResponseEntity<RegisterChatRequest>(registerChat, HttpStatusCode.valueOf(200));
-            if (response.getStatusCode().is2xxSuccessful()) {
-                telegramBot.execute(new SendMessage(chatId, "Вы успешно зарегистрированы"));
-            } else {
-                telegramBot.execute(new SendMessage(chatId, "Непредвиденная ошибка при запросе к сервису. Попробуйте позже"));
-            }
+            return response.getBody();
         } catch (Exception ex) {
             log.info("Bot service, register user. Пук, крях, чото странное мы больше не работаем: {}", ex.getMessage());
-            telegramBot.execute(new SendMessage(chatId, "Пук, крях, чото странное мы больше не работаем"));
+            return ApiErrorResponse.builder()
+                .exceptionMessage(ex.getMessage())
+                .stacktrace(convertStackTraceToList(ex.getStackTrace()))
+                .code("500")
+                .description(ex.getClass().getSimpleName())
+                .build();
         }
-
     }
 
     public Object commitLinkTracking(Long chatId) {
         try {
-            var linkRequest = addLinkRequestService.getLinkRequest(chatId);
+            AddLinkRequest linkRequest = addLinkRequestService.getLinkRequest(chatId);
             if (linkRequest == null) {
                 throw new IllegalArgumentException("Link request is null");
             }
@@ -119,4 +121,29 @@ public class BotService {
             throw new TelegramApiException("Произошла ошибка взаимодействия с сервисом Scrapper. Попробуйте позже.");
         }
     }
+
+    public void processUpdate(LinkUpdate update) {
+        for (Long chatId : update.tgChatIds()) {
+            executorService.submit(() -> sendUpdateToChat(update, chatId));
+        }
+    }
+
+    private void sendUpdateToChat(LinkUpdate update, Long chatId) {
+        var message = formatUpdateMessage(update);
+        try {
+            telegramBot.execute(new SendMessage(chatId, message));
+            log.info("Update sent to chat {}: {}", chatId, update);
+        } catch (TelegramApiException e) {
+            log.error("Failed to send update to chat {}: {}", chatId, update, e);
+            throw new FailedIncomingUpdatesHandleException(STR."Failed to send update to chat \{chatId}", e);
+        }
+    }
+
+    private String formatUpdateMessage(LinkUpdate update) {
+        return String.format("""
+            Link updated:
+            URL: %s
+            Description: %s""", update.url(), update.description());
+    }
+
 }

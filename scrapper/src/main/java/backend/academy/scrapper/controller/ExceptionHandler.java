@@ -2,26 +2,49 @@ package backend.academy.scrapper.controller;
 
 import dto.ApiErrorResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.aop.AopInvocationException;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.util.NoSuchElementException;
 
 @Slf4j
-@RestControllerAdvice
+@ControllerAdvice
+@Order(Ordered.HIGHEST_PRECEDENCE)
+@RestControllerAdvice("backend.academy.scrapper.controller")
 public class ExceptionHandler {
+
+    @org.springframework.web.bind.annotation.ExceptionHandler(AopInvocationException.class)
+    public ResponseEntity<ApiErrorResponse> handleAopException(AopInvocationException e) {
+        log.error("Ошибка AOP: {}", e.getMessage(), e);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(createErrorResponse(e, "500"));
+    }
+
 
 
     @org.springframework.web.bind.annotation.ExceptionHandler(Exception.class)
     public ResponseEntity<ApiErrorResponse> handleGeneralException(Exception e) {
-        log.error("Произошла ошибка: {}", e.getMessage(), e);
-        return ResponseEntity.badRequest().body(createErrorResponse(e, "400"));
+        var errorResponse = createErrorResponse(e, "400");
+        log.error("Произошла ошибка: {}", errorResponse);
+        return ResponseEntity.badRequest().body(errorResponse);
     }
 
     @org.springframework.web.bind.annotation.ExceptionHandler(NoSuchElementException.class)
     public ResponseEntity<ApiErrorResponse> handleNotFoundException(NoSuchElementException e) {
         log.error("Объект не найден: {}", e.getMessage(), e);
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(createErrorResponse(e, "404"));
+    }
+
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @org.springframework.web.bind.annotation.ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ApiErrorResponse> handleIllegalArgumentException(IllegalArgumentException exception){
+        log.error("IllegalArgumentException: {}", exception.getMessage(), exception);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+            .body(createErrorResponse(exception, "500"));
     }
 
     @org.springframework.web.bind.annotation.ExceptionHandler(Throwable.class)
@@ -42,3 +65,4 @@ public class ExceptionHandler {
     }
 
 }
+
