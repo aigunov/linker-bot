@@ -10,7 +10,6 @@ import org.springframework.stereotype.Component;
 public class KeyboardFactory {
 
     public ReplyKeyboardMarkup getMainMenuKeyboard() {
-        var link = "🔗";
         List<KeyboardButton[]> rows = new ArrayList<>();
 
         rows.add(new KeyboardButton[]{

@@ -14,7 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 @Qualifier(value = "linkRepository")
 @Component
-public class ImMemoryLinkRepository implements Repository<Link>{
+public class InMemoryLinkRepository implements Repository<Link>{
     private final Map<UUID, Link> storage = new ConcurrentHashMap<>();
 
     @Override

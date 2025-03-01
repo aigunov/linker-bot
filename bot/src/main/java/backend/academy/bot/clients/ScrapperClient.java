@@ -111,14 +111,6 @@ public class ScrapperClient {
     }
 
 
-
-
-
-
-
-
-
-
     private <T, E> ResponseEntity<Object> makeAndSendRequest(
         String uri,
         HttpMethod httpMethod,

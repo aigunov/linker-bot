@@ -29,7 +29,7 @@ public class JsonToApiErrorResponse {
             .build();
     }
 
-    private static String extractExceptionName(String trace) {
+    public String extractExceptionName(String trace) {
         if (trace == null || trace.isEmpty()) {
             return "Unknown Exception";
         }
@@ -46,7 +46,7 @@ public class JsonToApiErrorResponse {
         return "Unknown Exception";
     }
 
-    private static List<String> convertTraceToList(String trace) {
+    public List<String> convertTraceToList(String trace) {
         if (trace == null || trace.isEmpty()) {
             return List.of();
         }

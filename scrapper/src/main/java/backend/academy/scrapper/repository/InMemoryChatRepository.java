@@ -14,7 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 @Qualifier(value = "chatRepository")
 @Component
-public class ImMemoryChatRepository implements Repository<Chat>{
+public class InMemoryChatRepository implements Repository<Chat>{
     private final Map<UUID, Chat> storage = new ConcurrentHashMap<>();
 
     @Override

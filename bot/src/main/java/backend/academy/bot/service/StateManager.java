@@ -18,7 +18,6 @@ public class StateManager {
     public <S extends State> void navigate(Update update, ChatState chatState) {
         if (chatState.equals(ChatState.REGISTER)) {
             var register = (RegisterState) ChatState.REGISTER.getState();
-//            log.info("Navigating state from {} to {} on chat {}", chatState.getState(), register, chatId);
             register.show(update);
         } else {
             var chatId = update.message().chat().id();

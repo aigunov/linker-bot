@@ -20,7 +20,6 @@ public class AddLinkRequestService {
 
     public void updateLinkRequestTags(Long chatId, String tags) {
         linkRequests.computeIfPresent(chatId, (k, v) -> {
-//            v.tags(List.of(tags.split(" ")));
             v.tags().addAll(List.of(tags.split(" ")));
             return v;
         });
@@ -28,7 +27,6 @@ public class AddLinkRequestService {
 
     public void updateLinkRequestFilters(Long chatId, String filters) {
         linkRequests.computeIfPresent(chatId, (k, v) -> {
-//            v.filters(List.of(filters.split(" ")));
             v.filters().addAll(List.of(filters.split(" ")));
             return v;
         });

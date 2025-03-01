@@ -24,22 +24,22 @@ public class LinkToApiRequestConverter {
     }
 
     /**
-     * Converts a StackOverflow question URL to a StackOverflow API request URL.
+     * Converts a StackO
+     * verflow question URL to a StackOverflow API request URL.
      *
      * @param stackOverflowUrl the StackOverflow question URL (e.g., <a href="https://stackoverflow.com/questions/12345678/question-title">...</a>)
      * @return the StackOverflow API URL (e.g., <a href="https://api.stackexchange.com/2.3/questions/12345678?order=desc&sort=activity&site=stackoverflow">...</a>)
      */
     public String convertStackOverflowUrlToApi(String stackOverflowUrl) {
         if (!stackOverflowUrl.matches("""
-            https://stackoverflow.com/questions/\\d+/.*""") || !isStackOverflowUrl(stackOverflowUrl)) {
+            https://(ru\\.)?stackoverflow.com/questions/\\d+/.*""") || !isStackOverflowUrl(stackOverflowUrl)) {
             throw new IllegalArgumentException("Invalid StackOverflow URL format: " + stackOverflowUrl);
         }
 
         String questionId = stackOverflowUrl.replaceAll("""
-            https://stackoverflow.com/questions/(\\d+)/.*""", "$1");
-        return STR."\{STACKOVERFLOW.APi_URL()}/\{questionId}?order=desc&sort=activity&site=stackoverflow";
+            https://(ru\\.)?stackoverflow.com/questions/(\\d+)/.*""", "$2");
+        return STR."\{STACKOVERFLOW.APi_URL()}/\{questionId}?order=desc&sort=activity&site=ru.stackoverflow";
     }
-
     /**
      * Determines if the provided URL is a GitHub repository URL.
      *
@@ -57,6 +57,6 @@ public class LinkToApiRequestConverter {
      * @return true if it is a StackOverflow question URL, false otherwise
      */
     public boolean isStackOverflowUrl(String url) {
-        return url.startsWith("https://stackoverflow.com/questions/");
+        return url.contains("stackoverflow.com");
     }
 }

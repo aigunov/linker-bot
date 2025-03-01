@@ -4,8 +4,8 @@ import backend.academy.scrapper.client.UpdateCheckingClient;
 import backend.academy.scrapper.exception.BotServiceException;
 import backend.academy.scrapper.exception.BotServiceInternalErrorException;
 import backend.academy.scrapper.model.Link;
-import backend.academy.scrapper.repository.ImMemoryChatRepository;
-import backend.academy.scrapper.repository.ImMemoryLinkRepository;
+import backend.academy.scrapper.repository.InMemoryChatRepository;
+import backend.academy.scrapper.repository.InMemoryLinkRepository;
 import dto.AddLinkRequest;
 import dto.LinkResponse;
 import dto.LinkUpdate;
@@ -29,8 +29,8 @@ import org.springframework.stereotype.Service;
 public class ScrapperService {
 
     private final Mapper mapper;
-    private final ImMemoryChatRepository chatRepository;
-    private final ImMemoryLinkRepository linkRepository;
+    private final InMemoryChatRepository chatRepository;
+    private final InMemoryLinkRepository linkRepository;
     private final LinkToApiRequestConverter converter;
     private final UpdateCheckingClient stackOverflowClient;
     private final UpdateCheckingClient gitHubClient;
@@ -63,7 +63,7 @@ public class ScrapperService {
 
     public ListLinkResponse getAllTrackedLinks(Long chatId) {
         var chat = chatRepository.findByChatId(chatId).orElseThrow(() -> {
-            var message = String.format("Чат с chatId %d не существует", chatId);
+            var message = String.format("Чат с chatId %d не существует. Пользователь не зарегистрирован", chatId);
             log.error(message);
             return new NoSuchElementException(message);
         });
@@ -87,7 +87,7 @@ public class ScrapperService {
 
     public LinkResponse addTrackedLink(Long chatId, AddLinkRequest request) {
         var chat = chatRepository.findByChatId(chatId).orElseThrow(() -> {
-            var message = String.format("Чат с chatId %d не существует", chatId);
+            var message = String.format("Чат с chatId %d не существует. Пользователь не зарегистрирован", chatId);
             log.error(message);
             return new NoSuchElementException(message);
         });
@@ -108,7 +108,7 @@ public class ScrapperService {
 
     public LinkResponse removeTrackedLink(Long chatId, RemoveLinkRequest request) {
         var chat = chatRepository.findByChatId(chatId).orElseThrow(() -> {
-            var message = String.format("Чат с chatId %d не существует", chatId);
+            var message = String.format("Чат с chatId %d не существует. Пользователь не зарегистрирован", chatId);
             log.error(message);
             return new NoSuchElementException(message);
         });
@@ -126,7 +126,7 @@ public class ScrapperService {
     }
 
 
-    @Scheduled(fixedRate = 300000)
+    @Scheduled(fixedRate = 100000)
     public void scrapper() {
         log.info("Scrapper scheduled started");
         List<Link> allLinks = linkRepository.findAll();
