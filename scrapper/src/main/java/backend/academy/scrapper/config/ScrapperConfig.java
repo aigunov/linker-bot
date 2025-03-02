@@ -1,8 +1,4 @@
-package backend.academy.scrapper;
-
-import jakarta.validation.constraints.NotEmpty;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.validation.annotation.Validated;
+package backend.academy.scrapper.config;
 
 //@Validated
 //@ConfigurationProperties(prefix = "app", ignoreUnknownFields = false)

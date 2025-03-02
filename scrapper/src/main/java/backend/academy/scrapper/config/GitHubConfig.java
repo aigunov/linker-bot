@@ -7,6 +7,6 @@ import org.springframework.validation.annotation.Validated;
 
 @Validated
 @ConfigurationProperties(prefix = "app.github", ignoreUnknownFields = false)
-public record GitHubConfig (@NotBlank String token,
-                            @NotBlank String url){
+public record GitHubConfig(@NotBlank String token,
+                           @NotBlank String url) {
 }
