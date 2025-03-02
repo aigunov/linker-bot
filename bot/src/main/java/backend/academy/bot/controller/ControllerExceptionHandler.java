@@ -20,10 +20,10 @@ public class ControllerExceptionHandler {
 
     private ApiErrorResponse createErrorResponse(Throwable e, String code) {
         return ApiErrorResponse.builder()
-            .description(e.getMessage())
-            .code(code)
-            .exceptionName(e.getClass().getSimpleName())
-            .exceptionMessage(e.getMessage())
-            .build();
+                .description(e.getMessage())
+                .code(code)
+                .exceptionName(e.getClass().getSimpleName())
+                .exceptionMessage(e.getMessage())
+                .build();
     }
 }

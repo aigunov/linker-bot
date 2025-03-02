@@ -1,28 +1,14 @@
 package dto;
 
-import java.util.ArrayList;
-import java.util.List;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-
 import java.util.List;
 import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.Builder.Default;
 
+/**
+ * Record representing a request to add a link with optional tags and filters.
+ *
+ * @param uri The URI of the link.
+ * @param tags The list of tags (can be null).
+ * @param filters The list of filters (can be null).
+ */
 @Builder
-public record AddLinkRequest(
-    String uri,
-    List<String> tags,
-    List<String> filters
-) {
-
-    public AddLinkRequest(String uri, List<String> tags, List<String> filters) {
-        this.uri = uri;
-        this.tags = tags != null ? tags : new ArrayList<>();
-        this.filters = filters != null ? filters : new ArrayList<>();
-    }
-}
+public record AddLinkRequest(String uri, List<String> tags, List<String> filters) {}

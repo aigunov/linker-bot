@@ -7,16 +7,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Optional;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
+
 @Component
 @Slf4j
 public class StackOverflowClient extends AbstractUpdateCheckingClient {
@@ -25,32 +22,33 @@ public class StackOverflowClient extends AbstractUpdateCheckingClient {
         super(restClient, converterApi);
     }
 
-
     @Override
     public Optional<LocalDateTime> checkUpdates(String link) {
         String apiUrl = converterApi.convertStackOverflowUrlToApi(link);
         log.info("Checking for updates... {}", apiUrl);
 
         try {
-            ResponseEntity<String> fullResponse = restClient.get()
-                .uri(apiUrl)
-                .retrieve()
-                .onStatus(HttpStatusCode::is4xxClientError, (request, response) -> {
-                    log.error("StackOverflow API returned client error for URL: {}", apiUrl);
-                    throw new RestClientException("StackOverflow API client error");
-                })
-                .onStatus(HttpStatusCode::is5xxServerError, (request, response) -> {
-                    log.error("StackOverflow API returned server error for URL: {}", apiUrl);
-                    throw new RestClientException("StackOverflow API server error");
-                })
-                .toEntity(String.class);
+            ResponseEntity<String> fullResponse = restClient
+                    .get()
+                    .uri(apiUrl)
+                    .retrieve()
+                    .onStatus(HttpStatusCode::is4xxClientError, (request, response) -> {
+                        log.error("StackOverflow API returned client error for URL: {}", apiUrl);
+                        throw new RestClientException("StackOverflow API client error");
+                    })
+                    .onStatus(HttpStatusCode::is5xxServerError, (request, response) -> {
+                        log.error("StackOverflow API returned server error for URL: {}", apiUrl);
+                        throw new RestClientException("StackOverflow API server error");
+                    })
+                    .toEntity(String.class);
 
-            StackOverflowResponse parsedResponse = objectMapper.readValue(fullResponse.getBody(), StackOverflowResponse.class);
+            StackOverflowResponse parsedResponse =
+                    objectMapper.readValue(fullResponse.getBody(), StackOverflowResponse.class);
 
             return parsedResponse.items() != null && !parsedResponse.items().isEmpty()
-                ? Optional.of(LocalDateTime.ofEpochSecond(
-                parsedResponse.items().getFirst().lastActivityDate(), 0, ZoneOffset.UTC))
-                : Optional.empty();
+                    ? Optional.of(LocalDateTime.ofEpochSecond(
+                            parsedResponse.items().getFirst().lastActivityDate(), 0, ZoneOffset.UTC))
+                    : Optional.empty();
 
         } catch (JsonProcessingException e) {
             log.error("Ошибка при обработке JSON-ответа StackOverflow", e);

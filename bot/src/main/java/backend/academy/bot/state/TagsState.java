@@ -5,19 +5,19 @@ import backend.academy.bot.service.AddLinkRequestService;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.model.request.ParseMode;
 import com.pengrad.telegrambot.request.SendMessage;
-import java.util.Arrays;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component("tags-state")
-public class TagsState extends StateImpl{
+public class TagsState extends StateImpl {
     private final AddLinkRequestService trackLinkService;
 
     private final Integer returningDeep = 2;
     private static final String next_button = "Далее";
-    private static final String message = """
+    private static final String message =
+            """
         Добавьте теги к ссылке для кластеризации (опционально):
 
         🔖 Введите теги через пробел (например: работа учеба проекты)
@@ -37,8 +37,8 @@ public class TagsState extends StateImpl{
         log.info("Current state: {}", state);
         try {
             bot.execute(new SendMessage(chatId, message)
-                .replyMarkup(keyboardFactory.getNextAndBackButtonKeyboard())
-                .parseMode(ParseMode.HTML));
+                    .replyMarkup(keyboardFactory.getNextAndBackButtonKeyboard())
+                    .parseMode(ParseMode.HTML));
         } catch (TelegramApiException e) {
             log.info("Error while sending feedback request message: {}", e.getMessage());
         }
@@ -68,8 +68,7 @@ public class TagsState extends StateImpl{
     private void cancelLinkInsertion(Update update) {
         var chatId = update.message().chat().id();
         log.info("Cancelling link insertion: {}", chatId);
-        bot.execute(new SendMessage(chatId, "Ранее отправленная ссылка будет удалена")
-            .parseMode(ParseMode.HTML));
+        bot.execute(new SendMessage(chatId, "Ранее отправленная ссылка будет удалена").parseMode(ParseMode.HTML));
         trackLinkService.clearLinkRequest(chatId);
         stateManager.navigate(update, ChatState.MENU);
     }

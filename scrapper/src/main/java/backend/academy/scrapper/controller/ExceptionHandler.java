@@ -1,6 +1,7 @@
 package backend.academy.scrapper.controller;
 
 import dto.ApiErrorResponse;
+import java.util.NoSuchElementException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.aop.AopInvocationException;
 import org.springframework.core.Ordered;
@@ -10,7 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import java.util.NoSuchElementException;
 
 @Slf4j
 @ControllerAdvice
@@ -23,8 +23,6 @@ public class ExceptionHandler {
         log.error("Ошибка AOP: {}", e.getMessage(), e);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(createErrorResponse(e, "500"));
     }
-
-
 
     @org.springframework.web.bind.annotation.ExceptionHandler(Exception.class)
     public ResponseEntity<ApiErrorResponse> handleGeneralException(Exception e) {
@@ -41,28 +39,23 @@ public class ExceptionHandler {
 
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @org.springframework.web.bind.annotation.ExceptionHandler(IllegalStateException.class)
-    public ResponseEntity<ApiErrorResponse> handleIllegalArgumentException(IllegalArgumentException exception){
+    public ResponseEntity<ApiErrorResponse> handleIllegalArgumentException(IllegalArgumentException exception) {
         log.error("IllegalArgumentException: {}", exception.getMessage(), exception);
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .body(createErrorResponse(exception, "500"));
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(createErrorResponse(exception, "500"));
     }
 
     @org.springframework.web.bind.annotation.ExceptionHandler(Throwable.class)
     public ResponseEntity<ApiErrorResponse> handleAll(Throwable e) {
         log.error("Неизвестная ошибка: {} - {}", e.getClass().getSimpleName(), e.getMessage(), e);
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .body(createErrorResponse(e, "500"));
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(createErrorResponse(e, "500"));
     }
-
 
     private ApiErrorResponse createErrorResponse(Throwable e, String code) {
         return ApiErrorResponse.builder()
-            .description(e.getMessage())
-            .code(code)
-            .exceptionName(e.getClass().getSimpleName())
-            .exceptionMessage(e.getMessage())
-            .build();
+                .description(e.getMessage())
+                .code(code)
+                .exceptionName(e.getClass().getSimpleName())
+                .exceptionMessage(e.getMessage())
+                .build();
     }
-
 }
-

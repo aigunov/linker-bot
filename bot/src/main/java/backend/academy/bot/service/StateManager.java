@@ -14,7 +14,6 @@ import org.springframework.stereotype.Component;
 public class StateManager {
     private final ChatStateService stateService;
 
-
     public <S extends State> void navigate(Update update, ChatState chatState) {
         if (chatState.equals(ChatState.REGISTER)) {
             var register = (RegisterState) ChatState.REGISTER.getState();
@@ -27,5 +26,4 @@ public class StateManager {
             state.show(chatId);
         }
     }
-
 }

@@ -24,25 +24,25 @@ public class GitHubClient extends AbstractUpdateCheckingClient {
         objectMapper.registerModule(new JavaTimeModule());
     }
 
-
     @Override
     public Optional<LocalDateTime> checkUpdates(String link) {
         String apiUrl = converterApi.convertGithubUrlToApi(link);
         log.info("Checking for updates... {}", apiUrl);
 
         try {
-            ResponseEntity<String> rawResponse = restClient.get()
-                .uri(apiUrl)
-                .retrieve()
-                .onStatus(HttpStatusCode::is4xxClientError, (request, response) -> {
-                    log.error("GitHub API returned client error for URL: {}", apiUrl);
-                    throw new RestClientException("GitHub API client error");
-                })
-                .onStatus(HttpStatusCode::is5xxServerError, (request, response) -> {
-                    log.error("GitHub API returned server error for URL: {}", apiUrl);
-                    throw new RestClientException("GitHub API server error");
-                })
-                .toEntity(String.class);
+            ResponseEntity<String> rawResponse = restClient
+                    .get()
+                    .uri(apiUrl)
+                    .retrieve()
+                    .onStatus(HttpStatusCode::is4xxClientError, (request, response) -> {
+                        log.error("GitHub API returned client error for URL: {}", apiUrl);
+                        throw new RestClientException("GitHub API client error");
+                    })
+                    .onStatus(HttpStatusCode::is5xxServerError, (request, response) -> {
+                        log.error("GitHub API returned server error for URL: {}", apiUrl);
+                        throw new RestClientException("GitHub API server error");
+                    })
+                    .toEntity(String.class);
 
             GitHubResponse parsedResponse = objectMapper.readValue(rawResponse.getBody(), GitHubResponse.class);
             log.info(MessageFormat.format("last update {0}", parsedResponse.updatedAt()));

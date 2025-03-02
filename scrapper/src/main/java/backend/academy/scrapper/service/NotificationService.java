@@ -22,12 +22,13 @@ public class NotificationService {
     public void sendLinkUpdate(LinkUpdate linkUpdate) {
         log.info("Sending notification for link update: {}", linkUpdate);
         try {
-            restClient.post()
-                .uri("/updates")
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(linkUpdate)
-                .retrieve()
-                .toBodilessEntity();
+            restClient
+                    .post()
+                    .uri("/updates")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(linkUpdate)
+                    .retrieve()
+                    .toBodilessEntity();
             log.info("Notification sent successfully: {}", linkUpdate);
         } catch (RestClientResponseException e) {
             if (e.getStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR) {

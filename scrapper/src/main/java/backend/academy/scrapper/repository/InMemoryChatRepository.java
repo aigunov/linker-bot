@@ -1,20 +1,20 @@
 package backend.academy.scrapper.repository;
 
 import backend.academy.scrapper.model.Chat;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
 
 @Slf4j
 @Qualifier(value = "chatRepository")
 @Component
-public class InMemoryChatRepository implements Repository<Chat>{
+public class InMemoryChatRepository implements Repository<Chat> {
     private final Map<UUID, Chat> storage = new ConcurrentHashMap<>();
 
     @Override

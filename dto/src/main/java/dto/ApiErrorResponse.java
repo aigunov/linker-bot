@@ -1,21 +1,17 @@
 package dto;
 
 import java.util.List;
-import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 
-@Getter
-@Setter
+/**
+ * Represents an API error response.
+ *
+ * @param description A description of the error.
+ * @param code The error code.
+ * @param exceptionName The name of the exception.
+ * @param exceptionMessage The message of the exception.
+ * @param stacktrace The stack trace of the exception.
+ */
 @Builder
-public class ApiErrorResponse {
-    private String description;
-    private String code;
-    private String exceptionName;
-    private String exceptionMessage;
-    private List<String> stacktrace;
-}
+public record ApiErrorResponse(
+        String description, String code, String exceptionName, String exceptionMessage, List<String> stacktrace) {}

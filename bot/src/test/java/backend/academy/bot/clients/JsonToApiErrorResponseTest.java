@@ -1,16 +1,13 @@
 package backend.academy.bot.clients;
 
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dto.ApiErrorResponse;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
 import java.io.IOException;
 import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 class JsonToApiErrorResponseTest {
 
@@ -25,7 +22,8 @@ class JsonToApiErrorResponseTest {
 
     @Test
     void convertJsonToApiErrorResponse_shouldConvertValidJson() throws IOException {
-        String json = "{\"trace\":\"java.lang.IllegalArgumentException: Invalid argument\\n    at ...\",\"message\":\"Invalid argument\",\"status\":\"400\"}";
+        String json =
+                "{\"trace\":\"java.lang.IllegalArgumentException: Invalid argument\\n    at ...\",\"message\":\"Invalid argument\",\"status\":\"400\"}";
         ApiErrorResponse response = converter.convertJsonToApiErrorResponse(json);
 
         assertThat(response).isNotNull();
@@ -33,7 +31,8 @@ class JsonToApiErrorResponseTest {
         assertThat(response.exceptionMessage()).isEqualTo("Invalid argument");
         assertThat(response.exceptionName()).isEqualTo("java.lang.IllegalArgumentException");
         assertThat(response.description()).isEqualTo("Invalid argument");
-        assertThat(response.stacktrace()).contains("java.lang.IllegalArgumentException: Invalid argument", "    at ...");
+        assertThat(response.stacktrace())
+                .contains("java.lang.IllegalArgumentException: Invalid argument", "    at ...");
     }
 
     @Test

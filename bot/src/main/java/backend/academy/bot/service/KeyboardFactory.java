@@ -12,45 +12,34 @@ public class KeyboardFactory {
     public ReplyKeyboardMarkup getMainMenuKeyboard() {
         List<KeyboardButton[]> rows = new ArrayList<>();
 
-        rows.add(new KeyboardButton[]{
-            new KeyboardButton("/track"),
-            new KeyboardButton("/untrack")
-        });
+        rows.add(new KeyboardButton[] {new KeyboardButton("/track"), new KeyboardButton("/untrack")});
 
-        rows.add(new KeyboardButton[]{
-            new KeyboardButton("/list"),
-            new KeyboardButton("/help")
-        });
+        rows.add(new KeyboardButton[] {new KeyboardButton("/list"), new KeyboardButton("/help")});
         return new ReplyKeyboardMarkup(rows.toArray(new KeyboardButton[0][]))
-            .resizeKeyboard(true)
-            .oneTimeKeyboard(true)
-            .selective(true);
+                .resizeKeyboard(true)
+                .oneTimeKeyboard(true)
+                .selective(true);
     }
 
     public ReplyKeyboardMarkup getBackStateKeyboard() {
         List<KeyboardButton[]> rows = new ArrayList<>();
 
-        rows.add(new KeyboardButton[]{
-            new KeyboardButton("Назад")
-        });
+        rows.add(new KeyboardButton[] {new KeyboardButton("Назад")});
 
         return new ReplyKeyboardMarkup(rows.toArray(new KeyboardButton[0][]))
-            .resizeKeyboard(true)
-            .oneTimeKeyboard(true)
-            .selective(true);
+                .resizeKeyboard(true)
+                .oneTimeKeyboard(true)
+                .selective(true);
     }
 
     public ReplyKeyboardMarkup getNextAndBackButtonKeyboard() {
         List<KeyboardButton[]> rows = new ArrayList<>();
 
-        rows.add(new KeyboardButton[]{
-            new KeyboardButton("Назад"),
-            new KeyboardButton("Далее")
-        });
+        rows.add(new KeyboardButton[] {new KeyboardButton("Назад"), new KeyboardButton("Далее")});
 
         return new ReplyKeyboardMarkup(rows.toArray(new KeyboardButton[0][]))
-            .resizeKeyboard(true)
-            .oneTimeKeyboard(true)
-            .selective(true);
+                .resizeKeyboard(true)
+                .oneTimeKeyboard(true)
+                .selective(true);
     }
 }

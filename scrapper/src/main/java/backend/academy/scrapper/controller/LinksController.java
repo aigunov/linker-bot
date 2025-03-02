@@ -5,7 +5,6 @@ import dto.AddLinkRequest;
 import dto.LinkResponse;
 import dto.ListLinkResponse;
 import dto.RemoveLinkRequest;
-import io.micrometer.tracing.Link;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,17 +35,18 @@ public class LinksController {
     }
 
     @PostMapping
-    public ResponseEntity<LinkResponse> addTrackedLink(@RequestHeader("Tg-Chat-Id") Long chatId, @RequestBody AddLinkRequest request) {
+    public ResponseEntity<LinkResponse> addTrackedLink(
+            @RequestHeader("Tg-Chat-Id") Long chatId, @RequestBody AddLinkRequest request) {
         log.info("Adding tracked link: {}", request);
         LinkResponse response = scrapperService.addTrackedLink(chatId, request);
         return ResponseEntity.ok(response);
     }
 
     @DeleteMapping
-    public ResponseEntity<LinkResponse> removeTrackedLink(@RequestHeader("Tg-Chat-Id") Long chatId, @Valid @RequestBody RemoveLinkRequest request) {
+    public ResponseEntity<LinkResponse> removeTrackedLink(
+            @RequestHeader("Tg-Chat-Id") Long chatId, @Valid @RequestBody RemoveLinkRequest request) {
         log.info("Removing tracked link: {}", request);
         LinkResponse response = scrapperService.removeTrackedLink(chatId, request);
         return ResponseEntity.ok(response);
     }
-
 }

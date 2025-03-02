@@ -13,31 +13,30 @@ import org.springframework.stereotype.Service;
 public class Mapper {
     public Chat chatDtoToEntity(RegisterChatRequest request) {
         return Chat.builder()
-            .id(UUID.randomUUID())
-            .chatId(request.chatId())
-            .username(request.name())
-            .creationDate(LocalDateTime.now())
-            .build();
+                .id(UUID.randomUUID())
+                .chatId(request.chatId())
+                .username(request.name())
+                .creationDate(LocalDateTime.now())
+                .build();
     }
 
     public LinkResponse linkToLinkResponse(Link link) {
         return LinkResponse.builder()
-            .id(link.id())
-            .url(link.url())
-            .filters(link.filters())
-            .tags(link.tags())
-            .build();
-
+                .id(link.id())
+                .url(link.url())
+                .filters(link.filters())
+                .tags(link.tags())
+                .build();
     }
 
     public Link linkRequestToLink(AddLinkRequest request, Chat chat) {
         return Link.builder()
-            .id(UUID.randomUUID())
-            .chatId(chat.id())
-            .url(request.uri())
-            .tags(request.tags())
-            .filters(request.filters())
-            .lastUpdate(null)
-            .build();
+                .id(UUID.randomUUID())
+                .chatId(chat.id())
+                .url(request.uri())
+                .tags(request.tags())
+                .filters(request.filters())
+                .lastUpdate(null)
+                .build();
     }
 }

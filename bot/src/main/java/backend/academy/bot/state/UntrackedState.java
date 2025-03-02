@@ -4,17 +4,17 @@ import backend.academy.bot.exception.TelegramApiException;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.model.request.ParseMode;
 import com.pengrad.telegrambot.request.SendMessage;
+import dto.ApiErrorResponse;
+import dto.LinkResponse;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
-import dto.ApiErrorResponse;
-import dto.LinkResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component("untracked-state")
-public class UntrackedState extends StateImpl{
+public class UntrackedState extends StateImpl {
     private static final String message = "Введите ссылку чтобы отменить отслеживание";
 
     public UntrackedState() {
@@ -27,8 +27,7 @@ public class UntrackedState extends StateImpl{
         try {
             bot.execute(new SendMessage(chatId, message)
                     .replyMarkup(keyboardFactory.getBackStateKeyboard())
-                    .parseMode(ParseMode.HTML)
-            );
+                    .parseMode(ParseMode.HTML));
         } catch (TelegramApiException e) {
             log.info("Error while sending feedback request message: {}", e.getMessage());
         }
@@ -56,25 +55,25 @@ public class UntrackedState extends StateImpl{
             var response = botService.commitLinkUntrack(chatId, message);
             switch (response) {
                 case LinkResponse link -> {
-                    bot.execute(new SendMessage(chatId, String.format("Ссылка %s была отменена пользователем", link.url()))
-                            .parseMode(ParseMode.HTML));
-
+                    bot.execute(
+                            new SendMessage(chatId, String.format("Ссылка %s была отменена пользователем", link.url()))
+                                    .parseMode(ParseMode.HTML));
                 }
                 case ApiErrorResponse error -> {
-                    bot.execute(new SendMessage(chatId,
-                            String.format("У нас не получилось отменить отслеживание ссылки %s по причине: %s",
-                                    message, error.description()))
+                    bot.execute(new SendMessage(
+                                    chatId,
+                                    String.format(
+                                            "У нас не получилось отменить отслеживание ссылки %s по причине: %s",
+                                            message, error.description()))
                             .parseMode(ParseMode.HTML));
                 }
                 default -> throw new TelegramApiException("Неизвестный тип");
             }
         } else {
-            bot.execute(new SendMessage(chatId, "Неверный формат ссылки.")
-                    .parseMode(ParseMode.HTML));
+            bot.execute(new SendMessage(chatId, "Неверный формат ссылки.").parseMode(ParseMode.HTML));
             log.error("Unsupported link format {} inserted into chat {}", message, chatId);
         }
     }
-
 
     public boolean isValidURL(String urlString) {
         try {

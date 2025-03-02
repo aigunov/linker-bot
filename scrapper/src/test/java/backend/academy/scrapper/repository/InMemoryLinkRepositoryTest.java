@@ -1,17 +1,14 @@
 package backend.academy.scrapper.repository;
 
 import static org.junit.jupiter.api.Assertions.*;
-import backend.academy.scrapper.model.Link;
-import backend.academy.scrapper.repository.InMemoryLinkRepository;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 
+import backend.academy.scrapper.model.Link;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 class InMemoryLinkRepositoryTest {
 
@@ -27,17 +24,17 @@ class InMemoryLinkRepositoryTest {
         chatId1 = UUID.randomUUID();
         chatId2 = UUID.randomUUID();
         link1 = Link.builder()
-            .id(UUID.randomUUID())
-            .chatId(chatId1)
-            .url("https://example.com/1")
-            .lastUpdate(LocalDateTime.now())
-            .build();
+                .id(UUID.randomUUID())
+                .chatId(chatId1)
+                .url("https://example.com/1")
+                .lastUpdate(LocalDateTime.now())
+                .build();
         link2 = Link.builder()
-            .id(UUID.randomUUID())
-            .chatId(chatId2)
-            .url("https://example.com/2")
-            .lastUpdate(LocalDateTime.now().plusHours(1))
-            .build();
+                .id(UUID.randomUUID())
+                .chatId(chatId2)
+                .url("https://example.com/2")
+                .lastUpdate(LocalDateTime.now().plusHours(1))
+                .build();
     }
 
     @Test

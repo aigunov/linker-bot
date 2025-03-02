@@ -9,9 +9,10 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component("help-state")
-public class HelpState extends StateImpl{
+public class HelpState extends StateImpl {
 
-    private static final String infoMenu = """
+    private static final String infoMenu =
+            """
         Телеграм бот Link-Tracker поддерживает следующие команды:
 
         <b><i>/help</i></b> - выводит список поддерживаемых ботом команд
@@ -31,12 +32,10 @@ public class HelpState extends StateImpl{
     public void show(long chatId) {
         log.info("Current state: {}", state);
         try {
-            bot.execute(new SendMessage(chatId, message)
-                .parseMode(ParseMode.HTML));
+            bot.execute(new SendMessage(chatId, message).parseMode(ParseMode.HTML));
             bot.execute(new SendMessage(chatId, infoMenu)
-                .parseMode(ParseMode.HTML)
-                .replyMarkup(keyboardFactory.getBackStateKeyboard())
-            );
+                    .parseMode(ParseMode.HTML)
+                    .replyMarkup(keyboardFactory.getBackStateKeyboard()));
         } catch (TelegramApiException e) {
             log.info("Error while sending feedback request message: {}", e.getMessage());
         }
@@ -44,8 +43,7 @@ public class HelpState extends StateImpl{
 
     @Override
     public void handle(Update update) {
-        if (update.message().text() != null &&
-            update.message().text().equals(back_button)) {
+        if (update.message().text() != null && update.message().text().equals(back_button)) {
             var chatId = update.message().chat().id();
             stateManager.navigate(update, ChatState.MENU);
         } else {

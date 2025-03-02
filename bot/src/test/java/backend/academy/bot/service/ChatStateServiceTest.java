@@ -1,12 +1,12 @@
 package backend.academy.bot.service;
-import backend.academy.bot.state.ChatState;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import java.util.List;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+
+import backend.academy.bot.state.ChatState;
+import java.util.List;
+import java.util.Optional;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 class ChatStateServiceTest {
 
@@ -66,4 +66,3 @@ class ChatStateServiceTest {
         assertEquals(List.of(ChatState.MENU, ChatState.TRACK, ChatState.LIST), states);
     }
 }
-

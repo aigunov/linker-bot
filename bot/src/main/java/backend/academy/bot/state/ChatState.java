@@ -18,8 +18,7 @@ public enum ChatState {
     LIST("list-state"),
     HELP("help-state"),
     REGISTER("register-state"),
-    NONE("none-state")
-    ;
+    NONE("none-state");
 
     private final String id;
 
@@ -35,8 +34,8 @@ public enum ChatState {
 
     public static ChatState fromId(String id) {
         return Arrays.stream(ChatState.values())
-            .filter(state -> state.id.equals(id))
-            .findFirst()
-            .orElse(null);
+                .filter(state -> state.id.equals(id))
+                .findFirst()
+                .orElse(null);
     }
 }

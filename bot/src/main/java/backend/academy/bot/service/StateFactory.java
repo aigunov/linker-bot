@@ -15,7 +15,6 @@ public class StateFactory {
     private final Map<ChatState, State> stateMap = new HashMap<>();
     private final Set<? extends StateImpl> states;
 
-
     @Autowired
     public StateFactory(Set<? extends StateImpl> states) {
         this.states = states;

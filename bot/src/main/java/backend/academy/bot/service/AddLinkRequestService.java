@@ -1,17 +1,23 @@
 package backend.academy.bot.service;
 
 import dto.AddLinkRequest;
-import org.springframework.stereotype.Component;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import org.springframework.stereotype.Component;
 
 @Component
 public class AddLinkRequestService {
     private final Map<Long, AddLinkRequest> linkRequests = new ConcurrentHashMap<>();
 
     public void createLinkRequest(Long chatId, String uri) {
-        linkRequests.put(chatId, AddLinkRequest.builder().uri(uri).build());
+        AddLinkRequest request = AddLinkRequest.builder()
+                .uri(uri)
+                .tags(new ArrayList<>())
+                .filters(new ArrayList<>())
+                .build();
+        linkRequests.put(chatId, request);
     }
 
     public AddLinkRequest getLinkRequest(Long chatId) {

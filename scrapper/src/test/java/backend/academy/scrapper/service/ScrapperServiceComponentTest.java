@@ -1,5 +1,12 @@
 package backend.academy.scrapper.service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import backend.academy.scrapper.client.UpdateCheckingClient;
 import backend.academy.scrapper.model.Chat;
 import backend.academy.scrapper.model.Link;
@@ -15,21 +22,19 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+
 @ExtendWith(MockitoExtension.class)
 class ScrapperServiceComponentTest {
 
     @Mock
     private InMemoryChatRepository chatRepository;
+
     @Mock
     private InMemoryLinkRepository linkRepository;
+
     @Mock
     private UpdateCheckingClient gitHubClient;
+
     @Mock
     private NotificationService notificationService;
 
@@ -52,8 +57,18 @@ class ScrapperServiceComponentTest {
 
     @Test
     void shouldUpdateLinkAndNotify_WhenNewUpdateAvailableFromGitHub() {
-        Link oldLink = Link.builder().id(linkId).chatId(chatId).url(githubUrl).lastUpdate(oldUpdate).build();
-        Chat chat = Chat.builder().id(chatId).chatId(123L).username("user").creationDate(LocalDateTime.now()).build();
+        Link oldLink = Link.builder()
+                .id(linkId)
+                .chatId(chatId)
+                .url(githubUrl)
+                .lastUpdate(oldUpdate)
+                .build();
+        Chat chat = Chat.builder()
+                .id(chatId)
+                .chatId(123L)
+                .username("user")
+                .creationDate(LocalDateTime.now())
+                .build();
 
         when(linkRepository.findAll()).thenReturn(List.of(oldLink));
         when(gitHubClient.checkUpdates(any())).thenReturn(Optional.of(newUpdate));
@@ -66,7 +81,12 @@ class ScrapperServiceComponentTest {
 
     @Test
     void shouldNotUpdateOrNotify_WhenNoNewUpdatesFromGitHub() {
-        Link oldLink = Link.builder().id(linkId).chatId(chatId).url(githubUrl).lastUpdate(oldUpdate).build();
+        Link oldLink = Link.builder()
+                .id(linkId)
+                .chatId(chatId)
+                .url(githubUrl)
+                .lastUpdate(oldUpdate)
+                .build();
 
         when(linkRepository.findAll()).thenReturn(List.of(oldLink));
 

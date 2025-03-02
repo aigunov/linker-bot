@@ -6,7 +6,4 @@ import org.springframework.validation.annotation.Validated;
 
 @Validated
 @ConfigurationProperties(prefix = "app.stackoverflow", ignoreUnknownFields = false)
-public record StackOverflowConfig (@NotBlank String key,
-                                   @NotBlank String access_token,
-                                   @NotBlank String url){
-}
+public record StackOverflowConfig(@NotBlank String key, @NotBlank String access_token, @NotBlank String url) {}

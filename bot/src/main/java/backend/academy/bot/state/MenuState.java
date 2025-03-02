@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component("menu-state")
-public class MenuState extends StateImpl{
+public class MenuState extends StateImpl {
     private static final String track_button = "/track";
     private static final String untrack_button = "/untrack";
     private static final String list_button = "/list";
@@ -26,8 +26,8 @@ public class MenuState extends StateImpl{
         log.info("Current state: {}", state);
         try {
             bot.execute(new SendMessage(chatId, "Добро пожаловать в TG-Bot-Link-Tracker")
-                .replyMarkup(keyboardFactory.getMainMenuKeyboard())
-                .parseMode(ParseMode.HTML));
+                    .replyMarkup(keyboardFactory.getMainMenuKeyboard())
+                    .parseMode(ParseMode.HTML));
             bot.execute(new SendMessage(chatId, message));
         } catch (TelegramApiException e) {
             log.info("Error while sending feedback request message: {}", e.getMessage());
@@ -49,6 +49,4 @@ public class MenuState extends StateImpl{
             showUnsupportedActionMessage(update);
         }
     }
-
-
 }

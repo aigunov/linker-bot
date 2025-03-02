@@ -1,6 +1,6 @@
 package backend.academy.scrapper.exception;
 
-public class ScrapperServicesApiException extends  RuntimeException {
+public class ScrapperServicesApiException extends RuntimeException {
     public ScrapperServicesApiException(String message, Throwable cause) {
         super(message, cause);
     }

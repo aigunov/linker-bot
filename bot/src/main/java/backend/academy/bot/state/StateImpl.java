@@ -24,10 +24,13 @@ public abstract class StateImpl implements State {
 
     @Autowired
     protected StateManager stateManager;
+
     @Autowired
     protected ChatStateService chatStateService;
+
     @Autowired
     protected KeyboardFactory keyboardFactory;
+
     @Autowired
     protected BotService botService;
 
@@ -42,8 +45,7 @@ public abstract class StateImpl implements State {
     }
 
     @Override
-    public void show(long chatId) {
-    }
+    public void show(long chatId) {}
 
     @Override
     public void handle(Update update) {
@@ -55,19 +57,16 @@ public abstract class StateImpl implements State {
     protected void showUnsupportedActionMessage(Update update) {
         log.error("Unsupported action message: {}", update.message().text());
         bot.execute(new SendMessage(update.message().chat().id(), "Неподдерживаемая функциональность")
-            .parseMode(ParseMode.HTML)
-        );
+                .parseMode(ParseMode.HTML));
         stateManager.navigate(update, ChatState.MENU);
     }
 
     protected void handleTextInput(Update update) {
         String message = null;
         try {
-            bot.execute(new SendMessage(0, message)
-                .parseMode(ParseMode.HTML));
+            bot.execute(new SendMessage(0, message).parseMode(ParseMode.HTML));
         } catch (TelegramApiException e) {
             log.error("Error handling free text from update '{}': {}", update.toString(), e.getMessage());
         }
     }
 }
-

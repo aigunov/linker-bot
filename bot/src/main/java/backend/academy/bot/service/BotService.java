@@ -1,5 +1,7 @@
 package backend.academy.bot.service;
 
+import static backend.academy.bot.clients.ScrapperClient.convertStackTraceToList;
+
 import backend.academy.bot.clients.ScrapperClient;
 import backend.academy.bot.configs.TelegramBot;
 import backend.academy.bot.exception.FailedIncomingUpdatesHandleException;
@@ -11,14 +13,16 @@ import dto.ApiErrorResponse;
 import dto.LinkUpdate;
 import dto.RegisterChatRequest;
 import dto.RemoveLinkRequest;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import static backend.academy.bot.clients.ScrapperClient.convertStackTraceToList;
 
 @Slf4j
 @Service
@@ -43,7 +47,10 @@ public class BotService {
             if (responseEntity.getStatusCode().is2xxSuccessful()) {
                 log.info("Successfully received tracked links for chatId: {}", chatId);
             } else {
-                log.warn("Failed to fetch tracked links for chatId: {}. Status code: {}", chatId, responseEntity.getStatusCode());
+                log.warn(
+                        "Failed to fetch tracked links for chatId: {}. Status code: {}",
+                        chatId,
+                        responseEntity.getStatusCode());
             }
             return responseEntity.getBody();
         } catch (Exception ex) {
@@ -58,10 +65,8 @@ public class BotService {
         var chatId = update.message().chat().id();
         var username = tgUser.username() != null ? "@" + tgUser.username() : tgUser.firstName();
 
-        var registerChat = RegisterChatRequest.builder()
-            .chatId(chatId)
-            .name(username)
-            .build();
+        var registerChat =
+                RegisterChatRequest.builder().chatId(chatId).name(username).build();
 
         try {
             var response = client.registerChat(registerChat);
@@ -69,11 +74,11 @@ public class BotService {
         } catch (Exception ex) {
             log.info("Bot service, register user. Пук, крях, чото странное мы больше не работаем: {}", ex.getMessage());
             return ApiErrorResponse.builder()
-                .exceptionMessage(ex.getMessage())
-                .stacktrace(convertStackTraceToList(ex.getStackTrace()))
-                .code("500")
-                .description(ex.getClass().getSimpleName())
-                .build();
+                    .exceptionMessage(ex.getMessage())
+                    .stacktrace(convertStackTraceToList(ex.getStackTrace()))
+                    .code("500")
+                    .description(ex.getClass().getSimpleName())
+                    .build();
         }
     }
 
@@ -90,30 +95,28 @@ public class BotService {
                 addLinkRequestService.clearLinkRequest(chatId);
                 log.info("Successfully track link for chatId: {}", chatId);
             } else {
-                log.warn("Failed to track link for chatId: {}. Status code: {}",
-                    chatId, responseEntity.getStatusCode());
+                log.warn(
+                        "Failed to track link for chatId: {}. Status code: {}", chatId, responseEntity.getStatusCode());
             }
             return responseEntity.getBody();
         } catch (Exception ex) {
             log.error("Unexpected error while fetching tracked links for chatId: {}", chatId, ex);
             throw new TelegramApiException("Произошла ошибка взаимодействия с сервисом Scrapper. Попробуйте позже.");
         }
-
     }
 
     public Object commitLinkUntrack(Long chatId, String message) {
         try {
-            var responseEntity = client.removeTrackedLink(
-                chatId,
-                new RemoveLinkRequest(message)
-            );
+            var responseEntity = client.removeTrackedLink(chatId, new RemoveLinkRequest(message));
             log.info("Remove link: {}", responseEntity);
 
             if (responseEntity.getStatusCode().is2xxSuccessful()) {
                 log.info("Successfully untrack link for chatId: {}", chatId);
             } else {
-                log.warn("Failed to untrack tracked link for chatId: {}. Status code: {}",
-                    chatId, responseEntity.getStatusCode());
+                log.warn(
+                        "Failed to untrack tracked link for chatId: {}. Status code: {}",
+                        chatId,
+                        responseEntity.getStatusCode());
             }
             return responseEntity.getBody();
         } catch (Exception ex) {
@@ -135,15 +138,15 @@ public class BotService {
             log.info("Update sent to chat {}: {}", chatId, update);
         } catch (TelegramApiException e) {
             log.error("Failed to send update to chat {}: {}", chatId, update, e);
-            throw new FailedIncomingUpdatesHandleException(STR."Failed to send update to chat \{chatId}", e);
+            throw new FailedIncomingUpdatesHandleException("Failed to send update to chat " + chatId, e);
         }
     }
 
     private String formatUpdateMessage(LinkUpdate update) {
-        return String.format("""
-            Link updated:
-            URL: %s
-            Description: %s""", update.url(), update.description());
+        return "Link updated:\n" + "URL: " + update.url() + "\n" + "Description: " + update.description();
     }
 
+    private List<String> convertStackTraceToList(StackTraceElement[] stackTrace) {
+        return Arrays.stream(stackTrace).map(StackTraceElement::toString).collect(Collectors.toList());
+    }
 }

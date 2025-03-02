@@ -2,10 +2,10 @@ package backend.academy.bot.controller;
 
 import com.pengrad.telegrambot.UpdatesListener;
 import com.pengrad.telegrambot.model.Update;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor

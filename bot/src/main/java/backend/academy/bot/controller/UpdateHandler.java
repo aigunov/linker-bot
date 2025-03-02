@@ -25,7 +25,6 @@ public class UpdateHandler {
         this.stateManager = stateManager;
     }
 
-
     public void handleUpdate(Update update) {
         if (update.message() != null && update.message().text() != null) {
 
@@ -34,7 +33,8 @@ public class UpdateHandler {
                 stateManager.navigate(update, ChatState.REGISTER);
                 return;
             }
-            ChatState currentState = chatStateService.peekLastChatState(String.valueOf(chatId)).orElse(ChatState.MENU);
+            ChatState currentState =
+                    chatStateService.peekLastChatState(String.valueOf(chatId)).orElse(ChatState.MENU);
 
             for (var state : states) {
                 if (currentState.getState().equals(state)) {
@@ -43,6 +43,4 @@ public class UpdateHandler {
             }
         }
     }
-
-
 }

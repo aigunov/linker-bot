@@ -21,12 +21,12 @@ public class JsonToApiErrorResponse {
         String status = rootNode.path("status").asText();
 
         return ApiErrorResponse.builder()
-            .code(status)
-            .exceptionMessage(message)
-            .exceptionName(extractExceptionName(trace))
-            .description(message)
-            .stacktrace(convertTraceToList(trace))
-            .build();
+                .code(status)
+                .exceptionMessage(message)
+                .exceptionName(extractExceptionName(trace))
+                .description(message)
+                .stacktrace(convertTraceToList(trace))
+                .build();
     }
 
     public String extractExceptionName(String trace) {
@@ -50,8 +50,6 @@ public class JsonToApiErrorResponse {
         if (trace == null || trace.isEmpty()) {
             return List.of();
         }
-        return Arrays.stream(trace.split("\\r?\\n"))
-            .collect(Collectors.toList());
+        return Arrays.stream(trace.split("\\r?\\n")).collect(Collectors.toList());
     }
-
 }

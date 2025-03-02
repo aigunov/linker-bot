@@ -16,19 +16,16 @@ public class WebConfig {
     @Primary
     public RestClient restClient(@Value("${bot.api.url}") String botUrl) {
         return RestClient.builder()
-            .baseUrl(botUrl)
-            .requestFactory(clientHttpRequestFactory())
-            .build();
+                .baseUrl(botUrl)
+                .requestFactory(clientHttpRequestFactory())
+                .build();
     }
 
     @Bean
     @Qualifier("trackClient")
-    public RestClient trackClient(){
-        return RestClient.builder()
-            .requestFactory(clientHttpRequestFactory())
-            .build();
+    public RestClient trackClient() {
+        return RestClient.builder().requestFactory(clientHttpRequestFactory()).build();
     }
-
 
     @Bean
     public ClientHttpRequestFactory clientHttpRequestFactory() {

@@ -12,5 +12,4 @@ public enum LinkingServices {
     LinkingServices(String aPiUrl) {
         APi_URL = aPiUrl;
     }
-
 }

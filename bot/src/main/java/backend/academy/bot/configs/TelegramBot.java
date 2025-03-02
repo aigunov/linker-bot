@@ -3,20 +3,14 @@ package backend.academy.bot.configs;
 import backend.academy.bot.exception.TelegramApiException;
 import com.pengrad.telegrambot.UpdatesListener;
 import com.pengrad.telegrambot.model.BotCommand;
-import com.pengrad.telegrambot.request.AbstractSendRequest;
 import com.pengrad.telegrambot.request.BaseRequest;
-import com.pengrad.telegrambot.request.EditMessageReplyMarkup;
 import com.pengrad.telegrambot.response.BaseResponse;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
-import java.util.Objects;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -58,7 +52,8 @@ public class TelegramBot {
             new BotCommand("/list", "Получить список отслеживаемых ссылок")
         };
 
-        com.pengrad.telegrambot.request.SetMyCommands request = new com.pengrad.telegrambot.request.SetMyCommands(commands);
+        com.pengrad.telegrambot.request.SetMyCommands request =
+                new com.pengrad.telegrambot.request.SetMyCommands(commands);
         bot.execute(request);
     }
 }

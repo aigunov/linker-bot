@@ -1,11 +1,17 @@
 package backend.academy.scrapper.client;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import backend.academy.scrapper.exception.StackOverflowApiException;
-import backend.academy.scrapper.service.LinkToApiRequestConverter;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,19 +19,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.web.client.RestClient;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.util.Optional;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
-@TestPropertySource(properties = {
-    "app.stackoverflow.url=http://localhost:8089/questions"
-})
+@TestPropertySource(properties = {"app.stackoverflow.url=http://localhost:8089/questions"})
 class StackOverflowClientTest {
 
     @Autowired
@@ -54,10 +50,10 @@ class StackOverflowClientTest {
         String responseBody = "{\"items\": [{\"last_activity_date\": " + lastActivityDate + "}]}";
 
         wireMockServer.stubFor(WireMock.get(WireMock.urlEqualTo(apiPath))
-            .willReturn(WireMock.aResponse()
-                .withStatus(200)
-                .withHeader("Content-Type", "application/json")
-                .withBody(responseBody)));
+                .willReturn(WireMock.aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(responseBody)));
 
         Optional<LocalDateTime> result = stackOverflowClient.checkUpdates(stackOverflowUrl);
 
@@ -71,8 +67,7 @@ class StackOverflowClientTest {
         String apiPath = "/questions/12345678?order=desc&sort=activity&site=ru.stackoverflow";
 
         wireMockServer.stubFor(WireMock.get(WireMock.urlEqualTo(apiPath))
-            .willReturn(WireMock.aResponse()
-                .withStatus(404)));
+                .willReturn(WireMock.aResponse().withStatus(404)));
 
         assertThrows(StackOverflowApiException.class, () -> stackOverflowClient.checkUpdates(stackOverflowUrl));
     }
@@ -83,8 +78,7 @@ class StackOverflowClientTest {
         String apiPath = "/questions/12345678?order=desc&sort=activity&site=ru.stackoverflow";
 
         wireMockServer.stubFor(WireMock.get(WireMock.urlEqualTo(apiPath))
-            .willReturn(WireMock.aResponse()
-                .withStatus(500)));
+                .willReturn(WireMock.aResponse().withStatus(500)));
 
         assertThrows(StackOverflowApiException.class, () -> stackOverflowClient.checkUpdates(stackOverflowUrl));
     }
@@ -96,10 +90,10 @@ class StackOverflowClientTest {
         String invalidResponseBody = "{\"items\": [{\"last_activity_date\": \"invalid-date\"}]}";
 
         wireMockServer.stubFor(WireMock.get(WireMock.urlEqualTo(apiPath))
-            .willReturn(WireMock.aResponse()
-                .withStatus(200)
-                .withHeader("Content-Type", "application/json")
-                .withBody(invalidResponseBody)));
+                .willReturn(WireMock.aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(invalidResponseBody)));
 
         assertThrows(StackOverflowApiException.class, () -> stackOverflowClient.checkUpdates(stackOverflowUrl));
     }
@@ -111,10 +105,10 @@ class StackOverflowClientTest {
         String emptyItemsResponseBody = "{\"items\": []}";
 
         wireMockServer.stubFor(WireMock.get(WireMock.urlEqualTo(apiPath))
-            .willReturn(WireMock.aResponse()
-                .withStatus(200)
-                .withHeader("Content-Type", "application/json")
-                .withBody(emptyItemsResponseBody)));
+                .willReturn(WireMock.aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(emptyItemsResponseBody)));
 
         Optional<LocalDateTime> result = stackOverflowClient.checkUpdates(stackOverflowUrl);
         assertFalse(result.isPresent());

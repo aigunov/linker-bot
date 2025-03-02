@@ -1,14 +1,14 @@
 package backend.academy.scrapper.repository;
 
-import backend.academy.scrapper.repository.InMemoryChatRepository;
+import static org.junit.jupiter.api.Assertions.*;
+
 import backend.academy.scrapper.model.Chat;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 class InMemoryChatRepositoryTest {
 
@@ -20,17 +20,17 @@ class InMemoryChatRepositoryTest {
     void setUp() {
         repository = new InMemoryChatRepository();
         chat1 = Chat.builder()
-            .id(UUID.randomUUID())
-            .chatId(123L)
-            .username("user1")
-            .creationDate(LocalDateTime.now())
-            .build();
+                .id(UUID.randomUUID())
+                .chatId(123L)
+                .username("user1")
+                .creationDate(LocalDateTime.now())
+                .build();
         chat2 = Chat.builder()
-            .id(UUID.randomUUID())
-            .chatId(456L)
-            .username("user2")
-            .creationDate(LocalDateTime.now().plusHours(1))
-            .build();
+                .id(UUID.randomUUID())
+                .chatId(456L)
+                .username("user2")
+                .creationDate(LocalDateTime.now().plusHours(1))
+                .build();
     }
 
     @Test

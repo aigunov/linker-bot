@@ -30,4 +30,3 @@ public class StackOverflowResponse {
         private long lastActivityDate;
     }
 }
-

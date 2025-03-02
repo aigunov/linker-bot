@@ -36,6 +36,4 @@ public class TgChatController {
         var responseString = scrapperService.deleteChat(id);
         return ResponseEntity.ok().body(responseString);
     }
-
-
 }

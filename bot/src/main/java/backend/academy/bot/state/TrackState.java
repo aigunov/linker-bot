@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component("track-state")
-public class TrackState extends StateImpl{
+public class TrackState extends StateImpl {
     private final AddLinkRequestService trackLinkService;
     private static final String message = "Введите ссылку для отслеживания";
 
@@ -31,8 +31,8 @@ public class TrackState extends StateImpl{
         log.info("Current state: {}", state);
         try {
             bot.execute(new SendMessage(chatId, message)
-                .replyMarkup(keyboardFactory.getBackStateKeyboard())
-                .parseMode(ParseMode.HTML));
+                    .replyMarkup(keyboardFactory.getBackStateKeyboard())
+                    .parseMode(ParseMode.HTML));
         } catch (TelegramApiException e) {
             log.info("Error while sending feedback request message: {}", e.getMessage());
         }
@@ -60,12 +60,10 @@ public class TrackState extends StateImpl{
             trackLinkService.createLinkRequest(chatId, message);
             stateManager.navigate(update, ChatState.TAGS);
         } else {
-            bot.execute(new SendMessage(chatId, "Неверный формат ссылки.")
-                .parseMode(ParseMode.HTML));
+            bot.execute(new SendMessage(chatId, "Неверный формат ссылки.").parseMode(ParseMode.HTML));
             log.error("Unsupported link format {} inserted into chat {}", message, chatId);
         }
     }
-
 
     public boolean isValidURL(String urlString) {
         try {

@@ -38,11 +38,11 @@ public class ScrapperService {
     private final UpdateCheckingClient gitHubClient;
     private final NotificationService notificationService;
 
-
     public String registerChat(Long id, RegisterChatRequest request) {
         var chatOpt = chatRepository.findByChatId(id);
         if (chatOpt.isPresent()) {
-            var message = String.format("Чат с chatId %d с пользователем %s уже существует", request.chatId(), request.name());
+            var message = String.format(
+                    "Чат с chatId %d с пользователем %s уже существует", request.chatId(), request.name());
             log.error(message);
             throw new IllegalArgumentException(message);
         }
@@ -70,10 +70,9 @@ public class ScrapperService {
             return new NoSuchElementException(message);
         });
 
-        var links = linkRepository.findAllByChatId(chat.id())
-            .stream()
-            .map(mapper::linkToLinkResponse)
-            .toList();
+        var links = linkRepository.findAllByChatId(chat.id()).stream()
+                .map(mapper::linkToLinkResponse)
+                .toList();
         if (links.isEmpty()) {
             var message = String.format("Никаких ссылок не найдено для чата chatId %d", chatId);
             log.error(message);
@@ -81,11 +80,10 @@ public class ScrapperService {
         }
         log.info("Get all tracked links: {}", links);
         return ListLinkResponse.builder()
-            .linkResponses(links)
-            .size(links.size())
-            .build();
+                .linkResponses(links)
+                .size(links.size())
+                .build();
     }
-
 
     public LinkResponse addTrackedLink(Long chatId, AddLinkRequest request) {
         var chat = chatRepository.findByChatId(chatId).orElseThrow(() -> {
@@ -114,19 +112,16 @@ public class ScrapperService {
             log.error(message);
             return new NoSuchElementException(message);
         });
-        var link = linkRepository.findByChatIdAndLink(chat.id(), request.uri())
-            .orElseThrow(() -> {
-                var message = String.format("Ссылки в чате с chatId %d не существует", chatId);
-                log.error(message);
-                return new NoSuchElementException(message);
-            });
-
+        var link = linkRepository.findByChatIdAndLink(chat.id(), request.uri()).orElseThrow(() -> {
+            var message = String.format("Ссылки в чате с chatId %d не существует", chatId);
+            log.error(message);
+            return new NoSuchElementException(message);
+        });
 
         linkRepository.deleteById(link.id());
         log.info("Removed tracked link: {}", link);
         return mapper.linkToLinkResponse(link);
     }
-
 
     @Scheduled(fixedRate = 100000)
     public void scrapper() {
@@ -164,15 +159,9 @@ public class ScrapperService {
         }
     }
 
-
     private void sendNotification(Link link) {
         chatRepository.findById(link.chatId()).ifPresent(chat -> {
-            LinkUpdate linkUpdate = new LinkUpdate(
-                link.id(),
-                link.url(),
-                "Link Updated",
-                List.of(chat.chatId())
-            );
+            LinkUpdate linkUpdate = new LinkUpdate(link.id(), link.url(), "Link Updated", List.of(chat.chatId()));
             notificationService.sendLinkUpdate(linkUpdate);
         });
     }

@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component("register-state")
-public class RegisterState extends StateImpl{
+public class RegisterState extends StateImpl {
     private static final String message = "Регистрация нового пользователя в системе";
 
     public RegisterState() {
@@ -18,14 +18,12 @@ public class RegisterState extends StateImpl{
     }
 
     @Override
-    public void show(long chatId) {
-    }
+    public void show(long chatId) {}
 
     public void show(Update update) {
         log.info("Current state: {}", state);
         try {
-            bot.execute(new SendMessage(update.message().chat().id(), message)
-                .parseMode(ParseMode.HTML));
+            bot.execute(new SendMessage(update.message().chat().id(), message).parseMode(ParseMode.HTML));
             handle(update);
         } catch (TelegramApiException e) {
             log.info("Error while sending feedback request message: {}", e.getMessage());
@@ -36,13 +34,11 @@ public class RegisterState extends StateImpl{
     public void handle(Update update) {
         log.info("Registration new user begin");
         var message = botService.chatRegistration(update);
-        if (message instanceof ApiErrorResponse error){
+        if (message instanceof ApiErrorResponse error) {
             log.error(error.toString());
-            bot.execute(new SendMessage(update.message().chat().id(), error.description())
-                .parseMode(ParseMode.HTML));
-        }else{
-            bot.execute(new SendMessage(update.message().chat().id(), (String) message)
-                .parseMode(ParseMode.HTML));
+            bot.execute(new SendMessage(update.message().chat().id(), error.description()).parseMode(ParseMode.HTML));
+        } else {
+            bot.execute(new SendMessage(update.message().chat().id(), (String) message).parseMode(ParseMode.HTML));
             stateManager.navigate(update, ChatState.MENU);
         }
     }

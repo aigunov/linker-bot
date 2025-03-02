@@ -1,20 +1,20 @@
 package backend.academy.scrapper.repository;
 
 import backend.academy.scrapper.model.Link;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
 
 @Slf4j
 @Qualifier(value = "linkRepository")
 @Component
-public class InMemoryLinkRepository implements Repository<Link>{
+public class InMemoryLinkRepository implements Repository<Link> {
     private final Map<UUID, Link> storage = new ConcurrentHashMap<>();
 
     @Override
@@ -38,7 +38,7 @@ public class InMemoryLinkRepository implements Repository<Link>{
     public List<Link> findAllByChatId(UUID chatId) {
         final List<Link> links = new ArrayList<>();
         for (Link link : storage.values()) {
-            if(link.chatId().equals(chatId)){
+            if (link.chatId().equals(chatId)) {
                 links.add(link);
             }
         }
@@ -49,7 +49,6 @@ public class InMemoryLinkRepository implements Repository<Link>{
     public Link deleteById(UUID id) {
         return storage.remove(id);
     }
-
 
     public Optional<Link> findByChatIdAndLink(UUID chatId, String uri) {
         for (Link link : storage.values()) {
