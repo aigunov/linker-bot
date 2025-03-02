@@ -1,24 +1,19 @@
 package backend.academy.scrapper.client;
 
+import backend.academy.scrapper.exception.GitHubApiException;
 import backend.academy.scrapper.model.GitHubResponse;
 import backend.academy.scrapper.service.LinkToApiRequestConverter;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import lombok.RequiredArgsConstructor;
+import java.text.MessageFormat;
+import java.time.LocalDateTime;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
-import java.text.MessageFormat;
-import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
-import java.util.Optional;
 
 @Component
 @Slf4j
@@ -29,10 +24,11 @@ public class GitHubClient extends AbstractUpdateCheckingClient {
         objectMapper.registerModule(new JavaTimeModule());
     }
 
+
     @Override
     public Optional<LocalDateTime> checkUpdates(String link) {
         String apiUrl = converterApi.convertGithubUrlToApi(link);
-        log.info("Checking for updates..." + apiUrl);
+        log.info("Checking for updates... {}", apiUrl);
 
         try {
             ResponseEntity<String> rawResponse = restClient.get()
@@ -54,10 +50,10 @@ public class GitHubClient extends AbstractUpdateCheckingClient {
 
         } catch (JsonProcessingException e) {
             log.error("Error parsing GitHub response", e);
-            return Optional.empty();
+            throw new GitHubApiException("Error parsing GitHub response", e);
         } catch (RestClientException e) {
             log.error("Error accessing GitHub API", e);
-            return Optional.empty();
+            throw new GitHubApiException("Error accessing GitHub API", e);
         }
     }
 }

@@ -3,6 +3,7 @@ package backend.academy.scrapper.service;
 import backend.academy.scrapper.client.UpdateCheckingClient;
 import backend.academy.scrapper.exception.BotServiceException;
 import backend.academy.scrapper.exception.BotServiceInternalErrorException;
+import backend.academy.scrapper.exception.ScrapperServicesApiException;
 import backend.academy.scrapper.model.Link;
 import backend.academy.scrapper.repository.InMemoryChatRepository;
 import backend.academy.scrapper.repository.InMemoryLinkRepository;
@@ -15,6 +16,7 @@ import dto.RemoveLinkRequest;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Scope;
@@ -137,29 +139,31 @@ public class ScrapperService {
 
     private void processLink(Link link) {
         LocalDateTime lastUpdate = null;
-        if (converter.isGithubUrl(link.url())) {
-            lastUpdate = gitHubClient.checkUpdates(link.url()).orElse(null);
-        } else if (converter.isStackOverflowUrl(link.url())) {
-            lastUpdate = stackOverflowClient.checkUpdates(link.url()).orElse(null);
+        try {
+            if (converter.isGithubUrl(link.url())) {
+                lastUpdate = gitHubClient.checkUpdates(link.url()).orElseThrow(ScrapperServicesApiException::new);
+            } else if (converter.isStackOverflowUrl(link.url())) {
+                lastUpdate = stackOverflowClient.checkUpdates(link.url()).orElse(LocalDateTime.MIN);
+            }
+        } catch (ScrapperServicesApiException e) {
+            log.error("Error accessing external API for link: {}", link.url(), e);
+            return;
         }
 
-        if (lastUpdate != null) {
-            if (link.lastUpdate() == null || lastUpdate.isAfter(link.lastUpdate())) {
-                log.info("Link {} updated at {}", link.url(), lastUpdate);
-                link.lastUpdate(lastUpdate);
-                linkRepository.save(link);
-                try {
-                    sendNotification(link);
-                } catch (BotServiceInternalErrorException e) {
-                    log.error("Bot service returned INTERNAL_SERVER_ERROR for link: {}", link.url(), e);
-                } catch (BotServiceException e) {
-                    log.error("Failed to send notification for link: {}", link.url(), e);
-                }
+        if (link.lastUpdate() == null || Objects.requireNonNull(lastUpdate).isAfter(link.lastUpdate())) {
+            log.info("Link {} updated at {}", link.url(), lastUpdate);
+            link.lastUpdate(lastUpdate);
+            linkRepository.save(link);
+            try {
+                sendNotification(link);
+            } catch (BotServiceInternalErrorException e) {
+                log.error("Bot service returned INTERNAL_SERVER_ERROR for link: {}", link.url(), e);
+            } catch (BotServiceException e) {
+                log.error("Failed to send notification for link: {}", link.url(), e);
             }
-        } else {
-            log.warn("Failed to retrieve updates for {}", link.url());
         }
     }
+
 
     private void sendNotification(Link link) {
         chatRepository.findById(link.chatId()).ifPresent(chat -> {

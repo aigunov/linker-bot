@@ -1,5 +1,6 @@
 package backend.academy.scrapper.client;
 
+import backend.academy.scrapper.exception.GitHubApiException;
 import backend.academy.scrapper.service.LinkToApiRequestConverter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
@@ -25,6 +26,9 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
 @TestPropertySource(properties = {
@@ -36,13 +40,6 @@ class GitHubClientTest {
     @Autowired
     @Qualifier("gitHubClient")
     private GitHubClient gitHubClient;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    @Autowired
-    @Qualifier("trackClient")
-    private RestClient restClient;
 
     @Autowired
     private LinkToApiRequestConverter converterApi;
@@ -83,96 +80,61 @@ class GitHubClientTest {
     }
 
     @Test
-    void checkUpdates_shouldReturnEmptyOptionalOnParsingError() {
+    void checkUpdates_success() {
         String githubUrl = "https://github.com/testuser/testrepo";
-        String apiUrl = converterApi.convertGithubUrlToApi(githubUrl);
+        String apiPath = "/repos/testuser/testrepo";
+        String updatedAt = "2023-10-27T10:00:00Z";
+        String responseBody = "{\"updated_at\":\"" + updatedAt + "\"}";
 
-        stubFor(get(urlEqualTo(apiUrl.replace("http://localhost:8089", "")))
-            .willReturn(aResponse()
-                .withStatus(HttpStatus.OK.value())
-                .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .withBody("invalid json")));
-
-        Optional<LocalDateTime> actualUpdatedAt = gitHubClient.checkUpdates(githubUrl);
-
-        assertThat(actualUpdatedAt).isEmpty();
-    }
-
-    @Test
-    void checkUpdates_shouldReturnEmptyOptionalOnNotFound() {
-        String githubUrl = "https://github.com/testuser/testrepo";
-        String apiUrl = converterApi.convertGithubUrlToApi(githubUrl);
-
-        stubFor(get(urlEqualTo(apiUrl.replace("http://localhost:8089", "")))
-            .willReturn(aResponse()
-                .withStatus(HttpStatus.NOT_FOUND.value())));
-
-        Optional<LocalDateTime> actualUpdatedAt = gitHubClient.checkUpdates(githubUrl);
-
-        assertThat(actualUpdatedAt).isEmpty();
-    }
-
-    @Test
-    void checkUpdates_shouldReturnEmptyOptionalOnInternalServerError() {
-        String githubUrl = "https://github.com/testuser/testrepo";
-        String apiUrl = converterApi.convertGithubUrlToApi(githubUrl);
-
-        stubFor(get(urlEqualTo(apiUrl.replace("http://localhost:8089", "")))
-            .willReturn(aResponse()
-                .withStatus(HttpStatus.INTERNAL_SERVER_ERROR.value())));
-
-        Optional<LocalDateTime> actualUpdatedAt = gitHubClient.checkUpdates(githubUrl);
-
-        assertThat(actualUpdatedAt).isEmpty();
-    }
-
-    @Test
-    void checkUpdates_shouldReturnEmptyOptionalOnRestClientException() {
-        String githubUrl = "https://github.com/testuser/testrepo";
-        String apiUrl = converterApi.convertGithubUrlToApi(githubUrl);
-
-        wireMockServer.stop(); // Останавливаем сервер, чтобы имитировать RestClientException
-
-        Optional<LocalDateTime> actualUpdatedAt = gitHubClient.checkUpdates(githubUrl);
-
-        assertThat(actualUpdatedAt).isEmpty();
-
-        wireMockServer.start(); // Запускаем сервер снова для остальных тестов
-    }
-
-    @Test
-    void checkUpdates_shouldReturnEmptyOptionalOnNullUpdated_at() throws Exception {
-        String githubUrl = "https://github.com/testuser/testrepo";
-        String apiUrl = converterApi.convertGithubUrlToApi(githubUrl);
-
-        String responseBody = "{\"updated_at\": null}";
-
-        stubFor(get(urlEqualTo(apiUrl.replace("http://localhost:8089", "")))
-            .willReturn(aResponse()
-                .withStatus(HttpStatus.OK.value())
-                .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+        wireMockServer.stubFor(WireMock.get(WireMock.urlEqualTo(apiPath))
+            .willReturn(WireMock.aResponse()
+                .withStatus(200)
+                .withHeader("Content-Type", "application/json")
                 .withBody(responseBody)));
 
-        Optional<LocalDateTime> actualUpdatedAt = gitHubClient.checkUpdates(githubUrl);
+        Optional<LocalDateTime> result = gitHubClient.checkUpdates(githubUrl);
 
-        assertThat(actualUpdatedAt).isEmpty();
+        assertTrue(result.isPresent());
+        assertEquals(LocalDateTime.parse(updatedAt, DateTimeFormatter.ISO_DATE_TIME), result.get());
     }
 
     @Test
-    void checkUpdates_shouldReturnEmptyOptionalOnMissingUpdated_at() throws Exception {
+    void checkUpdates_clientError() {
         String githubUrl = "https://github.com/testuser/testrepo";
-        String apiUrl = converterApi.convertGithubUrlToApi(githubUrl);
+        String apiPath = "/repos/testuser/testrepo";
 
-        String responseBody = "{}";
+        wireMockServer.stubFor(WireMock.get(WireMock.urlEqualTo(apiPath))
+            .willReturn(WireMock.aResponse()
+                .withStatus(404)));
 
-        stubFor(get(urlEqualTo(apiUrl.replace("http://localhost:8089", "")))
-            .willReturn(aResponse()
-                .withStatus(HttpStatus.OK.value())
-                .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .withBody(responseBody)));
-
-        Optional<LocalDateTime> actualUpdatedAt = gitHubClient.checkUpdates(githubUrl);
-
-        assertThat(actualUpdatedAt).isEmpty();
+        assertThrows(GitHubApiException.class, () -> gitHubClient.checkUpdates(githubUrl));
     }
+
+    @Test
+    void checkUpdates_serverError() {
+        String githubUrl = "https://github.com/testuser/testrepo";
+        String apiPath = "/repos/testuser/testrepo";
+
+        wireMockServer.stubFor(WireMock.get(WireMock.urlEqualTo(apiPath))
+            .willReturn(WireMock.aResponse()
+                .withStatus(500)));
+
+        assertThrows(GitHubApiException.class, () -> gitHubClient.checkUpdates(githubUrl));
+    }
+
+    @Test
+    void checkUpdates_jsonParsingError() {
+        String githubUrl = "https://github.com/testuser/testrepo";
+        String apiPath = "/repos/testuser/testrepo";
+        String invalidResponseBody = "{\"updated_at\":\"invalid-date\"}";
+
+        wireMockServer.stubFor(WireMock.get(WireMock.urlEqualTo(apiPath))
+            .willReturn(WireMock.aResponse()
+                .withStatus(200)
+                .withHeader("Content-Type", "application/json")
+                .withBody(invalidResponseBody)));
+
+        assertThrows(GitHubApiException.class, () -> gitHubClient.checkUpdates(githubUrl));
+    }
+
 }

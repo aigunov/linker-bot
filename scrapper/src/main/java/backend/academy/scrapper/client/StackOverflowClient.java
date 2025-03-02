@@ -1,5 +1,6 @@
 package backend.academy.scrapper.client;
 
+import backend.academy.scrapper.exception.StackOverflowApiException;
 import backend.academy.scrapper.model.StackOverflowResponse;
 import backend.academy.scrapper.service.LinkToApiRequestConverter;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -24,6 +25,7 @@ public class StackOverflowClient extends AbstractUpdateCheckingClient {
         super(restClient, converterApi);
     }
 
+
     @Override
     public Optional<LocalDateTime> checkUpdates(String link) {
         String apiUrl = converterApi.convertStackOverflowUrlToApi(link);
@@ -47,15 +49,15 @@ public class StackOverflowClient extends AbstractUpdateCheckingClient {
 
             return parsedResponse.items() != null && !parsedResponse.items().isEmpty()
                 ? Optional.of(LocalDateTime.ofEpochSecond(
-                parsedResponse.items().get(0).lastActivityDate(), 0, ZoneOffset.UTC))
+                parsedResponse.items().getFirst().lastActivityDate(), 0, ZoneOffset.UTC))
                 : Optional.empty();
 
         } catch (JsonProcessingException e) {
             log.error("Ошибка при обработке JSON-ответа StackOverflow", e);
-            return Optional.empty();
+            throw new StackOverflowApiException("Ошибка при обработке JSON-ответа StackOverflow", e);
         } catch (RestClientException e) {
             log.error("Ошибка при доступе к StackOverflow API", e);
-            return Optional.empty();
+            throw new StackOverflowApiException("Ошибка при доступе к StackOverflow API", e);
         }
     }
 }
