@@ -1,5 +1,6 @@
 package backend.academy.scrapper.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,11 +17,8 @@ import java.time.ZoneOffset;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class GitHubResponse {
     @JsonProperty("updated_at")
-    private OffsetDateTime updatedAt;
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt != null ? updatedAt.atZoneSameInstant(ZoneOffset.UTC).toLocalDateTime() : null;
-    }
+    private LocalDateTime updatedAt;
 }

@@ -33,7 +33,6 @@ public class ScrapperClient {
     private static final String LINK = "/links";
 
     private final RestClient restClient;
-    private final ObjectMapper objectMapper;
     private final JsonToApiErrorResponse convertJsonToApiErrorResponse;
 
 

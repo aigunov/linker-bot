@@ -56,6 +56,9 @@ public class ListState extends StateImpl{
     }
 
     private String formatLinks(ListLinkResponse linkResponse) {
+        if (linkResponse.linkResponses().isEmpty()){
+            return "Вы пока не добавили ни одну ссылку для отслеживания";
+        }
         StringBuilder sb = new StringBuilder();
         sb.append("🔗 <b>Отслеживаемые ссылки:</b>\n\n");
         for (LinkResponse link : linkResponse.linkResponses()) {

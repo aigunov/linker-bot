@@ -4,47 +4,58 @@ import backend.academy.scrapper.model.StackOverflowResponse;
 import backend.academy.scrapper.service.LinkToApiRequestConverter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
-
-@Slf4j
+import org.springframework.web.client.RestClientException;
 @Component
-@Qualifier("stackOverflowClient")
+@Slf4j
 public class StackOverflowClient extends AbstractUpdateCheckingClient {
 
-
-    public StackOverflowClient(@Qualifier("trackClient") RestClient restClient,
-                               LinkToApiRequestConverter converterApi) {
+    public StackOverflowClient(RestClient restClient, LinkToApiRequestConverter converterApi) {
         super(restClient, converterApi);
     }
 
     @Override
     public Optional<LocalDateTime> checkUpdates(String link) {
-        log.info("Checking for updates on StackOverflow: {}", link);
-        var apiUrl = convertLinkToApi(link);
-
-        ResponseEntity<String> response = restClient.get().uri(apiUrl).retrieve().toEntity(String.class);
+        String apiUrl = converterApi.convertStackOverflowUrlToApi(link);
+        log.info("Checking for updates... {}", apiUrl);
 
         try {
-            StackOverflowResponse parsedResponse =
-                objectMapper.readValue(response.getBody(), StackOverflowResponse.class);
-            log.info("StackOverflow for link {}, last update {}", link, parsedResponse);
+            ResponseEntity<String> fullResponse = restClient.get()
+                .uri(apiUrl)
+                .retrieve()
+                .onStatus(HttpStatusCode::is4xxClientError, (request, response) -> {
+                    log.error("StackOverflow API returned client error for URL: {}", apiUrl);
+                    throw new RestClientException("StackOverflow API client error");
+                })
+                .onStatus(HttpStatusCode::is5xxServerError, (request, response) -> {
+                    log.error("StackOverflow API returned server error for URL: {}", apiUrl);
+                    throw new RestClientException("StackOverflow API server error");
+                })
+                .toEntity(String.class);
+
+            StackOverflowResponse parsedResponse = objectMapper.readValue(fullResponse.getBody(), StackOverflowResponse.class);
+
             return parsedResponse.items() != null && !parsedResponse.items().isEmpty()
-                ?
-                Optional.of(LocalDateTime.ofEpochSecond(parsedResponse.items().getFirst().lastActivityDate(), 0, java.time.ZoneOffset.UTC))
+                ? Optional.of(LocalDateTime.ofEpochSecond(
+                parsedResponse.items().get(0).lastActivityDate(), 0, ZoneOffset.UTC))
                 : Optional.empty();
+
         } catch (JsonProcessingException e) {
-            log.error("Error parsing StackOverflow response", e);
+            log.error("Ошибка при обработке JSON-ответа StackOverflow", e);
+            return Optional.empty();
+        } catch (RestClientException e) {
+            log.error("Ошибка при доступе к StackOverflow API", e);
             return Optional.empty();
         }
-    }
-
-    private String convertLinkToApi(String link) {
-        return converterApi.convertStackOverflowUrlToApi(link);
     }
 }

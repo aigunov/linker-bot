@@ -1,11 +1,17 @@
 package backend.academy.scrapper.service;
 
+
+import backend.academy.scrapper.config.GitHubConfig;
+import backend.academy.scrapper.config.StackOverflowConfig;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import static backend.academy.scrapper.model.LinkingServices.GITHUB;
-import static backend.academy.scrapper.model.LinkingServices.STACKOVERFLOW;
 
 @Component
+@RequiredArgsConstructor
 public class LinkToApiRequestConverter {
+    private final GitHubConfig githubConfig;
+    private final StackOverflowConfig stackOverflowConfig;
 
     /**
      * Converts a GitHub repository URL to a GitHub API request URL.
@@ -20,7 +26,7 @@ public class LinkToApiRequestConverter {
         }
 
         String repoPath = githubUrl.replace("https://github.com/", "").replaceAll("/$", "");
-        return STR."\{GITHUB.APi_URL()}/\{repoPath}";
+        return STR."\{githubConfig.url()}/\{repoPath}";
     }
 
     /**
@@ -38,7 +44,7 @@ public class LinkToApiRequestConverter {
 
         String questionId = stackOverflowUrl.replaceAll("""
             https://(ru\\.)?stackoverflow.com/questions/(\\d+)/.*""", "$2");
-        return STR."\{STACKOVERFLOW.APi_URL()}/\{questionId}?order=desc&sort=activity&site=ru.stackoverflow";
+        return STR."\{stackOverflowConfig.url()}/\{questionId}?order=desc&sort=activity&site=ru.stackoverflow";
     }
     /**
      * Determines if the provided URL is a GitHub repository URL.
