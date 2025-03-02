@@ -36,7 +36,7 @@ import static org.junit.Assert.assertEquals;
 @TestPropertySource(properties = {
     "scrapper.api.url=http://localhost:8089"
 })
-class ScrapperClientWireMockTest {
+class ScrapperClientMockTest {
 
 
     @Autowired
@@ -44,9 +44,6 @@ class ScrapperClientWireMockTest {
 
     @Autowired
     private ObjectMapper objectMapper;
-
-    @Autowired
-    private RestClient restClient;
 
     private WireMockServer wireMockServer;
 

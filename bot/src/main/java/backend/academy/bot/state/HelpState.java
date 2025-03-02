@@ -11,7 +11,6 @@ import org.springframework.stereotype.Component;
 @Component("help-state")
 public class HelpState extends StateImpl{
 
-    private final Integer returningDeep = 1;
     private static final String infoMenu = """
         Телеграм бот Link-Tracker поддерживает следующие команды:
 

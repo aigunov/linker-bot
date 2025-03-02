@@ -60,7 +60,6 @@ public abstract class StateImpl implements State {
         stateManager.navigate(update, ChatState.MENU);
     }
 
-    //TODO: переделать
     protected void handleTextInput(Update update) {
         String message = null;
         try {

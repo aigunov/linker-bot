@@ -14,7 +14,6 @@ import org.springframework.stereotype.Component;
 @Component("list-state")
 public class ListState extends StateImpl{
 
-    private final Integer returningDeep = 1;
     private static final String message = "Список отслеживаемых ссылок: ";
 
     public ListState() {
@@ -40,14 +39,13 @@ public class ListState extends StateImpl{
     public void handle(Update update) {
         if (update.message().text() != null &&
             update.message().text().equals(back_button)) {
-            var chatId = update.message().chat().id();
             stateManager.navigate(update, ChatState.MENU);
         } else {
             showUnsupportedActionMessage(update);
         }
     }
 
-    private String handleScrapperResponse(Object trackingLinks) {
+    public String handleScrapperResponse(Object trackingLinks) {
         return switch (trackingLinks) {
             case ListLinkResponse links -> formatLinks((ListLinkResponse) links);
             case ApiErrorResponse error -> formatErrorResponse((ApiErrorResponse) error);
@@ -55,7 +53,7 @@ public class ListState extends StateImpl{
         };
     }
 
-    private String formatLinks(ListLinkResponse linkResponse) {
+    public String formatLinks(ListLinkResponse linkResponse) {
         if (linkResponse.linkResponses().isEmpty()){
             return "Вы пока не добавили ни одну ссылку для отслеживания";
         }
@@ -78,20 +76,16 @@ public class ListState extends StateImpl{
         return sb.toString();
     }
 
-    private String formatErrorResponse(ApiErrorResponse error) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("❗ <b>Ошибка при выполнении запроса:</b>\n\n");
+    public String formatErrorResponse(ApiErrorResponse error) {
 
-        sb.append("📝 <b>Описание:</b> ").append(error.description()).append("\n");
+        return String.format("""
+            ❗ <b>Ошибка при выполнении запроса:</b>
 
-        sb.append("📋 <b>Код ошибки:</b> ").append(error.code()).append("\n");
-
-        sb.append("🚨 <b>Тип исключения:</b> ").append(error.exceptionName()).append("\n");
-
-        sb.append("💥 <b>Сообщение исключения:</b> ").append(error.exceptionMessage()).append("\n");
-
-        sb.append("\n🔍 <b>Stacktrace:</b>\n");
-
-        return sb.toString();
+            📝 <b>Описание:</b>  %s
+            📋 <b>Код ошибки:</b> %s
+            🚨 <b>Тип исключения:</b> %s
+            💥 <b>Сообщение исключения:</b> %s
+            """, error.description(), error.code(), error.exceptionName(), error.exceptionMessage()
+        );
     }
 }
