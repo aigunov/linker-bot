@@ -7,7 +7,7 @@ import dto.ListLinkResponse;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
-class ListStateFormatLinksTest {
+class ListStateTest {
 
     private final ListState listState = new ListState();
 
