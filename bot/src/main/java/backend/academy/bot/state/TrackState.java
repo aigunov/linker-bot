@@ -5,9 +5,6 @@ import backend.academy.bot.service.AddLinkRequestService;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.model.request.ParseMode;
 import com.pengrad.telegrambot.request.SendMessage;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
-import java.net.URL;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -17,8 +14,6 @@ import org.springframework.stereotype.Component;
 public class TrackState extends StateImpl {
     private final AddLinkRequestService trackLinkService;
     private static final String message = "Введите ссылку для отслеживания";
-
-    private final Integer returningDeep = 1;
 
     @Autowired
     public TrackState(AddLinkRequestService trackLinkService) {
@@ -42,7 +37,6 @@ public class TrackState extends StateImpl {
     public void handle(Update update) {
         if (update.message().text() != null) {
             var message = update.message().text();
-            var chatId = update.message().chat().id();
             if (back_button.equals(message)) {
                 stateManager.navigate(update, ChatState.MENU);
             } else {
@@ -62,15 +56,6 @@ public class TrackState extends StateImpl {
         } else {
             bot.execute(new SendMessage(chatId, "Неверный формат ссылки.").parseMode(ParseMode.HTML));
             log.error("Unsupported link format {} inserted into chat {}", message, chatId);
-        }
-    }
-
-    public boolean isValidURL(String urlString) {
-        try {
-            new URL(urlString).toURI();
-            return true;
-        } catch (MalformedURLException | IllegalArgumentException | URISyntaxException e) {
-            return false;
         }
     }
 }

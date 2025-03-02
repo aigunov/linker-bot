@@ -12,6 +12,7 @@ import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
+@SuppressWarnings({"PMD.UnusedPrivateMethod"})
 @Slf4j
 @RequiredArgsConstructor
 @Component("telegramBot")
@@ -33,7 +34,7 @@ public class TelegramBot {
     public <T extends BaseRequest<T, R>, R extends BaseResponse> R execute(BaseRequest<T, R> request) {
         R response = bot.execute(request);
         if (response.errorCode() == 403 || response.errorCode() == 429) {
-            log.warn(response.description());
+            log.warn("Telegram API warning: {}", response.description());
             return response;
         }
         if (!response.isOk()) {
@@ -51,9 +52,6 @@ public class TelegramBot {
             new BotCommand("/untrack", "Удалить ссылку из отслеживания"),
             new BotCommand("/list", "Получить список отслеживаемых ссылок")
         };
-
-        com.pengrad.telegrambot.request.SetMyCommands request =
-                new com.pengrad.telegrambot.request.SetMyCommands(commands);
-        bot.execute(request);
+        bot.execute(new com.pengrad.telegrambot.request.SetMyCommands(commands));
     }
 }

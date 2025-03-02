@@ -7,11 +7,13 @@ import com.pengrad.telegrambot.request.SendMessage;
 import dto.ApiErrorResponse;
 import dto.LinkResponse;
 import dto.ListLinkResponse;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component("list-state")
+@SuppressFBWarnings({"POTENTIAL_XML_INJECTION", "VA_FORMAT_STRING_USES_NEWLINE"})
 public class ListState extends StateImpl {
 
     private static final String message = "Список отслеживаемых ссылок: ";
@@ -56,24 +58,24 @@ public class ListState extends StateImpl {
             return "Вы пока не добавили ни одну ссылку для отслеживания";
         }
         StringBuilder sb = new StringBuilder();
-        sb.append("🔗 <b>Отслеживаемые ссылки:</b>\n\n");
+        sb.append("🔗 <b>Отслеживаемые ссылки:</b>%n%n");
         for (LinkResponse link : linkResponse.linkResponses()) {
-            sb.append("🌐 <b>URL:</b> ").append(link.url()).append("\n");
+            sb.append("🌐 <b>URL:</b> ").append(link.url()).append("%n");
             if (!link.tags().isEmpty()) {
                 sb.append("🏷 <b>Теги:</b> ")
                         .append(String.join(", ", link.tags()))
-                        .append("\n");
+                        .append("%n");
             } else {
-                sb.append("🏷 <i>Теги отсутствуют</i>\n");
+                sb.append("🏷 <i>Теги отсутствуют</i>%n");
             }
             if (!link.filters().isEmpty()) {
                 sb.append("🔍 <b>Фильтры:</b> ")
                         .append(String.join(", ", link.filters()))
-                        .append("\n");
+                        .append("%n");
             } else {
-                sb.append("🔍 <i>Фильтры отсутствуют</i>\n");
+                sb.append("🔍 <i>Фильтры отсутствуют</i>%n");
             }
-            sb.append("\n");
+            sb.append("%n");
         }
         return sb.toString();
     }
@@ -81,14 +83,14 @@ public class ListState extends StateImpl {
     public String formatErrorResponse(ApiErrorResponse error) {
 
         return String.format(
-                """
-            ❗ <b>Ошибка при выполнении запроса:</b>
-
-            📝 <b>Описание:</b>  %s
-            📋 <b>Код ошибки:</b> %s
-            🚨 <b>Тип исключения:</b> %s
-            💥 <b>Сообщение исключения:</b> %s
-            """,
-                error.description(), error.code(), error.exceptionName(), error.exceptionMessage());
+                        """
+                    ❗ <b>Ошибка при выполнении запроса:</b>
+                    📝 <b>Описание:</b>  %s
+                    📋 <b>Код ошибки:</b> %s
+                    🚨 <b>Тип исключения:</b> %s
+                    💥 <b>Сообщение исключения:</b> %s
+                    """,
+                        error.description(), error.code(), error.exceptionName(), error.exceptionMessage())
+                .replace("\n", "%n");
     }
 }

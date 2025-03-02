@@ -35,7 +35,12 @@ public class RegisterState extends StateImpl {
         log.info("Registration new user begin");
         var message = botService.chatRegistration(update);
         if (message instanceof ApiErrorResponse error) {
-            log.error(error.toString());
+            log.error(
+                    "Error: description={}, code={}, exceptionName={}, exceptionMessage={}",
+                    error.description(),
+                    error.code(),
+                    error.exceptionName(),
+                    error.exceptionMessage());
             bot.execute(new SendMessage(update.message().chat().id(), error.description()).parseMode(ParseMode.HTML));
         } else {
             bot.execute(new SendMessage(update.message().chat().id(), (String) message).parseMode(ParseMode.HTML));

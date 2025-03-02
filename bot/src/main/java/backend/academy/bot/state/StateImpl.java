@@ -9,6 +9,9 @@ import backend.academy.bot.service.StateManager;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.model.request.ParseMode;
 import com.pengrad.telegrambot.request.SendMessage;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,6 +70,15 @@ public abstract class StateImpl implements State {
             bot.execute(new SendMessage(0, message).parseMode(ParseMode.HTML));
         } catch (TelegramApiException e) {
             log.error("Error handling free text from update '{}': {}", update.toString(), e.getMessage());
+        }
+    }
+
+    protected boolean isValidURL(String urlString) {
+        try {
+            new URL(urlString).toURI();
+            return true;
+        } catch (MalformedURLException | IllegalArgumentException | URISyntaxException e) {
+            return false;
         }
     }
 }

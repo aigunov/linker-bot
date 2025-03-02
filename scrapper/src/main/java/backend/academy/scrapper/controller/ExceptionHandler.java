@@ -20,7 +20,7 @@ public class ExceptionHandler {
 
     @org.springframework.web.bind.annotation.ExceptionHandler(AopInvocationException.class)
     public ResponseEntity<ApiErrorResponse> handleAopException(AopInvocationException e) {
-        log.error("Ошибка AOP: {}", e.getMessage(), e);
+        log.error("Ошибка AOP: {}", e.getMessage());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(createErrorResponse(e, "500"));
     }
 
@@ -33,20 +33,20 @@ public class ExceptionHandler {
 
     @org.springframework.web.bind.annotation.ExceptionHandler(NoSuchElementException.class)
     public ResponseEntity<ApiErrorResponse> handleNotFoundException(NoSuchElementException e) {
-        log.error("Объект не найден: {}", e.getMessage(), e);
+        log.error("Объект не найден: {}", e.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(createErrorResponse(e, "404"));
     }
 
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    @org.springframework.web.bind.annotation.ExceptionHandler(IllegalStateException.class)
+    @org.springframework.web.bind.annotation.ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ApiErrorResponse> handleIllegalArgumentException(IllegalArgumentException exception) {
-        log.error("IllegalArgumentException: {}", exception.getMessage(), exception);
+        log.error("IllegalArgumentException: {}", exception.getMessage());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(createErrorResponse(exception, "500"));
     }
 
     @org.springframework.web.bind.annotation.ExceptionHandler(Throwable.class)
     public ResponseEntity<ApiErrorResponse> handleAll(Throwable e) {
-        log.error("Неизвестная ошибка: {} - {}", e.getClass().getSimpleName(), e.getMessage(), e);
+        log.error("Неизвестная ошибка: {} - {}", e.getClass().getSimpleName(), e.getMessage());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(createErrorResponse(e, "500"));
     }
 

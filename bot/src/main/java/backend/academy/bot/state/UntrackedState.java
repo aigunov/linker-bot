@@ -6,9 +6,6 @@ import com.pengrad.telegrambot.model.request.ParseMode;
 import com.pengrad.telegrambot.request.SendMessage;
 import dto.ApiErrorResponse;
 import dto.LinkResponse;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
-import java.net.URL;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -23,7 +20,7 @@ public class UntrackedState extends StateImpl {
 
     @Override
     public void show(long chatId) {
-        log.info("Current state: {}", state);
+        log.info("Current state: UntrackedState");
         try {
             bot.execute(new SendMessage(chatId, message)
                     .replyMarkup(keyboardFactory.getBackStateKeyboard())
@@ -72,15 +69,6 @@ public class UntrackedState extends StateImpl {
         } else {
             bot.execute(new SendMessage(chatId, "Неверный формат ссылки.").parseMode(ParseMode.HTML));
             log.error("Unsupported link format {} inserted into chat {}", message, chatId);
-        }
-    }
-
-    public boolean isValidURL(String urlString) {
-        try {
-            new URL(urlString).toURI();
-            return true;
-        } catch (MalformedURLException | IllegalArgumentException | URISyntaxException e) {
-            return false;
         }
     }
 }

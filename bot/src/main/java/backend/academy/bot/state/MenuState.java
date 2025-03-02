@@ -38,12 +38,15 @@ public class MenuState extends StateImpl {
     public void handle(Update update) {
         if (buttons.contains(update.message().text())) {
             var button = update.message().text();
-            var chatId = update.message().chat().id();
             switch (button) {
                 case track_button -> stateManager.navigate(update, ChatState.TRACK);
                 case untrack_button -> stateManager.navigate(update, ChatState.UNTRACKED);
                 case list_button -> stateManager.navigate(update, ChatState.LIST);
                 case help_button -> stateManager.navigate(update, ChatState.HELP);
+                default -> {
+                    log.warn("Unknown button pressed: {}", button);
+                    showUnsupportedActionMessage(update);
+                }
             }
         } else {
             showUnsupportedActionMessage(update);

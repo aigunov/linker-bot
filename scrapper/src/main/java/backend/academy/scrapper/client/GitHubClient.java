@@ -5,7 +5,6 @@ import backend.academy.scrapper.model.GitHubResponse;
 import backend.academy.scrapper.service.LinkToApiRequestConverter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import java.text.MessageFormat;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
@@ -45,7 +44,7 @@ public class GitHubClient extends AbstractUpdateCheckingClient {
                     .toEntity(String.class);
 
             GitHubResponse parsedResponse = objectMapper.readValue(rawResponse.getBody(), GitHubResponse.class);
-            log.info(MessageFormat.format("last update {0}", parsedResponse.updatedAt()));
+            log.info("last update: {}", parsedResponse.updatedAt());
             return Optional.of(parsedResponse.updatedAt());
 
         } catch (JsonProcessingException e) {

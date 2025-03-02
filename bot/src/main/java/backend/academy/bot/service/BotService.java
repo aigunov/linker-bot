@@ -1,7 +1,5 @@
 package backend.academy.bot.service;
 
-import static backend.academy.bot.clients.ScrapperClient.convertStackTraceToList;
-
 import backend.academy.bot.clients.ScrapperClient;
 import backend.academy.bot.configs.TelegramBot;
 import backend.academy.bot.exception.FailedIncomingUpdatesHandleException;

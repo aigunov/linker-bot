@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
+@SuppressWarnings({"UnnecessaryFullyQualifiedName"})
 @ToString(of = {"id"})
 @Getter
 @RequiredArgsConstructor
@@ -33,7 +34,7 @@ public enum ChatState {
     }
 
     public static ChatState fromId(String id) {
-        return Arrays.stream(ChatState.values())
+        return Arrays.stream(values())
                 .filter(state -> state.id.equals(id))
                 .findFirst()
                 .orElse(null);

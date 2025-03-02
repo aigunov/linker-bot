@@ -44,7 +44,6 @@ public class HelpState extends StateImpl {
     @Override
     public void handle(Update update) {
         if (update.message().text() != null && update.message().text().equals(back_button)) {
-            var chatId = update.message().chat().id();
             stateManager.navigate(update, ChatState.MENU);
         } else {
             showUnsupportedActionMessage(update);

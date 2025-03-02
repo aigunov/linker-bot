@@ -5,6 +5,7 @@ import dto.AddLinkRequest;
 import dto.LinkResponse;
 import dto.ListLinkResponse;
 import dto.RemoveLinkRequest;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +19,8 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@SuppressWarnings(value = {"CRLF_INJECTION_LOGS"})
+@SuppressFBWarnings(value = {"CRLF_INJECTION_LOGS"})
 @Slf4j
 @Validated
 @RestController
@@ -29,7 +32,7 @@ public class LinksController {
 
     @GetMapping
     public ResponseEntity<ListLinkResponse> getAllTrackedLinks(@RequestHeader("Tg-Chat-Id") Long chatId) {
-        log.info("Getting all tracked links");
+        log.info("Getting all tracked links for chat ID: {}", chatId);
         var response = scrapperService.getAllTrackedLinks(chatId);
         return ResponseEntity.ok(response);
     }
@@ -37,7 +40,7 @@ public class LinksController {
     @PostMapping
     public ResponseEntity<LinkResponse> addTrackedLink(
             @RequestHeader("Tg-Chat-Id") Long chatId, @RequestBody AddLinkRequest request) {
-        log.info("Adding tracked link: {}", request);
+        log.info("Adding tracked link for chat ID: {}. URI: {}", chatId, request.uri());
         LinkResponse response = scrapperService.addTrackedLink(chatId, request);
         return ResponseEntity.ok(response);
     }
@@ -45,7 +48,7 @@ public class LinksController {
     @DeleteMapping
     public ResponseEntity<LinkResponse> removeTrackedLink(
             @RequestHeader("Tg-Chat-Id") Long chatId, @Valid @RequestBody RemoveLinkRequest request) {
-        log.info("Removing tracked link: {}", request);
+        log.info("Removing tracked link for chat ID: {}. URI: {}", chatId, request.uri());
         LinkResponse response = scrapperService.removeTrackedLink(chatId, request);
         return ResponseEntity.ok(response);
     }

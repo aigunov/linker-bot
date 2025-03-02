@@ -13,6 +13,7 @@ import dto.LinkUpdate;
 import dto.ListLinkResponse;
 import dto.RegisterChatRequest;
 import dto.RemoveLinkRequest;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -24,6 +25,8 @@ import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+@SuppressWarnings(value = {"CRLF_INJECTION_LOGS"})
+@SuppressFBWarnings(value = {"CRLF_INJECTION_LOGS"})
 @Slf4j
 @Service
 @Scope(proxyMode = ScopedProxyMode.NO)
@@ -41,10 +44,9 @@ public class ScrapperService {
     public String registerChat(Long id, RegisterChatRequest request) {
         var chatOpt = chatRepository.findByChatId(id);
         if (chatOpt.isPresent()) {
-            var message = String.format(
-                    "Чат с chatId %d с пользователем %s уже существует", request.chatId(), request.name());
-            log.error(message);
-            throw new IllegalArgumentException(message);
+            log.error("Чат с chatId {} с пользователем {} уже существует", request.chatId(), request.name());
+            throw new IllegalArgumentException(String.format(
+                    "Чат с chatId %d с пользователем %s уже существует", request.chatId(), request.name()));
         }
         var chat = mapper.chatDtoToEntity(request);
         chat = chatRepository.save(chat);
@@ -54,9 +56,8 @@ public class ScrapperService {
 
     public String deleteChat(Long id) {
         var chat = chatRepository.findByChatId(id).orElseThrow(() -> {
-            var message = String.format("Чат с chatId %d не существует", id);
-            log.error(message);
-            return new NoSuchElementException(message);
+            log.error("Чат с chatId {} не существует", id); // Changed to use placeholder
+            return new NoSuchElementException(String.format("Чат с chatId %d не существует", id));
         });
         chat = chatRepository.deleteById(chat.id());
         log.info("Deleted chat: {}", chat);
@@ -65,18 +66,19 @@ public class ScrapperService {
 
     public ListLinkResponse getAllTrackedLinks(Long chatId) {
         var chat = chatRepository.findByChatId(chatId).orElseThrow(() -> {
-            var message = String.format("Чат с chatId %d не существует. Пользователь не зарегистрирован", chatId);
-            log.error(message);
-            return new NoSuchElementException(message);
+            log.error(
+                    "Чат с chatId {} не существует. Пользователь не зарегистрирован",
+                    chatId); // Changed to use placeholder
+            return new NoSuchElementException(
+                    String.format("Чат с chatId %d не существует. Пользователь не зарегистрирован", chatId));
         });
 
         var links = linkRepository.findAllByChatId(chat.id()).stream()
                 .map(mapper::linkToLinkResponse)
                 .toList();
         if (links.isEmpty()) {
-            var message = String.format("Никаких ссылок не найдено для чата chatId %d", chatId);
-            log.error(message);
-            throw new NoSuchElementException(message);
+            log.error("Никаких ссылок не найдено для чата chatId {}", chatId); // Changed to use placeholder
+            throw new NoSuchElementException(String.format("Никаких ссылок не найдено для чата chatId %d", chatId));
         }
         log.info("Get all tracked links: {}", links);
         return ListLinkResponse.builder()
@@ -87,15 +89,17 @@ public class ScrapperService {
 
     public LinkResponse addTrackedLink(Long chatId, AddLinkRequest request) {
         var chat = chatRepository.findByChatId(chatId).orElseThrow(() -> {
-            var message = String.format("Чат с chatId %d не существует. Пользователь не зарегистрирован", chatId);
-            log.error(message);
-            return new NoSuchElementException(message);
+            log.error(
+                    "Чат с chatId {} не существует. Пользователь не зарегистрирован",
+                    chatId); // Changed to use placeholder
+            return new NoSuchElementException(
+                    String.format("Чат с chatId %d не существует. Пользователь не зарегистрирован", chatId));
         });
         var existingLink = linkRepository.findByChatIdAndLink(chat.id(), request.uri());
         if (existingLink.isPresent()) {
-            var message = String.format("Ссылка %s в чате с chatId %d уже существует", request.uri(), chatId);
-            log.error(message);
-            throw new NoSuchElementException(message);
+            log.error("Ссылка {} в чате с chatId {} уже существует", request.uri(), chatId);
+            throw new NoSuchElementException(
+                    String.format("Ссылка %s в чате с chatId %d уже существует", request.uri(), chatId));
         }
 
         log.info("Ссылка не найдена, добавляем новую: {}", request.uri());
@@ -108,14 +112,15 @@ public class ScrapperService {
 
     public LinkResponse removeTrackedLink(Long chatId, RemoveLinkRequest request) {
         var chat = chatRepository.findByChatId(chatId).orElseThrow(() -> {
-            var message = String.format("Чат с chatId %d не существует. Пользователь не зарегистрирован", chatId);
-            log.error(message);
-            return new NoSuchElementException(message);
+            log.error(
+                    "Чат с chatId {} не существует. Пользователь не зарегистрирован",
+                    chatId); // Changed to use placeholder
+            return new NoSuchElementException(
+                    String.format("Чат с chatId %d не существует. Пользователь не зарегистрирован", chatId));
         });
         var link = linkRepository.findByChatIdAndLink(chat.id(), request.uri()).orElseThrow(() -> {
-            var message = String.format("Ссылки в чате с chatId %d не существует", chatId);
-            log.error(message);
-            return new NoSuchElementException(message);
+            log.error("Ссылки в чате с chatId {} не существует", chatId); // Changed to use placeholder
+            return new NoSuchElementException(String.format("Ссылки в чате с chatId %d не существует", chatId));
         });
 
         linkRepository.deleteById(link.id());
