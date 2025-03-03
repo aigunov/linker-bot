@@ -30,3 +30,8 @@ springdoc:
 bot:
   api:
     url: http://localhost:8080
+
+logging:
+  structured:
+    format:
+      console: ecs
