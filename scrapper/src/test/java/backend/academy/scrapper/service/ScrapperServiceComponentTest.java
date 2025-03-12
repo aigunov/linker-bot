@@ -7,6 +7,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import backend.academy.scrapper.client.NotificationClient;
 import backend.academy.scrapper.client.UpdateCheckingClient;
 import backend.academy.scrapper.model.Chat;
 import backend.academy.scrapper.model.Link;
@@ -36,7 +37,7 @@ class ScrapperServiceComponentTest {
     private UpdateCheckingClient gitHubClient;
 
     @Mock
-    private NotificationService notificationService;
+    private NotificationClient notificationClient;
 
     @Mock
     private LinkToApiRequestConverter linkToApiRequestConverter;
@@ -76,7 +77,7 @@ class ScrapperServiceComponentTest {
 
         scrapperService.scrapper();
 
-        verify(notificationService, times(1)).sendLinkUpdate(any());
+        verify(notificationClient, times(1)).sendLinkUpdate(any());
     }
 
     @Test
@@ -93,6 +94,6 @@ class ScrapperServiceComponentTest {
         scrapperService.scrapper();
 
         assertEquals(oldUpdate, oldLink.lastUpdate());
-        verify(notificationService, never()).sendLinkUpdate(any());
+        verify(notificationClient, never()).sendLinkUpdate(any());
     }
 }

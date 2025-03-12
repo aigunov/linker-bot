@@ -7,12 +7,19 @@ app:
     url: https://api.stackexchange.com/2.3/questions
     key: ${SO_TOKEN_KEY}
     access-token: ${SO_ACCESS_TOKEN}
+  db:
+    access-type: ${ACCESS_TYPE}
 
 spring:
   application:
     name: Scrapper
+  datasource:
+    url: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
   liquibase:
-    enabled: false
+    enabled: true
+    change-log: classpath:migrations/db.changelog-master.xml
   jpa:
     hibernate:
       ddl-auto: validate

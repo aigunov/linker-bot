@@ -2,6 +2,7 @@ package backend.academy.scrapper.service;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import backend.academy.scrapper.client.NotificationClient;
 import backend.academy.scrapper.exception.BotServiceException;
 import backend.academy.scrapper.exception.BotServiceInternalErrorException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -20,10 +21,10 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 
 @SpringBootTest
-class NotificationServiceTest {
+class NotificationClientTest {
 
     @Autowired
-    private NotificationService notificationService;
+    private NotificationClient notificationClient;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -56,7 +57,7 @@ class NotificationServiceTest {
                 .withRequestBody(WireMock.equalToJson(objectMapper.writeValueAsString(linkUpdate)))
                 .willReturn(WireMock.aResponse().withStatus(200)));
 
-        notificationService.sendLinkUpdate(linkUpdate);
+        notificationClient.sendLinkUpdate(linkUpdate);
 
         wireMockServer.verify(WireMock.postRequestedFor(WireMock.urlEqualTo("/updates")));
     }
@@ -70,7 +71,7 @@ class NotificationServiceTest {
                 .withRequestBody(WireMock.equalToJson(objectMapper.writeValueAsString(linkUpdate)))
                 .willReturn(WireMock.aResponse().withStatus(500)));
 
-        assertThrows(BotServiceInternalErrorException.class, () -> notificationService.sendLinkUpdate(linkUpdate));
+        assertThrows(BotServiceInternalErrorException.class, () -> notificationClient.sendLinkUpdate(linkUpdate));
     }
 
     @Test
@@ -82,7 +83,7 @@ class NotificationServiceTest {
                 .withRequestBody(WireMock.equalToJson(objectMapper.writeValueAsString(linkUpdate)))
                 .willReturn(WireMock.aResponse().withStatus(400)));
 
-        assertThrows(BotServiceException.class, () -> notificationService.sendLinkUpdate(linkUpdate));
+        assertThrows(BotServiceException.class, () -> notificationClient.sendLinkUpdate(linkUpdate));
     }
 
     @Test
@@ -92,6 +93,6 @@ class NotificationServiceTest {
 
         wireMockServer.stop();
 
-        assertThrows(BotServiceException.class, () -> notificationService.sendLinkUpdate(linkUpdate));
+        assertThrows(BotServiceException.class, () -> notificationClient.sendLinkUpdate(linkUpdate));
     }
 }

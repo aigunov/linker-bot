@@ -1,5 +1,6 @@
 package backend.academy.scrapper.service;
 
+import backend.academy.scrapper.client.NotificationClient;
 import backend.academy.scrapper.client.UpdateCheckingClient;
 import backend.academy.scrapper.exception.BotServiceException;
 import backend.academy.scrapper.exception.BotServiceInternalErrorException;
@@ -39,7 +40,7 @@ public class ScrapperService {
     private final LinkToApiRequestConverter converter;
     private final UpdateCheckingClient stackOverflowClient;
     private final UpdateCheckingClient gitHubClient;
-    private final NotificationService notificationService;
+    private final NotificationClient notificationClient;
 
     public String registerChat(Long id, RegisterChatRequest request) {
         var chatOpt = chatRepository.findByChatId(id);
@@ -167,7 +168,7 @@ public class ScrapperService {
     private void sendNotification(Link link) {
         chatRepository.findById(link.chatId()).ifPresent(chat -> {
             LinkUpdate linkUpdate = new LinkUpdate(link.id(), link.url(), "Link Updated", List.of(chat.chatId()));
-            notificationService.sendLinkUpdate(linkUpdate);
+            notificationClient.sendLinkUpdate(linkUpdate);
         });
     }
 }

@@ -1,4 +1,4 @@
-package backend.academy.scrapper.service;
+package backend.academy.scrapper.client;
 
 import backend.academy.scrapper.exception.BotServiceException;
 import backend.academy.scrapper.exception.BotServiceInternalErrorException;
@@ -15,7 +15,7 @@ import org.springframework.web.client.RestClientResponseException;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class NotificationService {
+public class NotificationClient {
 
     private final RestClient restClient;
 
