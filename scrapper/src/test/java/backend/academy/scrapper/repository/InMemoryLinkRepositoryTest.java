@@ -2,7 +2,7 @@ package backend.academy.scrapper.repository;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import backend.academy.scrapper.model.Link;
+import backend.academy.scrapper.data.model.Link;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;

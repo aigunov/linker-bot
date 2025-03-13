@@ -2,7 +2,7 @@ package backend.academy.scrapper.repository;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import backend.academy.scrapper.model.Chat;
+import backend.academy.scrapper.data.model.Chat;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -21,14 +21,14 @@ class InMemoryChatRepositoryTest {
         repository = new InMemoryChatRepository();
         chat1 = Chat.builder()
                 .id(UUID.randomUUID())
-                .chatId(123L)
-                .username("user1")
+                .tgId(123L)
+                .nickname("user1")
                 .creationDate(LocalDateTime.now())
                 .build();
         chat2 = Chat.builder()
                 .id(UUID.randomUUID())
-                .chatId(456L)
-                .username("user2")
+                .tgId(456L)
+                .nickname("user2")
                 .creationDate(LocalDateTime.now().plusHours(1))
                 .build();
     }

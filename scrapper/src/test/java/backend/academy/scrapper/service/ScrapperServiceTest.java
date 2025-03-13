@@ -7,8 +7,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import backend.academy.scrapper.model.Chat;
-import backend.academy.scrapper.model.Link;
+import backend.academy.scrapper.data.model.Chat;
+import backend.academy.scrapper.data.model.Link;
 import backend.academy.scrapper.repository.InMemoryChatRepository;
 import backend.academy.scrapper.repository.InMemoryLinkRepository;
 import dto.AddLinkRequest;
@@ -53,8 +53,8 @@ class ScrapperServiceTest {
     void setUp() {
         chat = Chat.builder()
                 .id(chatUUID)
-                .chatId(chatId)
-                .username("user1")
+                .tgId(chatId)
+                .nickname("user1")
                 .creationDate(LocalDateTime.now())
                 .build();
 

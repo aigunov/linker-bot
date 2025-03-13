@@ -1,7 +1,7 @@
 package backend.academy.scrapper.service;
 
-import backend.academy.scrapper.model.Chat;
-import backend.academy.scrapper.model.Link;
+import backend.academy.scrapper.data.model.Chat;
+import backend.academy.scrapper.data.model.Link;
 import dto.AddLinkRequest;
 import dto.LinkResponse;
 import dto.RegisterChatRequest;
@@ -14,8 +14,8 @@ public class Mapper {
     public Chat chatDtoToEntity(RegisterChatRequest request) {
         return Chat.builder()
                 .id(UUID.randomUUID())
-                .chatId(request.chatId())
-                .username(request.name())
+                .tgId(request.chatId())
+                .nickname(request.name())
                 .creationDate(LocalDateTime.now())
                 .build();
     }

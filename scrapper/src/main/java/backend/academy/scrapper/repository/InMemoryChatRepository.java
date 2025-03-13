@@ -1,6 +1,6 @@
 package backend.academy.scrapper.repository;
 
-import backend.academy.scrapper.model.Chat;
+import backend.academy.scrapper.data.model.Chat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -32,7 +32,7 @@ public class InMemoryChatRepository implements Repository<Chat> {
 
     public Optional<Chat> findByChatId(Long chatId) {
         for (Chat chat : storage.values()) {
-            if (chat.chatId().equals(chatId)) {
+            if (chat.tgId().equals(chatId)) {
                 return Optional.of(chat);
             }
         }

@@ -1,0 +1,58 @@
+package backend.academy.scrapper.data.model;
+
+import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import org.hibernate.validator.constraints.URL;
+
+@Getter
+@Setter
+@RequiredArgsConstructor
+@AllArgsConstructor
+@Builder(toBuilder = true)
+@Entity
+@Table(name = "link")
+public class Link {
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
+
+    @URL
+    private String url;
+
+    private LocalDateTime lastUpdate;
+
+    @ManyToMany
+    @JoinTable(
+        name = "tag_to_link",
+        joinColumns = {@JoinColumn(name="link_id")},
+        inverseJoinColumns = {@JoinColumn(name="tag_id")}
+    )
+    private Set<Tag> tags = new HashSet<>();
+
+    @ManyToMany
+    @JoinTable(
+        name = "link_to_filter",
+        joinColumns = {@JoinColumn(name="link_id")},
+        inverseJoinColumns = {@JoinColumn(name="filter_id")}
+    )
+    private Set<Filter> filters = new HashSet<>();
+
+    @ManyToMany(mappedBy = "links")
+    private Set<Chat> chats;
+}

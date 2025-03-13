@@ -2,8 +2,8 @@ package backend.academy.scrapper.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import backend.academy.scrapper.model.Chat;
-import backend.academy.scrapper.model.Link;
+import backend.academy.scrapper.data.model.Chat;
+import backend.academy.scrapper.data.model.Link;
 import dto.AddLinkRequest;
 import dto.LinkResponse;
 import dto.RegisterChatRequest;
@@ -33,8 +33,8 @@ class MapperTest {
                 .build();
         chat = Chat.builder()
                 .id(UUID.randomUUID())
-                .chatId(123L)
-                .username("testUser")
+                .tgId(123L)
+                .nickname("testUser")
                 .creationDate(LocalDateTime.now())
                 .build();
         link = Link.builder()

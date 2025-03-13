@@ -5,7 +5,7 @@ import backend.academy.scrapper.client.UpdateCheckingClient;
 import backend.academy.scrapper.exception.BotServiceException;
 import backend.academy.scrapper.exception.BotServiceInternalErrorException;
 import backend.academy.scrapper.exception.ScrapperServicesApiException;
-import backend.academy.scrapper.model.Link;
+import backend.academy.scrapper.data.model.Link;
 import backend.academy.scrapper.repository.InMemoryChatRepository;
 import backend.academy.scrapper.repository.InMemoryLinkRepository;
 import dto.AddLinkRequest;
@@ -167,8 +167,13 @@ public class ScrapperService {
 
     private void sendNotification(Link link) {
         chatRepository.findById(link.chatId()).ifPresent(chat -> {
+<<<<<<< Updated upstream
             LinkUpdate linkUpdate = new LinkUpdate(link.id(), link.url(), "Link Updated", List.of(chat.chatId()));
             notificationClient.sendLinkUpdate(linkUpdate);
+=======
+            LinkUpdate linkUpdate = new LinkUpdate(link.id(), link.url(), "Link Updated", List.of(chat.tgId()));
+            notificationService.sendLinkUpdate(linkUpdate);
+>>>>>>> Stashed changes
         });
     }
 }

@@ -1,7 +1,7 @@
 package backend.academy.scrapper.client;
 
 import backend.academy.scrapper.exception.StackOverflowApiException;
-import backend.academy.scrapper.model.StackOverflowResponse;
+import backend.academy.scrapper.data.dto.StackOverflowResponse;
 import backend.academy.scrapper.service.LinkToApiRequestConverter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.time.LocalDateTime;

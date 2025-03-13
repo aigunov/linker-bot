@@ -9,8 +9,8 @@ import static org.mockito.Mockito.when;
 
 import backend.academy.scrapper.client.NotificationClient;
 import backend.academy.scrapper.client.UpdateCheckingClient;
-import backend.academy.scrapper.model.Chat;
-import backend.academy.scrapper.model.Link;
+import backend.academy.scrapper.data.model.Chat;
+import backend.academy.scrapper.data.model.Link;
 import backend.academy.scrapper.repository.InMemoryChatRepository;
 import backend.academy.scrapper.repository.InMemoryLinkRepository;
 import java.time.LocalDateTime;
@@ -66,8 +66,8 @@ class ScrapperServiceComponentTest {
                 .build();
         Chat chat = Chat.builder()
                 .id(chatId)
-                .chatId(123L)
-                .username("user")
+                .tgId(123L)
+                .nickname("user")
                 .creationDate(LocalDateTime.now())
                 .build();
 
