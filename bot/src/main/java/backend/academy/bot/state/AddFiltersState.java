@@ -12,8 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Slf4j
-@Component("filters-state")
-public class FiltersState extends StateImpl {
+@Component("add-filters-state")
+public class AddFiltersState extends StateImpl {
     private final AddLinkRequestService trackLinkService;
 
     private static final String next_button = "Далее";
@@ -30,8 +30,8 @@ public class FiltersState extends StateImpl {
         """;
 
     @Autowired
-    public FiltersState(AddLinkRequestService trackLinkService) {
-        super(ChatState.FILTERS, message);
+    public AddFiltersState(AddLinkRequestService trackLinkService) {
+        super(ChatState.ADD_FILTERS, message);
         this.trackLinkService = trackLinkService;
     }
 

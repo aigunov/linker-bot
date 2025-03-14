@@ -52,7 +52,7 @@ public class TrackState extends StateImpl {
         if (isValidURL(message)) {
             log.info("Link {} inserted into chat {}", message, chatId);
             trackLinkService.createLinkRequest(chatId, message);
-            stateManager.navigate(update, ChatState.TAGS);
+            stateManager.navigate(update, ChatState.ADD_TAGS);
         } else {
             bot.execute(new SendMessage(chatId, "Неверный формат ссылки.").parseMode(ParseMode.HTML));
             log.error("Unsupported link format {} inserted into chat {}", message, chatId);

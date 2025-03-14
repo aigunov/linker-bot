@@ -12,14 +12,22 @@ import lombok.ToString;
 @RequiredArgsConstructor
 public enum ChatState {
     MENU("menu-state"),
+
     TRACK("track-state"),
-    TAGS("tags-state"),
-    FILTERS("filters-state"),
+    ADD_TAGS("add-tags-state"),
+    ADD_FILTERS("filters-state"),
+
     UNTRACKED("untracked-state"),
+
     LIST("list-state"),
+    INSERT_TAGS_TO_SEARCH("insert-tags-to-search-state"),
+    INSERT_FILTERS_TO_SEARCH("insert-filters-to-search-state"),
+
     HELP("help-state"),
-    REGISTER("register-state"),
-    NONE("none-state");
+
+    TAGS("tags-state"),
+
+    REGISTER("register-state");
 
     private final String id;
 

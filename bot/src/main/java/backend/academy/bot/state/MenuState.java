@@ -15,6 +15,7 @@ public class MenuState extends StateImpl {
     private static final String untrack_button = "/untrack";
     private static final String list_button = "/list";
     private static final String help_button = "/help";
+    private static final String tag_button = "/tags";
     private static final List<String> buttons = List.of(track_button, untrack_button, list_button, help_button);
 
     public MenuState() {
@@ -41,8 +42,9 @@ public class MenuState extends StateImpl {
             switch (button) {
                 case track_button -> stateManager.navigate(update, ChatState.TRACK);
                 case untrack_button -> stateManager.navigate(update, ChatState.UNTRACKED);
-                case list_button -> stateManager.navigate(update, ChatState.LIST);
+                case list_button -> stateManager.navigate(update, ChatState.INSERT_TAGS_TO_SEARCH);
                 case help_button -> stateManager.navigate(update, ChatState.HELP);
+                case tag_button -> stateManager.navigate(update, ChatState.TAGS);
                 default -> {
                     log.warn("Unknown button pressed: {}", button);
                     showUnsupportedActionMessage(update);

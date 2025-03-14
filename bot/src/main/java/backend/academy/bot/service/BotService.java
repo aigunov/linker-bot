@@ -57,6 +57,26 @@ public class BotService {
         }
     }
 
+    public Object getTags(long chatId) {
+        try {
+            log.info("Fetching tags for chatId: {}", chatId);
+            var responseEntity = client.getAllTags(chatId);
+
+            if (responseEntity.getStatusCode().is2xxSuccessful()) {
+                log.info("Successfully received tags for chatId: {}", chatId);
+            } else {
+                log.warn(
+                    "Failed to fetch tags for chatId: {}. Status code: {}",
+                    chatId,
+                    responseEntity.getStatusCode());
+            }
+            return responseEntity.getBody();
+        } catch (Exception ex) {
+            log.error("Unexpected error while fetching tracked links for chatId: {}", chatId, ex);
+            throw new TelegramApiException("Произошла ошибка взаимодействия с сервисом Scrapper. Попробуйте позже.");
+        }
+    }
+
     public Object chatRegistration(Update update) {
         var message = update.message();
         var tgUser = message.from();
@@ -147,4 +167,5 @@ public class BotService {
     private List<String> convertStackTraceToList(StackTraceElement[] stackTrace) {
         return Arrays.stream(stackTrace).map(StackTraceElement::toString).collect(Collectors.toList());
     }
+
 }

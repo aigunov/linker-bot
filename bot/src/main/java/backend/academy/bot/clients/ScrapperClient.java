@@ -30,6 +30,7 @@ import org.springframework.web.client.RestClientResponseException;
 public class ScrapperClient {
     private static final String TG_CHAT = "/tg-chat";
     private static final String LINK = "/links";
+    private static final String TAGS = "/tags";
 
     private final RestClient restClient;
     private final JsonToApiErrorResponse convertJsonToApiErrorResponse;
@@ -51,6 +52,13 @@ public class ScrapperClient {
         Map<String, String> headers = new HashMap<>();
         headers.put("Tg-Chat-Id", String.valueOf(chatId));
         return makeAndSendRequest(LINK, HttpMethod.GET, headers, null, ListLinkResponse.class);
+    }
+
+    public ResponseEntity<Object> getAllTags(long chatId) {
+        log.info("Request: get all tags from chat: {}", chatId);
+        Map<String, String> headers = new HashMap<>();
+        headers.put("Tg-Chat-Id", String.valueOf(chatId));
+        return makeAndSendRequest(TAGS, HttpMethod.GET, headers, null, ListLinkResponse.class);
     }
 
     public ResponseEntity<Object> addTrackedLink(final Long chatId, AddLinkRequest request) {
