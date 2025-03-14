@@ -1,6 +1,6 @@
 package backend.academy.scrapper.controller;
 
-import backend.academy.scrapper.service.ScrapperService;
+import backend.academy.scrapper.service.LinkService;
 import dto.AddLinkRequest;
 import dto.LinkResponse;
 import dto.ListLinkResponse;
@@ -28,12 +28,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/links")
 public class LinksController {
 
-    private final ScrapperService scrapperService;
+    private final LinkService linkService;
 
     @GetMapping
     public ResponseEntity<ListLinkResponse> getAllTrackedLinks(@RequestHeader("Tg-Chat-Id") Long chatId) {
         log.info("Getting all tracked links for chat ID: {}", chatId);
-        var response = scrapperService.getAllTrackedLinks(chatId);
+        var response = linkService.getAllTrackedLinks(chatId);
         return ResponseEntity.ok(response);
     }
 
@@ -41,7 +41,7 @@ public class LinksController {
     public ResponseEntity<LinkResponse> addTrackedLink(
             @RequestHeader("Tg-Chat-Id") Long chatId, @RequestBody AddLinkRequest request) {
         log.info("Adding tracked link for chat ID: {}. URI: {}", chatId, request.uri());
-        LinkResponse response = scrapperService.addTrackedLink(chatId, request);
+        var response = linkService.addTrackedLink(chatId, request);
         return ResponseEntity.ok(response);
     }
 
@@ -49,7 +49,7 @@ public class LinksController {
     public ResponseEntity<LinkResponse> removeTrackedLink(
             @RequestHeader("Tg-Chat-Id") Long chatId, @Valid @RequestBody RemoveLinkRequest request) {
         log.info("Removing tracked link for chat ID: {}. URI: {}", chatId, request.uri());
-        LinkResponse response = scrapperService.removeTrackedLink(chatId, request);
+        var response = linkService.removeTrackedLink(chatId, request);
         return ResponseEntity.ok(response);
     }
 }

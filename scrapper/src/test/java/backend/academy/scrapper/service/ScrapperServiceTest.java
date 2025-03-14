@@ -9,7 +9,6 @@ import static org.mockito.Mockito.when;
 
 import backend.academy.scrapper.data.model.Chat;
 import backend.academy.scrapper.data.model.Link;
-import backend.academy.scrapper.repository.InMemoryChatRepository;
 import backend.academy.scrapper.repository.InMemoryLinkRepository;
 import dto.AddLinkRequest;
 import dto.LinkResponse;

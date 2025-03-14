@@ -1,6 +1,6 @@
 package backend.academy.scrapper.controller;
 
-import backend.academy.scrapper.service.ScrapperService;
+import backend.academy.scrapper.service.TgChatService;
 import dto.RegisterChatRequest;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import jakarta.validation.Valid;
@@ -24,19 +24,19 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/tg-chat")
 public class TgChatController {
 
-    private final ScrapperService scrapperService;
+    private final TgChatService tgChatService;
 
     @PostMapping("/{id}")
     public ResponseEntity<String> registerChat(@PathVariable Long id, @Valid @RequestBody RegisterChatRequest request) {
         log.info("Registering chat with ID: {}. Name: {}", id, request.name());
-        var responseString = scrapperService.registerChat(id, request);
+        var responseString = tgChatService.registerChat(id, request);
         return ResponseEntity.ok().body(responseString);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteChat(@PathVariable Long id) {
         log.info("Deleting chat with ID: {}", id);
-        var responseString = scrapperService.deleteChat(id);
+        var responseString = tgChatService.deleteChat(id);
         return ResponseEntity.ok().body(responseString);
     }
 }

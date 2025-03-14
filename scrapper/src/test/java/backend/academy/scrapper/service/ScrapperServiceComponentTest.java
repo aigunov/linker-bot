@@ -11,7 +11,6 @@ import backend.academy.scrapper.client.NotificationClient;
 import backend.academy.scrapper.client.UpdateCheckingClient;
 import backend.academy.scrapper.data.model.Chat;
 import backend.academy.scrapper.data.model.Link;
-import backend.academy.scrapper.repository.InMemoryChatRepository;
 import backend.academy.scrapper.repository.InMemoryLinkRepository;
 import java.time.LocalDateTime;
 import java.util.List;

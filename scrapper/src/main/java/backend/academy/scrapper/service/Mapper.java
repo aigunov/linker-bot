@@ -11,31 +11,28 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class Mapper {
+    //TODO: переделать
     public Chat chatDtoToEntity(RegisterChatRequest request) {
         return Chat.builder()
                 .id(UUID.randomUUID())
                 .tgId(request.chatId())
                 .nickname(request.name())
-                .creationDate(LocalDateTime.now())
                 .build();
     }
 
+    //TODO: переделать
     public LinkResponse linkToLinkResponse(Link link) {
         return LinkResponse.builder()
                 .id(link.id())
                 .url(link.url())
-                .filters(link.filters())
-                .tags(link.tags())
                 .build();
     }
 
+    //TODO: переделать
     public Link linkRequestToLink(AddLinkRequest request, Chat chat) {
         return Link.builder()
                 .id(UUID.randomUUID())
-                .chatId(chat.id())
                 .url(request.uri())
-                .tags(request.tags())
-                .filters(request.filters())
                 .lastUpdate(null)
                 .build();
     }
