@@ -1,5 +1,10 @@
 package backend.academy.scrapper.repository;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import backend.academy.scrapper.model.Chat;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -7,10 +12,6 @@ import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class InMemoryChatRepositoryTest {
 
@@ -23,17 +24,17 @@ class InMemoryChatRepositoryTest {
         // arrange
         repository = new InMemoryChatRepository();
         chat1 = Chat.builder()
-            .id(UUID.randomUUID())
-            .chatId(123L)
-            .username("user1")
-            .creationDate(LocalDateTime.now())
-            .build();
+                .id(UUID.randomUUID())
+                .chatId(123L)
+                .username("user1")
+                .creationDate(LocalDateTime.now())
+                .build();
         chat2 = Chat.builder()
-            .id(UUID.randomUUID())
-            .chatId(456L)
-            .username("user2")
-            .creationDate(LocalDateTime.now().plusHours(1))
-            .build();
+                .id(UUID.randomUUID())
+                .chatId(456L)
+                .username("user2")
+                .creationDate(LocalDateTime.now().plusHours(1))
+                .build();
     }
 
     @Test

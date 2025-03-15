@@ -1,5 +1,10 @@
 package backend.academy.bot.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import backend.academy.bot.clients.JsonToApiErrorResponse;
 import backend.academy.bot.clients.ScrapperClient;
 import backend.academy.bot.configs.TelegramBot;
@@ -19,10 +24,6 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class BotServiceTest {
@@ -113,7 +114,7 @@ class BotServiceTest {
         String message = "https://example.com";
         RemoveLinkRequest request = new RemoveLinkRequest(message);
         when(client.removeTrackedLink(chatId, request))
-            .thenReturn(ResponseEntity.ok(LinkResponse.builder().build()));
+                .thenReturn(ResponseEntity.ok(LinkResponse.builder().build()));
 
         // act
         Object result = botService.commitLinkUntrack(chatId, message);

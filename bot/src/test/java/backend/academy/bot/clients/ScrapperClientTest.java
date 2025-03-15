@@ -1,5 +1,14 @@
 package backend.academy.bot.clients;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalToJson;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
@@ -18,14 +27,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.TestPropertySource;
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.equalToJson;
-import static com.github.tomakehurst.wiremock.client.WireMock.post;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
 
 @SpringBootTest
 @TestPropertySource(properties = {"scrapper.api.url=http://localhost:8089"})
@@ -57,15 +58,15 @@ class ScrapperClientTest {
     void registerChat_shouldReturnOk() throws Exception {
         // arrange
         RegisterChatRequest registerChatRequest =
-            RegisterChatRequest.builder().chatId(123L).name("test").build();
+                RegisterChatRequest.builder().chatId(123L).name("test").build();
         String requestBody = objectMapper.writeValueAsString(registerChatRequest);
 
         stubFor(post(urlEqualTo("/tg-chat/123"))
-            .withRequestBody(equalToJson(requestBody))
-            .willReturn(aResponse()
-                .withStatus(HttpStatus.OK.value())
-                .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .withBody("Registered")));
+                .withRequestBody(equalToJson(requestBody))
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.OK.value())
+                        .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .withBody("Registered")));
 
         // act
         ResponseEntity<Object> response = scrapperClient.registerChat(registerChatRequest);
@@ -81,7 +82,7 @@ class ScrapperClientTest {
         RegisterChatRequest request = new RegisterChatRequest(1L, "Test Chat");
 
         wireMockServer.stubFor(WireMock.post(WireMock.urlEqualTo("/tg-chat/1"))
-            .willReturn(WireMock.aResponse().withStatus(200)));
+                .willReturn(WireMock.aResponse().withStatus(200)));
 
         // act
         ResponseEntity<Object> response = scrapperClient.registerChat(request);
@@ -94,20 +95,20 @@ class ScrapperClientTest {
     void addTrackedLink_ShouldReturnLinkResponse() {
         // arrange
         AddLinkRequest request = AddLinkRequest.builder()
-            .uri("http://example.com")
-            .tags(List.of())
-            .filters(List.of())
-            .build();
+                .uri("http://example.com")
+                .tags(List.of())
+                .filters(List.of())
+                .build();
 
         wireMockServer.stubFor(
-            WireMock.post(WireMock.urlEqualTo("/links"))
-                .withHeader("Tg-Chat-Id", equalTo("1"))
-                .willReturn(
-                    WireMock.aResponse()
-                        .withStatus(200)
-                        .withHeader("Content-Type", "application/json")
-                        .withBody(
-                            "{\"id\": \"550e8400-e29b-41d4-a716-446655440000\", \"url\": \"http://example.com\", \"tags\":[], \"filters\":[]}")));
+                WireMock.post(WireMock.urlEqualTo("/links"))
+                        .withHeader("Tg-Chat-Id", equalTo("1"))
+                        .willReturn(
+                                WireMock.aResponse()
+                                        .withStatus(200)
+                                        .withHeader("Content-Type", "application/json")
+                                        .withBody(
+                                                "{\"id\": \"550e8400-e29b-41d4-a716-446655440000\", \"url\": \"http://example.com\", \"tags\":[], \"filters\":[]}")));
 
         // act
         ResponseEntity<Object> response = scrapperClient.addTrackedLink(1L, request);
@@ -120,12 +121,12 @@ class ScrapperClientTest {
     void registerChat_shouldHandleError() {
         // arrange
         RegisterChatRequest request =
-            RegisterChatRequest.builder().chatId(123L).name("test").build();
+                RegisterChatRequest.builder().chatId(123L).name("test").build();
         stubFor(post(urlEqualTo("/tg-chat/123"))
-            .willReturn(aResponse()
-                .withStatus(HttpStatus.BAD_REQUEST.value())
-                .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .withBody("{\"message\":\"Bad Request\",\"status\":\"400\"}")));
+                .willReturn(aResponse()
+                        .withStatus(HttpStatus.BAD_REQUEST.value())
+                        .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .withBody("{\"message\":\"Bad Request\",\"status\":\"400\"}")));
 
         // act
         ResponseEntity<Object> response = scrapperClient.registerChat(request);

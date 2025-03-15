@@ -1,12 +1,13 @@
 package backend.academy.scrapper.service;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+
 import backend.academy.scrapper.config.GitHubConfig;
 import backend.academy.scrapper.config.StackOverflowConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 @SpringBootTest
 @EnableConfigurationProperties({GitHubConfig.class, StackOverflowConfig.class})
@@ -38,8 +39,8 @@ class LinkToApiRequestConverterTest {
     void convertStackOverflowUrlToApi_shouldConvertValidStackOverflowUrl() {
         // arrange
         String stackOverflowUrl = "https://ru.stackoverflow.com/questions/1607351/%d0%9f%d0%be%d1%81%d0%bb%d0%b5"
-            + "%d0%b4%d0%be%d0%b2%d0%b0%d1%82%d0%b5%d0%bb%d1%8c%d0%bd%d1%8b%d0%b9-%d0%b2%d1%8b%d0%b7%d0%be%d0%b2-%d1%"
-            + "84%d1%83%d0%bd%d0%ba%d1%86%d0%b8%d0%b9-%d0%b2-java";
+                + "%d0%b4%d0%be%d0%b2%d0%b0%d1%82%d0%b5%d0%bb%d1%8c%d0%bd%d1%8b%d0%b9-%d0%b2%d1%8b%d0%b7%d0%be%d0%b2-%d1%"
+                + "84%d1%83%d0%bd%d0%ba%d1%86%d0%b8%d0%b9-%d0%b2-java";
         String expectedApiUrl = stackOverflowConfig.url() + "/1607351?order=desc&sort=activity&site=ru.stackoverflow";
 
         // act

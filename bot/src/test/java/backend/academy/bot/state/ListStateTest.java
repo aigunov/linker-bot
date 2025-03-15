@@ -1,10 +1,11 @@
 package backend.academy.bot.state;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import dto.LinkResponse;
 import dto.ListLinkResponse;
 import java.util.List;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class ListStateTest {
 
@@ -14,21 +15,21 @@ class ListStateTest {
     void formatLinks_shouldReturnFormattedString() {
         // arrange
         ListLinkResponse links = ListLinkResponse.builder()
-            .linkResponses(List.of(
-                LinkResponse.builder()
-                    .url("https://example.com")
-                    .tags(List.of("tag1", "tag2"))
-                    .filters(List.of())
-                    .build(),
-                LinkResponse.builder()
-                    .url("https://test.com")
-                    .filters(List.of("filter1"))
-                    .tags(List.of())
-                    .build()))
-            .build();
+                .linkResponses(List.of(
+                        LinkResponse.builder()
+                                .url("https://example.com")
+                                .tags(List.of("tag1", "tag2"))
+                                .filters(List.of())
+                                .build(),
+                        LinkResponse.builder()
+                                .url("https://test.com")
+                                .filters(List.of("filter1"))
+                                .tags(List.of())
+                                .build()))
+                .build();
 
         String expected =
-            """
+                """
                 🔗 <b>Отслеживаемые ссылки:</b>
 
                 🌐 <b>URL:</b> https://example.com
@@ -52,7 +53,7 @@ class ListStateTest {
     void formatLinks_shouldReturnNoLinksMessage_whenEmptyList() {
         // arrange
         ListLinkResponse links =
-            ListLinkResponse.builder().linkResponses(List.of()).build();
+                ListLinkResponse.builder().linkResponses(List.of()).build();
 
         // act
         String result = listState.formatLinks(links);
@@ -65,15 +66,15 @@ class ListStateTest {
     void formatLinks_shouldHandleEmptyTagsAndFilters() {
         // arrange
         ListLinkResponse links = ListLinkResponse.builder()
-            .linkResponses(List.of(LinkResponse.builder()
-                .url("https://example.com")
-                .tags(List.of())
-                .filters(List.of())
-                .build()))
-            .build();
+                .linkResponses(List.of(LinkResponse.builder()
+                        .url("https://example.com")
+                        .tags(List.of())
+                        .filters(List.of())
+                        .build()))
+                .build();
 
         String expected =
-            """
+                """
                 🔗 <b>Отслеживаемые ссылки:</b>
 
                 🌐 <b>URL:</b> https://example.com

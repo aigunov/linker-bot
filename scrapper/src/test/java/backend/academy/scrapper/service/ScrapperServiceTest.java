@@ -1,5 +1,13 @@
 package backend.academy.scrapper.service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import backend.academy.scrapper.model.Chat;
 import backend.academy.scrapper.model.Link;
 import backend.academy.scrapper.repository.InMemoryChatRepository;
@@ -20,13 +28,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class ScrapperServiceTest {
@@ -53,27 +54,27 @@ class ScrapperServiceTest {
     void setUp() {
         // arrange
         chat = Chat.builder()
-            .id(chatUUID)
-            .chatId(chatId)
-            .username("user1")
-            .creationDate(LocalDateTime.now())
-            .build();
+                .id(chatUUID)
+                .chatId(chatId)
+                .username("user1")
+                .creationDate(LocalDateTime.now())
+                .build();
 
         link = Link.builder()
-            .id(UUID.randomUUID())
-            .chatId(chatUUID)
-            .url(testUrl)
-            .tags(List.of("java", "spring"))
-            .filters(List.of("open", "bug"))
-            .lastUpdate(LocalDateTime.now())
-            .build();
+                .id(UUID.randomUUID())
+                .chatId(chatUUID)
+                .url(testUrl)
+                .tags(List.of("java", "spring"))
+                .filters(List.of("open", "bug"))
+                .lastUpdate(LocalDateTime.now())
+                .build();
     }
 
     @Test
     void registerChat_ShouldRegisterChat_WhenChatDoesNotExist() {
         // arrange
         RegisterChatRequest request =
-            RegisterChatRequest.builder().chatId(chatId).name("user1").build();
+                RegisterChatRequest.builder().chatId(chatId).name("user1").build();
 
         when(chatRepository.findByChatId(chatId)).thenReturn(Optional.empty());
         when(mapper.chatDtoToEntity(request)).thenReturn(chat);
@@ -91,7 +92,7 @@ class ScrapperServiceTest {
     void registerChat_ShouldThrowException_WhenChatAlreadyExists() {
         // arrange
         RegisterChatRequest request =
-            RegisterChatRequest.builder().chatId(chatId).name("user1").build();
+                RegisterChatRequest.builder().chatId(chatId).name("user1").build();
 
         when(chatRepository.findByChatId(chatId)).thenReturn(Optional.of(chat));
 
@@ -130,12 +131,12 @@ class ScrapperServiceTest {
         when(chatRepository.findByChatId(chatId)).thenReturn(Optional.of(chat));
         when(linkRepository.findAllByChatId(chat.id())).thenReturn(List.of(link));
         when(mapper.linkToLinkResponse(link))
-            .thenReturn(LinkResponse.builder()
-                .id(link.id())
-                .url(link.url())
-                .tags(link.tags())
-                .filters(link.filters())
-                .build());
+                .thenReturn(LinkResponse.builder()
+                        .id(link.id())
+                        .url(link.url())
+                        .tags(link.tags())
+                        .filters(link.filters())
+                        .build());
 
         // act
         ListLinkResponse response = scrapperService.getAllTrackedLinks(chatId);
@@ -160,22 +161,22 @@ class ScrapperServiceTest {
     void addTrackedLink_ShouldAddLink_WhenNotAlreadyTracked() {
         // arrange
         AddLinkRequest request = AddLinkRequest.builder()
-            .uri(testUrl)
-            .tags(List.of("java"))
-            .filters(List.of("open"))
-            .build();
+                .uri(testUrl)
+                .tags(List.of("java"))
+                .filters(List.of("open"))
+                .build();
 
         when(chatRepository.findByChatId(chatId)).thenReturn(Optional.of(chat));
         when(linkRepository.findByChatIdAndLink(chat.id(), testUrl)).thenReturn(Optional.empty());
         when(mapper.linkRequestToLink(request, chat)).thenReturn(link);
         when(linkRepository.save(link)).thenReturn(link);
         when(mapper.linkToLinkResponse(link))
-            .thenReturn(LinkResponse.builder()
-                .id(link.id())
-                .url(link.url())
-                .tags(link.tags())
-                .filters(link.filters())
-                .build());
+                .thenReturn(LinkResponse.builder()
+                        .id(link.id())
+                        .url(link.url())
+                        .tags(link.tags())
+                        .filters(link.filters())
+                        .build());
 
         // act
         LinkResponse response = scrapperService.addTrackedLink(chatId, request);
@@ -189,10 +190,10 @@ class ScrapperServiceTest {
     void addTrackedLink_ShouldThrowException_WhenLinkAlreadyTracked() {
         // arrange
         AddLinkRequest request = AddLinkRequest.builder()
-            .uri(testUrl)
-            .tags(List.of("java"))
-            .filters(List.of("open"))
-            .build();
+                .uri(testUrl)
+                .tags(List.of("java"))
+                .filters(List.of("open"))
+                .build();
 
         when(chatRepository.findByChatId(chatId)).thenReturn(Optional.of(chat));
         when(linkRepository.findByChatIdAndLink(chat.id(), testUrl)).thenReturn(Optional.of(link));
@@ -211,12 +212,12 @@ class ScrapperServiceTest {
         when(linkRepository.findByChatIdAndLink(chat.id(), testUrl)).thenReturn(Optional.of(link));
         when(linkRepository.deleteById(link.id())).thenReturn(link);
         when(mapper.linkToLinkResponse(link))
-            .thenReturn(LinkResponse.builder()
-                .id(link.id())
-                .url(link.url())
-                .tags(link.tags())
-                .filters(link.filters())
-                .build());
+                .thenReturn(LinkResponse.builder()
+                        .id(link.id())
+                        .url(link.url())
+                        .tags(link.tags())
+                        .filters(link.filters())
+                        .build());
 
         // act
         LinkResponse response = scrapperService.removeTrackedLink(chatId, request);
