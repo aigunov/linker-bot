@@ -1,7 +1,5 @@
 package backend.academy.scrapper.service;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
 import backend.academy.scrapper.exception.BotServiceException;
 import backend.academy.scrapper.exception.BotServiceInternalErrorException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -18,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest
 class NotificationServiceTest {
@@ -32,6 +31,7 @@ class NotificationServiceTest {
 
     @BeforeEach
     void setUp() {
+        // arrange
         wireMockServer = new WireMockServer(WireMockConfiguration.options().port(8089));
         wireMockServer.start();
         WireMock.configureFor(8089);
@@ -39,6 +39,7 @@ class NotificationServiceTest {
 
     @AfterEach
     void tearDown() {
+        // arrange
         wireMockServer.stop();
     }
 
@@ -49,49 +50,58 @@ class NotificationServiceTest {
 
     @Test
     void sendLinkUpdate_success() throws Exception {
+        // arrange
         LinkUpdate linkUpdate =
-                new LinkUpdate(UUID.randomUUID(), "https://example.com/test", "Link Updated", List.of(123L, 456L));
+            new LinkUpdate(UUID.randomUUID(), "https://example.com/test", "Link Updated", List.of(123L, 456L));
 
         wireMockServer.stubFor(WireMock.post(WireMock.urlEqualTo("/updates"))
-                .withRequestBody(WireMock.equalToJson(objectMapper.writeValueAsString(linkUpdate)))
-                .willReturn(WireMock.aResponse().withStatus(200)));
+            .withRequestBody(WireMock.equalToJson(objectMapper.writeValueAsString(linkUpdate)))
+            .willReturn(WireMock.aResponse().withStatus(200)));
 
+        // act
         notificationService.sendLinkUpdate(linkUpdate);
 
+        // assert
         wireMockServer.verify(WireMock.postRequestedFor(WireMock.urlEqualTo("/updates")));
     }
 
     @Test
     void sendLinkUpdate_internalServerError() throws Exception {
+        // arrange
         LinkUpdate linkUpdate =
-                new LinkUpdate(UUID.randomUUID(), "https://example.com/test", "Link Updated", List.of(123L, 456L));
+            new LinkUpdate(UUID.randomUUID(), "https://example.com/test", "Link Updated", List.of(123L, 456L));
 
         wireMockServer.stubFor(WireMock.post(WireMock.urlEqualTo("/updates"))
-                .withRequestBody(WireMock.equalToJson(objectMapper.writeValueAsString(linkUpdate)))
-                .willReturn(WireMock.aResponse().withStatus(500)));
+            .withRequestBody(WireMock.equalToJson(objectMapper.writeValueAsString(linkUpdate)))
+            .willReturn(WireMock.aResponse().withStatus(500)));
 
+        // act & assert
         assertThrows(BotServiceInternalErrorException.class, () -> notificationService.sendLinkUpdate(linkUpdate));
     }
 
     @Test
     void sendLinkUpdate_otherError() throws Exception {
+        // arrange
         LinkUpdate linkUpdate =
-                new LinkUpdate(UUID.randomUUID(), "https://example.com/test", "Link Updated", List.of(123L, 456L));
+            new LinkUpdate(UUID.randomUUID(), "https://example.com/test", "Link Updated", List.of(123L, 456L));
 
         wireMockServer.stubFor(WireMock.post(WireMock.urlEqualTo("/updates"))
-                .withRequestBody(WireMock.equalToJson(objectMapper.writeValueAsString(linkUpdate)))
-                .willReturn(WireMock.aResponse().withStatus(400)));
+            .withRequestBody(WireMock.equalToJson(objectMapper.writeValueAsString(linkUpdate)))
+            .willReturn(WireMock.aResponse().withStatus(400)));
 
+        // act & assert
         assertThrows(BotServiceException.class, () -> notificationService.sendLinkUpdate(linkUpdate));
     }
 
     @Test
     void sendLinkUpdate_connectionError() throws Exception {
+        // arrange
         LinkUpdate linkUpdate =
-                new LinkUpdate(UUID.randomUUID(), "https://example.com/test", "Link Updated", List.of(123L, 456L));
+            new LinkUpdate(UUID.randomUUID(), "https://example.com/test", "Link Updated", List.of(123L, 456L));
 
         wireMockServer.stop();
 
+        // act & assert
         assertThrows(BotServiceException.class, () -> notificationService.sendLinkUpdate(linkUpdate));
     }
 }

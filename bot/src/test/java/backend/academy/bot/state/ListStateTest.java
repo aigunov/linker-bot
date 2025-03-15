@@ -1,11 +1,10 @@
 package backend.academy.bot.state;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import dto.LinkResponse;
 import dto.ListLinkResponse;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class ListStateTest {
 
@@ -30,17 +29,17 @@ class ListStateTest {
 
         String expected =
             """
-            🔗 <b>Отслеживаемые ссылки:</b>
+                🔗 <b>Отслеживаемые ссылки:</b>
 
-            🌐 <b>URL:</b> https://example.com
-            🏷 <b>Теги:</b> tag1, tag2
-            🔍 <i>Фильтры отсутствуют</i>
+                🌐 <b>URL:</b> https://example.com
+                🏷 <b>Теги:</b> tag1, tag2
+                🔍 <i>Фильтры отсутствуют</i>
 
-            🌐 <b>URL:</b> https://test.com
-            🏷 <i>Теги отсутствуют</i>
-            🔍 <b>Фильтры:</b> filter1
+                🌐 <b>URL:</b> https://test.com
+                🏷 <i>Теги отсутствуют</i>
+                🔍 <b>Фильтры:</b> filter1
 
-            """;
+                """;
 
         // act
         String result = listState.formatLinks(links);
@@ -75,13 +74,13 @@ class ListStateTest {
 
         String expected =
             """
-            🔗 <b>Отслеживаемые ссылки:</b>
+                🔗 <b>Отслеживаемые ссылки:</b>
 
-            🌐 <b>URL:</b> https://example.com
-            🏷 <i>Теги отсутствуют</i>
-            🔍 <i>Фильтры отсутствуют</i>
+                🌐 <b>URL:</b> https://example.com
+                🏷 <i>Теги отсутствуют</i>
+                🔍 <i>Фильтры отсутствуют</i>
 
-            """;
+                """;
 
         // act
         String result = listState.formatLinks(links);
