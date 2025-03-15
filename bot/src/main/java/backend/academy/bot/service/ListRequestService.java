@@ -23,6 +23,10 @@ public class ListRequestService {
         });
     }
 
+    public GetLinksRequest getListRequest(Long chatId){
+        return listRequests.get(chatId);
+    }
+
     public void clearLinkRequest(Long chatId) {
         listRequests.remove(chatId);
     }

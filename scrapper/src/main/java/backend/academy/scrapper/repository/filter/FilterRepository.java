@@ -10,3 +10,4 @@ public interface FilterRepository {
     Optional<Filter> findById(UUID id);
     Iterable<Filter> findAll();
 }
+

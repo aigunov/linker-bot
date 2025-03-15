@@ -30,6 +30,11 @@ public class SqlTagRepository implements TagRepository {
     }
 
     @Override
+    public Iterable<Tag> findAllByChatId(Long chatId) {
+        return null;
+    }
+
+    @Override
     public Iterable<Tag> findAll() {
         return null;
     }

@@ -29,6 +29,7 @@ public class BotService {
 
     private final ScrapperClient client;
     private final AddLinkRequestService addLinkRequestService;
+    private final ListRequestService listRequestService;
     private TelegramBot telegramBot;
     private final ExecutorService executorService = Executors.newFixedThreadPool(10);
 
@@ -40,7 +41,8 @@ public class BotService {
     public Object getTrackingLinks(Long chatId) {
         try {
             log.info("Fetching tracked links for chatId: {}", chatId);
-            var responseEntity = client.getAllTrackedLinks(chatId);
+            var requestBody = listRequestService.getListRequest(chatId);
+            var responseEntity = client.getAllTrackedLinks(chatId, requestBody);
 
             if (responseEntity.getStatusCode().is2xxSuccessful()) {
                 log.info("Successfully received tracked links for chatId: {}", chatId);

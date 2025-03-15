@@ -30,7 +30,17 @@ public class SqlLinkRepository implements LinkRepository{
     }
 
     @Override
+    public Optional<Link> findByChatIdAndUrl(Long chatId, String url) {
+        return Optional.empty();
+    }
+
+    @Override
     public Iterable<Link> findAll() {
+        return null;
+    }
+
+    @Override
+    public Iterable<Link> findAllByChatId(Long chatId) {
         return null;
     }
 }

@@ -8,5 +8,6 @@ public interface ChatRepository {
     Chat save(Chat chat);
     void deleteById(UUID id);
     Optional<Chat> findById(UUID id);
+    Optional<Chat> findByTgId(Long chatId);
     Iterable<Chat> findAll();
 }

@@ -2,6 +2,7 @@ package backend.academy.bot.clients;
 
 import dto.AddLinkRequest;
 import dto.ApiErrorResponse;
+import dto.GetLinksRequest;
 import dto.LinkResponse;
 import dto.ListLinkResponse;
 import dto.RegisterChatRequest;
@@ -47,11 +48,11 @@ public class ScrapperClient {
         return makeAndSendRequest(TG_CHAT + "/{chatId}", HttpMethod.DELETE, headers, null, String.class, chatId);
     }
 
-    public ResponseEntity<Object> getAllTrackedLinks(final Long chatId) {
+    public ResponseEntity<Object> getAllTrackedLinks(final Long chatId, final GetLinksRequest linksRequest) {
         log.info("Request: get all tracked links");
         Map<String, String> headers = new HashMap<>();
         headers.put("Tg-Chat-Id", String.valueOf(chatId));
-        return makeAndSendRequest(LINK, HttpMethod.GET, headers, null, ListLinkResponse.class);
+        return makeAndSendRequest(LINK, HttpMethod.GET, headers, linksRequest, ListLinkResponse.class);
     }
 
     public ResponseEntity<Object> getAllTags(long chatId) {

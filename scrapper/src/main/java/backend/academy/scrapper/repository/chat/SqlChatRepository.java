@@ -32,6 +32,11 @@ public class SqlChatRepository implements ChatRepository {
     }
 
     @Override
+    public Optional<Chat> findByTgId(Long chatId) {
+        return Optional.empty();
+    }
+
+    @Override
     public Iterable<Chat> findAll() {
         return null;
     }

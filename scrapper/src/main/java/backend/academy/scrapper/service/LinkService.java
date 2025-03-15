@@ -1,6 +1,7 @@
 package backend.academy.scrapper.service;
 
 import dto.AddLinkRequest;
+import dto.GetLinksRequest;
 import dto.LinkResponse;
 import dto.ListLinkResponse;
 import dto.RemoveLinkRequest;
@@ -8,7 +9,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class LinkService {
-    public ListLinkResponse getAllTrackedLinks(Long chatId) {
+    public ListLinkResponse getAllTrackedLinks(Long chatId, GetLinksRequest linksRequest) {
         return null;
     }
 

@@ -2,6 +2,7 @@ package backend.academy.scrapper.controller;
 
 import backend.academy.scrapper.service.LinkService;
 import dto.AddLinkRequest;
+import dto.GetLinksRequest;
 import dto.LinkResponse;
 import dto.ListLinkResponse;
 import dto.RemoveLinkRequest;
@@ -31,9 +32,10 @@ public class LinksController {
     private final LinkService linkService;
 
     @GetMapping
-    public ResponseEntity<ListLinkResponse> getAllTrackedLinks(@RequestHeader("Tg-Chat-Id") Long chatId) {
+    public ResponseEntity<ListLinkResponse> getAllTrackedLinks(@RequestHeader("Tg-Chat-Id") Long chatId,
+                                                               @RequestBody GetLinksRequest linksRequest) {
         log.info("Getting all tracked links for chat ID: {}", chatId);
-        var response = linkService.getAllTrackedLinks(chatId);
+        var response = linkService.getAllTrackedLinks(chatId, linksRequest);
         return ResponseEntity.ok(response);
     }
 
