@@ -7,6 +7,6 @@ import org.springframework.stereotype.Repository;
 import java.util.UUID;
 
 @Repository
-@ConditionalOnProperty(prefix = "app", name="access-type", havingValue = "jpa")
+@ConditionalOnProperty(prefix = "app.db", name="access-type", havingValue = "jpa")
 public interface OrmLinkRepository extends LinkRepository, JpaRepository<Link, UUID> {
 }

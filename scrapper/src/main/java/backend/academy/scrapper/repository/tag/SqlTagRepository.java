@@ -1,6 +1,6 @@
-package backend.academy.scrapper.repository.link;
+package backend.academy.scrapper.repository.tag;
 
-import backend.academy.scrapper.data.model.Link;
+import backend.academy.scrapper.data.model.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -10,12 +10,12 @@ import java.util.UUID;
 
 @Repository
 @RequiredArgsConstructor
-@ConditionalOnProperty(prefix="app.db", name = "access-type", havingValue="sql")
-public class SqlLinkRepository implements LinkRepository{
+@ConditionalOnProperty(prefix="app.db", name="access-type", havingValue="sql")
+public class SqlTagRepository implements TagRepository {
     private final NamedParameterJdbcTemplate jdbc;
 
     @Override
-    public Link save(Link link) {
+    public Tag save(Tag tag) {
         return null;
     }
 
@@ -25,12 +25,13 @@ public class SqlLinkRepository implements LinkRepository{
     }
 
     @Override
-    public Optional<Link> findById(UUID id) {
+    public Optional<Tag> findById(UUID id) {
         return Optional.empty();
     }
 
     @Override
-    public Iterable<Link> findAll() {
+    public Iterable<Tag> findAll() {
         return null;
     }
+
 }

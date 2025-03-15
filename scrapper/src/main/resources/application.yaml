@@ -14,9 +14,9 @@ spring:
   application:
     name: Scrapper
   datasource:
-    url: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
-    username: ${POSTGRES_USER}
-    password: ${POSTGRES_PASSWORD}
+    url: jdbc:postgresql://localhost:6432/scrapper_db
+    username: aigunov
+    password: 12345
   liquibase:
     enabled: true
     change-log: classpath:migrations/db.changelog-master.xml
