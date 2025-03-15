@@ -20,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -74,7 +75,7 @@ public class BotService {
             return ApiErrorResponse.builder()
                     .exceptionMessage(ex.getMessage())
                     .stacktrace(convertStackTraceToList(ex.getStackTrace()))
-                    .code("500")
+                    .code(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()))
                     .description(ex.getClass().getSimpleName())
                     .build();
         }
