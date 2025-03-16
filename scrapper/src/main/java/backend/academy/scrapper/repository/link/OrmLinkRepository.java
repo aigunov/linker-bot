@@ -4,6 +4,8 @@ import backend.academy.scrapper.data.model.Link;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -17,9 +19,11 @@ public interface OrmLinkRepository extends LinkRepository, JpaRepository<Link, U
     @Override
     Iterable<Link> findAllByChatId(Long chatId);
 
-
     @Override
     @Query(value = """
         """, nativeQuery = true)
     Optional<Link> findByChatIdAndUrl(Long chatId, String url);
+
+    @Override
+    Page<Link> findAll(Pageable pageable);
 }

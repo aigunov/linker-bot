@@ -3,6 +3,7 @@ package backend.academy.scrapper.repository.link;
 import backend.academy.scrapper.data.model.Link;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.data.domain.Pageable;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 import java.util.Optional;
@@ -36,6 +37,11 @@ public class SqlLinkRepository implements LinkRepository{
 
     @Override
     public Iterable<Link> findAll() {
+        return null;
+    }
+
+    @Override
+    public Iterable<Link> findAll(Pageable pageable) {
         return null;
     }
 

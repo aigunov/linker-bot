@@ -13,10 +13,17 @@ import backend.academy.scrapper.repository.link.LinkRepository;
 import dto.LinkUpdate;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
+import java.util.Spliterator;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -33,12 +40,42 @@ public class ScrapperService {
     private final UpdateCheckingClient gitHubClient;
     private final NotificationClient notificationClient;
 
+    private final ExecutorService executorService = Executors.newFixedThreadPool(4);
+
     @Scheduled(fixedRate = 100000)
     public void scrapper() {
         log.info("Scrapper scheduled started");
-        var allLinks = linkRepository.findAll();
-        for (Link link : allLinks) {
-            processLink(link);
+        int pageSize = 1000;
+        int pageNumber = 0;
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        Iterable<Link> linksIterable;
+
+        do {
+            linksIterable = linkRepository.findAll(pageable);
+            List<Link> links = StreamSupport.stream(linksIterable.spliterator(), false)
+                .collect(Collectors.toList());
+            if (!links.isEmpty()) {
+                processBatchInParallel(links);
+            }
+            pageNumber++;
+            pageable = PageRequest.of(pageNumber, pageSize);
+        } while (linksIterable.iterator().hasNext());
+    }
+
+    private void processBatchInParallel(Iterable<Link> links) {
+        Spliterator<Link> spliterator = links.spliterator();
+
+        for (int i = 0; i < 4; i++) {
+            Spliterator<Link> chunkSpliterator;
+            if (i < 3) {
+                chunkSpliterator = spliterator.trySplit();
+            } else {
+                chunkSpliterator = spliterator;
+            }
+            executorService.submit(() -> {
+                StreamSupport.stream(chunkSpliterator, false)
+                    .forEach(this::processLink);
+            });
         }
     }
 
