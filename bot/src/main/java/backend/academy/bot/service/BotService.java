@@ -163,7 +163,7 @@ public class BotService {
     }
 
     private String formatUpdateMessage(LinkUpdate update) {
-        return "Link updated:\n" + "URL: " + update.url() + "\n" + "Description: " + update.description();
+        return "Link updated:\n" + "URL: " + update.url() + "\n" + "Description: " + update.message();
     }
 
     private List<String> convertStackTraceToList(StackTraceElement[] stackTrace) {

@@ -28,5 +28,55 @@ public class StackOverflowResponse {
     public static class StackOverflowItem {
         @JsonProperty("last_activity_date")
         private long lastActivityDate;
+
+        private String title;
+        private List<Answer> answers;
+        private List<Comment> comments;
+
+        @Getter
+        @Setter
+        @NoArgsConstructor
+        @AllArgsConstructor
+        @JsonIgnoreProperties(ignoreUnknown = true)
+        public static class Answer {
+            @JsonProperty("creation_date")
+            private long creationDate;
+            @JsonProperty("owner")
+            private Owner owner;
+            private String body;
+
+            @Getter
+            @Setter
+            @NoArgsConstructor
+            @AllArgsConstructor
+            @JsonIgnoreProperties(ignoreUnknown = true)
+            public static class Owner{
+                @JsonProperty("display_name")
+                private String displayName;
+            }
+        }
+
+        @Getter
+        @Setter
+        @NoArgsConstructor
+        @AllArgsConstructor
+        @JsonIgnoreProperties(ignoreUnknown = true)
+        public static class Comment{
+            @JsonProperty("creation_date")
+            private long creationDate;
+            @JsonProperty("owner")
+            private Owner owner;
+            private String body;
+
+            @Getter
+            @Setter
+            @NoArgsConstructor
+            @AllArgsConstructor
+            @JsonIgnoreProperties(ignoreUnknown = true)
+            public static class Owner {
+                @JsonProperty("display_name")
+                private String displayName;
+            }
+        }
     }
 }
