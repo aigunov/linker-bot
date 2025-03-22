@@ -13,27 +13,16 @@ import org.springframework.stereotype.Service;
 public class Mapper {
     //TODO: переделать
     public Chat chatDtoToEntity(RegisterChatRequest request) {
-        return Chat.builder()
-                .id(UUID.randomUUID())
-                .tgId(request.chatId())
-                .nickname(request.name())
-                .build();
+        return null;
     }
 
     //TODO: переделать
     public LinkResponse linkToLinkResponse(Link link) {
-        return LinkResponse.builder()
-                .id(link.id())
-                .url(link.url())
-                .build();
+        return null;
     }
 
     //TODO: переделать
     public Link linkRequestToLink(AddLinkRequest request, Chat chat) {
-        return Link.builder()
-                .id(UUID.randomUUID())
-                .url(request.uri())
-                .lastUpdate(null)
-                .build();
+        return null;
     }
 }

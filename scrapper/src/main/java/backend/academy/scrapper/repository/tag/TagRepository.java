@@ -8,6 +8,7 @@ public interface TagRepository {
     Tag save(Tag tag);
     void deleteById(UUID id);
     Optional<Tag> findById(UUID id);
+    Optional<Tag> findByChatIdAndTag(Long tgId, String tag);
     Iterable<Tag> findAllByChatId(Long chatId);
     Iterable<Tag> findAll();
 }
