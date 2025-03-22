@@ -17,6 +17,7 @@
 
     <modules>
         <module>bot</module>
+        <module>dto</module>
         <module>report</module>
         <module>scrapper</module>
     </modules>
@@ -181,7 +182,7 @@
                         <compilerArgs>
                             <arg>-XDcompilePolicy=simple</arg>
                             <arg>--should-stop=ifError=FLOW</arg>
-                            <arg>-Xplugin:ErrorProne</arg>
+                            <!--                            <arg>-Xplugin:ErrorProne</arg>-->
                         </compilerArgs>
                         <annotationProcessorPaths>
                             <path>
@@ -191,12 +192,13 @@
                             <path>
                                 <groupId>org.projectlombok</groupId>
                                 <artifactId>lombok</artifactId>
+                                <version>1.18.30</version>
                             </path>
-                            <path>
-                                <groupId>com.google.errorprone</groupId>
-                                <artifactId>error_prone_core</artifactId>
-                                <version>${error-prone.version}</version>
-                            </path>
+                            <!--                            <path>-->
+                            <!--                                <groupId>com.google.errorprone</groupId>-->
+                            <!--                                <artifactId>error_prone_core</artifactId>-->
+                            <!--                                <version>${error-prone.version}</version>-->
+                            <!--                            </path>-->
                         </annotationProcessorPaths>
                     </configuration>
                 </plugin>

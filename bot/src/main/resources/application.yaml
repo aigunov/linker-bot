@@ -18,3 +18,14 @@ springdoc:
   swagger-ui:
     enabled: true
     path: /swagger-ui
+
+
+scrapper:
+  api:
+    url: http://localhost:8081
+
+
+logging:
+  structured:
+    format:
+      console: ecs
