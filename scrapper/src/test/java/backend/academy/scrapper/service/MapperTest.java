@@ -23,6 +23,7 @@ class MapperTest {
 
     @BeforeEach
     void setUp() {
+        // arrange
         mapper = new Mapper();
         registerChatRequest =
                 RegisterChatRequest.builder().chatId(123L).name("testUser").build();
@@ -49,8 +50,10 @@ class MapperTest {
 
     @Test
     void chatDtoToEntity_shouldMapRegisterChatRequestToChat() {
+        // act
         Chat mappedChat = mapper.chatDtoToEntity(registerChatRequest);
 
+        // assert
         assertThat(mappedChat)
                 .isNotNull()
                 .hasFieldOrProperty("id")
@@ -61,8 +64,10 @@ class MapperTest {
 
     @Test
     void linkToLinkResponse_shouldMapLinkToLinkResponse() {
+        // act
         LinkResponse mappedLinkResponse = mapper.linkToLinkResponse(link);
 
+        // assert
         assertThat(mappedLinkResponse)
                 .isNotNull()
                 .hasFieldOrPropertyWithValue("id", link.id())
@@ -73,8 +78,10 @@ class MapperTest {
 
     @Test
     void linkRequestToLink_shouldMapAddLinkRequestAndChatToLink() {
+        // act
         Link mappedLink = mapper.linkRequestToLink(addLinkRequest, chat);
 
+        // assert
         assertThat(mappedLink)
                 .isNotNull()
                 .hasFieldOrProperty("id")

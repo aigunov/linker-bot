@@ -13,6 +13,7 @@ class ListStateTest {
 
     @Test
     void formatLinks_shouldReturnFormattedString() {
+        // arrange
         ListLinkResponse links = ListLinkResponse.builder()
                 .linkResponses(List.of(
                         LinkResponse.builder()
@@ -26,8 +27,6 @@ class ListStateTest {
                                 .tags(List.of())
                                 .build()))
                 .build();
-
-        String result = listState.formatLinks(links);
 
         String expected =
                 """
@@ -43,21 +42,29 @@ class ListStateTest {
 
                 """;
 
+        // act
+        String result = listState.formatLinks(links);
+
+        // assert
         assertEquals(expected, result);
     }
 
     @Test
     void formatLinks_shouldReturnNoLinksMessage_whenEmptyList() {
+        // arrange
         ListLinkResponse links =
                 ListLinkResponse.builder().linkResponses(List.of()).build();
 
+        // act
         String result = listState.formatLinks(links);
 
+        // assert
         assertEquals("Вы пока не добавили ни одну ссылку для отслеживания", result);
     }
 
     @Test
     void formatLinks_shouldHandleEmptyTagsAndFilters() {
+        // arrange
         ListLinkResponse links = ListLinkResponse.builder()
                 .linkResponses(List.of(LinkResponse.builder()
                         .url("https://example.com")
@@ -65,8 +72,6 @@ class ListStateTest {
                         .filters(List.of())
                         .build()))
                 .build();
-
-        String result = listState.formatLinks(links);
 
         String expected =
                 """
@@ -78,6 +83,10 @@ class ListStateTest {
 
                 """;
 
+        // act
+        String result = listState.formatLinks(links);
+
+        // assert
         assertEquals(expected, result);
     }
 }

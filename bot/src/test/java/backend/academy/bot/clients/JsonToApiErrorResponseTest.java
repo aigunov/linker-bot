@@ -22,10 +22,14 @@ class JsonToApiErrorResponseTest {
 
     @Test
     void convertJsonToApiErrorResponse_shouldConvertValidJson() throws IOException {
+        // arrange
         String json =
                 "{\"trace\":\"java.lang.IllegalArgumentException: Invalid argument\\n    at ...\",\"message\":\"Invalid argument\",\"status\":\"400\"}";
+
+        // act
         ApiErrorResponse response = converter.convertJsonToApiErrorResponse(json);
 
+        // assert
         assertThat(response).isNotNull();
         assertThat(response.code()).isEqualTo("400");
         assertThat(response.exceptionMessage()).isEqualTo("Invalid argument");
@@ -37,35 +41,61 @@ class JsonToApiErrorResponseTest {
 
     @Test
     void extractExceptionName_shouldExtractNameFromTrace() {
+        // arrange
         String trace = "java.lang.IllegalArgumentException: Invalid argument\n    at ...";
+
+        // act
         String exceptionName = converter.extractExceptionName(trace);
+
+        // assert
         assertThat(exceptionName).isEqualTo("java.lang.IllegalArgumentException");
     }
 
     @Test
     void extractExceptionName_shouldReturnUnknownForEmptyTrace() {
-        String exceptionName = converter.extractExceptionName("");
+        // arrange
+        String emptyTrace = "";
+
+        // act
+        String exceptionName = converter.extractExceptionName(emptyTrace);
+
+        // assert
         assertThat(exceptionName).isEqualTo("Unknown Exception");
     }
 
     @Test
     void convertTraceToList_shouldConvertTraceToList() {
+        // arrange
         String trace = "java.lang.IllegalArgumentException: Invalid argument\n    at ...";
+
+        // act
         List<String> traceList = converter.convertTraceToList(trace);
+
+        // assert
         assertThat(traceList).contains("java.lang.IllegalArgumentException: Invalid argument", "    at ...");
     }
 
     @Test
     void convertTraceToList_shouldReturnEmptyListForEmptyTrace() {
-        List<String> traceList = converter.convertTraceToList("");
+        // arrange
+        String emptyTrace = "";
+
+        // act
+        List<String> traceList = converter.convertTraceToList(emptyTrace);
+
+        // assert
         assertThat(traceList).isEmpty();
     }
 
     @Test
     void convertJsonToApiErrorResponse_shouldHandleMissingFields() throws IOException {
+        // arrange
         String json = "{\"trace\":\"\",\"message\":\"\",\"status\":\"\"}";
+
+        // act
         ApiErrorResponse response = converter.convertJsonToApiErrorResponse(json);
 
+        // assert
         assertThat(response).isNotNull();
         assertThat(response.code()).isEqualTo("");
         assertThat(response.exceptionMessage()).isEqualTo("");
@@ -76,16 +106,25 @@ class JsonToApiErrorResponseTest {
 
     @Test
     void extractExceptionName_shouldHandleTraceWithoutColon() {
+        // arrange
         String trace = "java.lang.IllegalArgumentException";
+
+        // act
         String exceptionName = converter.extractExceptionName(trace);
+
+        // assert
         assertThat(exceptionName).isEqualTo("java.lang.IllegalArgumentException");
     }
 
     @Test
     void convertJsonToApiErrorResponse_shouldHandleNullTrace() throws IOException {
+        // arrange
         String json = "{\"message\":\"Invalid argument\",\"status\":\"400\"}";
+
+        // act
         ApiErrorResponse response = converter.convertJsonToApiErrorResponse(json);
 
+        // assert
         assertThat(response).isNotNull();
         assertThat(response.code()).isEqualTo("400");
         assertThat(response.exceptionMessage()).isEqualTo("Invalid argument");

@@ -30,7 +30,7 @@ import org.springframework.test.context.TestPropertySource;
 
 @SpringBootTest
 @TestPropertySource(properties = {"scrapper.api.url=http://localhost:8089"})
-class ScrapperClientMockTest {
+class ScrapperClientTest {
 
     @Autowired
     private ScrapperClient scrapperClient;
@@ -42,6 +42,7 @@ class ScrapperClientMockTest {
 
     @BeforeEach
     void setUp() {
+        // arrange
         wireMockServer = new WireMockServer(WireMockConfiguration.options().port(8089));
         wireMockServer.start();
         WireMock.configureFor(8089);
@@ -49,11 +50,13 @@ class ScrapperClientMockTest {
 
     @AfterEach
     void tearDown() {
+        // arrange
         wireMockServer.stop();
     }
 
     @Test
     void registerChat_shouldReturnOk() throws Exception {
+        // arrange
         RegisterChatRequest registerChatRequest =
                 RegisterChatRequest.builder().chatId(123L).name("test").build();
         String requestBody = objectMapper.writeValueAsString(registerChatRequest);
@@ -65,26 +68,32 @@ class ScrapperClientMockTest {
                         .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                         .withBody("Registered")));
 
+        // act
         ResponseEntity<Object> response = scrapperClient.registerChat(registerChatRequest);
 
+        // assert
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isEqualTo("Registered");
     }
 
     @Test
     void registerChat_ShouldReturnSuccess() {
+        // arrange
         RegisterChatRequest request = new RegisterChatRequest(1L, "Test Chat");
 
         wireMockServer.stubFor(WireMock.post(WireMock.urlEqualTo("/tg-chat/1"))
                 .willReturn(WireMock.aResponse().withStatus(200)));
 
+        // act
         ResponseEntity<Object> response = scrapperClient.registerChat(request);
 
+        // assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
     @Test
     void addTrackedLink_ShouldReturnLinkResponse() {
+        // arrange
         AddLinkRequest request = AddLinkRequest.builder()
                 .uri("http://example.com")
                 .tags(List.of())
@@ -101,13 +110,16 @@ class ScrapperClientMockTest {
                                         .withBody(
                                                 "{\"id\": \"550e8400-e29b-41d4-a716-446655440000\", \"url\": \"http://example.com\", \"tags\":[], \"filters\":[]}")));
 
+        // act
         ResponseEntity<Object> response = scrapperClient.addTrackedLink(1L, request);
 
+        // assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
     @Test
     void registerChat_shouldHandleError() {
+        // arrange
         RegisterChatRequest request =
                 RegisterChatRequest.builder().chatId(123L).name("test").build();
         stubFor(post(urlEqualTo("/tg-chat/123"))
@@ -116,26 +128,11 @@ class ScrapperClientMockTest {
                         .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                         .withBody("{\"message\":\"Bad Request\",\"status\":\"400\"}")));
 
+        // act
         ResponseEntity<Object> response = scrapperClient.registerChat(request);
 
+        // assert
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
         assertThat(response.getBody()).isInstanceOf(ApiErrorResponse.class);
     }
-
-    //    @Test
-    //    void removeTrackedLink_ShouldReturnLinkResponse() {
-    //        RemoveLinkRequest request = new RemoveLinkRequest("http://example.com");
-    //
-    //        wireMockServer.stubFor(delete(WireMock.urlEqualTo("/links"))
-    //            .withHeader("Tg-Chat-Id", equalTo("1"))
-    //            .willReturn(WireMock.aResponse()
-    //                .withStatus(200)
-    //                .withHeader("Content-Type", "application/json")
-    //                .withBody("{\"id\": \"550e8400-e29b-41d4-a716-446655440000\", \"url\": \"http://example.com\",
-    // \"tags\":[], \"filters\":[]}")));
-    //
-    //        ResponseEntity<Object> response = scrapperClient.removeTrackedLink(1L, request);
-    //
-    //        assertEquals(HttpStatus.OK, response.getStatusCode());
-    //    }
 }
