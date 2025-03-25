@@ -1,6 +1,6 @@
 package backend.academy.scrapper.controller;
 
-import backend.academy.scrapper.service.TagsService;
+import backend.academy.scrapper.service.TagService;
 import dto.GetTagsResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RequestMapping("/tags")
 public class TagsController {
-    private final TagsService tagsService;
+    private final TagService tagsService;
 
 
     @GetMapping

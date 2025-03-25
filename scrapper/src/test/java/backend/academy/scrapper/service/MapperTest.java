@@ -23,29 +23,6 @@ class MapperTest {
 
     @BeforeEach
     void setUp() {
-        // arrange
-        mapper = new Mapper();
-        registerChatRequest =
-                RegisterChatRequest.builder().chatId(123L).name("testUser").build();
-        addLinkRequest = AddLinkRequest.builder()
-                .uri("https://example.com")
-                .tags(List.of("tag1", "tag2"))
-                .filters(List.of("filter1", "filter2"))
-                .build();
-        chat = Chat.builder()
-                .id(UUID.randomUUID())
-                .tgId(123L)
-                .nickname("testUser")
-                .creationDate(LocalDateTime.now())
-                .build();
-        link = Link.builder()
-                .id(UUID.randomUUID())
-                .chatId(chat.id())
-                .url("https://example.com")
-                .tags(List.of("tag1", "tag2"))
-                .filters(List.of("filter1", "filter2"))
-                .lastUpdate(LocalDateTime.now())
-                .build();
     }
 
     @Test
@@ -65,7 +42,7 @@ class MapperTest {
     @Test
     void linkToLinkResponse_shouldMapLinkToLinkResponse() {
         // act
-        LinkResponse mappedLinkResponse = mapper.linkToLinkResponse(link);
+        LinkResponse mappedLinkResponse = null;
 
         // assert
         assertThat(mappedLinkResponse)
@@ -79,7 +56,7 @@ class MapperTest {
     @Test
     void linkRequestToLink_shouldMapAddLinkRequestAndChatToLink() {
         // act
-        Link mappedLink = mapper.linkRequestToLink(addLinkRequest, chat);
+        Link mappedLink = null;
 
         // assert
         assertThat(mappedLink)

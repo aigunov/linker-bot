@@ -6,6 +6,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.domain.Pageable;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -47,6 +48,11 @@ public class SqlLinkRepository implements LinkRepository{
 
     @Override
     public Iterable<Link> findAllByChatId(Long chatId) {
+        return null;
+    }
+
+    @Override
+    public Iterable<Link> findLinksByChatIdAndTags(Long chatId, List<String> tags, long size) {
         return null;
     }
 }

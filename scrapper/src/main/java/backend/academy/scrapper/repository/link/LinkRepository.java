@@ -2,6 +2,7 @@ package backend.academy.scrapper.repository.link;
 
 import backend.academy.scrapper.data.model.Link;
 import org.springframework.data.domain.Pageable;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -13,5 +14,5 @@ public interface LinkRepository {
     Iterable<Link> findAll();
     Iterable<Link> findAll(Pageable pageable);
     Iterable<Link> findAllByChatId(Long chatId);
-
+    Iterable<Link> findLinksByChatIdAndTags(Long chatId, List<String> tags, long size);
 }
