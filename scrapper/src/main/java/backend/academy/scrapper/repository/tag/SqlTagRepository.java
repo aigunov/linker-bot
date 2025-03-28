@@ -18,7 +18,6 @@ import java.util.UUID;
 @ConditionalOnProperty(prefix="app.db", name="access-type", havingValue="sql")
 public class SqlTagRepository implements TagRepository {
     private final NamedParameterJdbcTemplate jdbc;
-    private final GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
 
 
     //todo: returning id?
@@ -32,7 +31,7 @@ public class SqlTagRepository implements TagRepository {
         var tagParams = new MapSqlParameterSource()
             .addValue("chatId", tag.chat().id().toString())
             .addValue("tag", tag.tag());
-
+        GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
         jdbc.update(tagSql, tagParams, keyHolder);
         tag.id((UUID) keyHolder.getKeys().get("id"));
 

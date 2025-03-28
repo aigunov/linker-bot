@@ -2,10 +2,15 @@ package backend.academy.scrapper.repository.chat;
 
 
 import backend.academy.scrapper.data.model.Chat;
+import io.micrometer.tracing.otel.propagation.PropagationType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -18,27 +23,96 @@ public class SqlChatRepository implements ChatRepository {
     private final NamedParameterJdbcTemplate jdbc;
 
     @Override
+    @Transactional(propagation = Propagation.MANDATORY)
     public Chat save(Chat chat) {
-        return null;
+        GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
+
+        var sql = """
+            INSERT INTO chat (tg_id, nickname)
+            VALUES (:tgId, :nickname)
+            """;
+        var params = new MapSqlParameterSource()
+            .addValue("tgId", chat.tgId())
+            .addValue("nickname", chat.nickname());
+
+        jdbc.update(sql, params, keyHolder);
+        chat.id((UUID) keyHolder.getKeys().get("id"));
+
+        if (chat.links() != null && !chat.links().isEmpty()) {
+            String deleteLinkChatSql = "DELETE FROM link_to_chat WHERE chat_id = :chatId";
+            jdbc.update(deleteLinkChatSql, new MapSqlParameterSource("chatId", chat.id().toString()));
+
+            String linkChatSql = "INSERT INTO link_to_chat (chat_id, link_id) VALUES (:chatId, :linkId)";
+            chat.links().forEach(link -> {
+                MapSqlParameterSource linkChatParams = new MapSqlParameterSource()
+                    .addValue("chatId", chat.id().toString())
+                    .addValue("linkId", link.id().toString());
+                jdbc.update(linkChatSql, linkChatParams);
+            });
+        }
+        return chat;
     }
 
+    @Transactional(propagation = Propagation.MANDATORY)
     @Override
     public void deleteById(UUID id) {
+        var deleteLinkChatSql = """
+            DELETE
+            FROM link_to_chat
+            WHERE chat_id = :chatId
+            """;
+        jdbc.update(deleteLinkChatSql, new MapSqlParameterSource("chatId", id.toString()));
 
+        var sql = """
+            DELETE
+            FROM chat
+            WHERE id = :id
+            """;
+        jdbc.update(sql, new MapSqlParameterSource("id", id.toString()));
+    }
+
+    @Transactional
+    @Override
+    public void deleteByTgId(Long tgId) {
+        String deleteLinkChatSql = """
+                DELETE
+                FROM link_to_chat
+                WHERE chat_id = (SELECT id FROM chat WHERE tg_id = :tgId)
+                """;
+        jdbc.update(deleteLinkChatSql, new MapSqlParameterSource("tgId", tgId));
+
+        String sql = """
+            DELETE
+            FROM chat
+            WHERE tg_id = :tgId""";
+        jdbc.update(sql, new MapSqlParameterSource("tgId", tgId));
     }
 
     @Override
     public Optional<Chat> findById(UUID id) {
-        return Optional.empty();
+        var sql = """
+            SELECT *
+            FROM chat
+            WHERE id = :id
+            """;
+        var result = jdbc.query(sql, new MapSqlParameterSource("id", id), new ChatResultSetExtractor());
+        return result.isEmpty() ? Optional.empty() : Optional.of(result.getFirst());
     }
 
     @Override
-    public Optional<Chat> findByTgId(Long chatId) {
-        return Optional.empty();
+    public Optional<Chat> findByTgId(final Long tgId) {
+        var sql = """
+            SELECT *
+            FROM chat
+            WHERE tg_id = :tgId
+            """;
+        var result = jdbc.query(sql, new MapSqlParameterSource("tgId", tgId), new ChatResultSetExtractor());
+        return result.isEmpty() ? Optional.empty() : Optional.of(result.getFirst());
     }
 
     @Override
     public List<Chat> findAll() {
-        return null;
+        String sql = "SELECT * FROM chat";
+        return jdbc.query(sql, new ChatResultSetExtractor());
     }
 }
