@@ -20,12 +20,13 @@ services:
       - db
     command:
       - --changeLogFile=db.changelog-master.xml
-      - --url=jdbc:postgresql://postgresql:5432/${POSTGRES_DB}
+      - --url=jdbc:postgresql://db:5432/scrapper_db
       - --username=aigunov
       - --password=12345
       - update
     volumes:
       - ./migrations:/migrations
+    working_dir: /migrations
     networks:
       - backend
 

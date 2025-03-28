@@ -38,18 +38,17 @@ CREATE TABLE tag_to_link (
                              tag_id INT
 );
 
-ALTER TABLE tag ADD FOREIGN KEY (user_id) REFERENCES chat (id);
+ALTER TABLE tag ADD FOREIGN KEY (user_id) REFERENCES chat (id) ON DELETE CASCADE;
+ALTER TABLE filter ADD FOREIGN KEY (user_id) REFERENCES chat (id) ON DELETE CASCADE;
 
-ALTER TABLE filter ADD FOREIGN KEY (user_id) REFERENCES chat (id);
-
-ALTER TABLE link_to_filter ADD FOREIGN KEY (link_id) REFERENCES link (id);
+ALTER TABLE link_to_filter ADD FOREIGN KEY (link_id) REFERENCES link (id) ON DELETE CASCADE;
 
 ALTER TABLE link_to_filter ADD FOREIGN KEY (filter_id) REFERENCES filter (id);
 
 ALTER TABLE tag_to_link ADD FOREIGN KEY (tag_id) REFERENCES tag (id);
 
-ALTER TABLE tag_to_link ADD FOREIGN KEY (link_id) REFERENCES link (id);
+ALTER TABLE tag_to_link ADD FOREIGN KEY (link_id) REFERENCES link (id) ON DELETE CASCADE;
 
 ALTER TABLE link_to_chat ADD FOREIGN KEY (link_id) REFERENCES link (id);
 
-ALTER TABLE link_to_chat ADD FOREIGN KEY (user_id) REFERENCES chat (id);
+ALTER TABLE link_to_chat ADD FOREIGN KEY (user_id) REFERENCES chat (id) ON DELETE CASCADE;

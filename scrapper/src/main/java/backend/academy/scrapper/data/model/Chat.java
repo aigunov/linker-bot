@@ -1,5 +1,6 @@
 package backend.academy.scrapper.data.model;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -42,13 +43,13 @@ public class Chat {
     @NotNull
     private String nickname;
 
-    @OneToMany(mappedBy = "chat")
+    @OneToMany(mappedBy = "chat", cascade = {CascadeType.REMOVE})
     private Set<Tag> tags = new HashSet<>();
 
-    @OneToMany(mappedBy = "chat")
+    @OneToMany(mappedBy = "chat", cascade = {CascadeType.REMOVE})
     private Set<Filter> filters = new HashSet<>();
 
-    @ManyToMany
+    @ManyToMany(cascade = {CascadeType.REMOVE})
     @JoinTable(
         name = "link_to_chat",
         joinColumns = {@JoinColumn(name = "chat_id")},
