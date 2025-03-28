@@ -41,6 +41,7 @@ public class Chat {
     private Long tgId;
 
     @NotNull
+    @Column(name = "nickname")
     private String nickname;
 
     @OneToMany(mappedBy = "chat", cascade = {CascadeType.REMOVE})

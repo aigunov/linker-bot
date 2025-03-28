@@ -1,6 +1,7 @@
 package backend.academy.scrapper.data.model;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -34,9 +35,12 @@ public class Link {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @NotNull
     @URL
     private String url;
 
+    @NotNull
+    @Column(name = "last_update")
     private LocalDateTime lastUpdate;
 
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE},

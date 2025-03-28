@@ -7,7 +7,7 @@ CREATE TABLE chat (
 CREATE TABLE link (
                       id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
                       url VARCHAR(255) UNIQUE,
-                      lastupdate TIMESTAMP
+                      last_update TIMESTAMP
 );
 
 CREATE TABLE tag (

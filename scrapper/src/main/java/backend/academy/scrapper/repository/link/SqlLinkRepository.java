@@ -37,22 +37,22 @@ public class SqlLinkRepository implements LinkRepository{
     }
 
     @Override
-    public Iterable<Link> findAll() {
+    public List<Link> findAll() {
         return null;
     }
 
     @Override
-    public Iterable<Link> findAll(Pageable pageable) {
+    public List<Link> findAll(Pageable pageable) {
         return null;
     }
 
     @Override
-    public Iterable<Link> findAllByTgId(Long chatId) {
+    public List<Link> findAllByTgId(Long chatId) {
         return null;
     }
 
     @Override
-    public Iterable<Link> findLinksByTgIdAndTags(Long chatId, List<String> tags, long size) {
+    public List<Link> findLinksByTgIdAndTags(Long chatId, List<String> tags, long size) {
         return null;
     }
 }
