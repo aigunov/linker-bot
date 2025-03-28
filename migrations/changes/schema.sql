@@ -1,26 +1,28 @@
 CREATE TABLE chat (
                       id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-                      tg_id INT,
+                      tg_id INT UNIQUE,
                       nickname VARCHAR(255)
 );
 
 CREATE TABLE link (
                       id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-                      url VARCHAR(255),
+                      url VARCHAR(255) UNIQUE,
                       lastupdate TIMESTAMP
 );
 
 CREATE TABLE tag (
                      id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
                      chat_id INT,
-                     tag VARCHAR(255)
+                     tag VARCHAR(255),
+                     UNIQUE (chat_id, tag)
 );
 
 CREATE TABLE filter (
                         id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-                        user_id INT,
+                        chat_id INT,
                         parameter VARCHAR(255),
-                        value VARCHAR(255)
+                        value   VARCHAR(255),
+                        UNIQUE (chat_id, parameter, value)
 );
 
 CREATE TABLE link_to_filter (
