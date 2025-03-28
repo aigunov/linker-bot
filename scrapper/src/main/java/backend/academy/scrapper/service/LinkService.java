@@ -46,7 +46,7 @@ public class LinkService {
         return ListLinkResponse.builder().linkResponses(linksResponse).build();
     }
 
-    //todo: доработать сохранения тегов новой ссылки
+    //todo: доработать сохранения тегов + фильтров новой ссылки
     @Transactional
     public LinkResponse addTrackedLink(Long chatId, AddLinkRequest request) {
         chatRepository.findByTgId(chatId).orElseThrow(() -> new ChatException("Чат с tg-id %d не найден", chatId));
@@ -65,6 +65,7 @@ public class LinkService {
             }
         }
 
+        //Todo: andFilter? что именно подразумевается
         var filters = new HashSet<Filter>();
         if (request.filters() != null){
             for(var filterName: request.filters()){

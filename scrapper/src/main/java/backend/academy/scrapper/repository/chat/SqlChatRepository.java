@@ -22,6 +22,7 @@ public class SqlChatRepository implements ChatRepository {
 
     private final NamedParameterJdbcTemplate jdbc;
 
+    //todo: Returning id?
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
     public Chat save(Chat chat) {
