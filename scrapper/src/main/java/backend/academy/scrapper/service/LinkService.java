@@ -46,6 +46,7 @@ public class LinkService {
         return ListLinkResponse.builder().linkResponses(linksResponse).build();
     }
 
+    //todo: доработать сохранения тегов новой ссылки
     @Transactional
     public LinkResponse addTrackedLink(Long chatId, AddLinkRequest request) {
         chatRepository.findByTgId(chatId).orElseThrow(() -> new ChatException("Чат с tg-id %d не найден", chatId));

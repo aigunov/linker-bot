@@ -37,7 +37,8 @@ CREATE TABLE link_to_chat (
 
 CREATE TABLE tag_to_link (
                              link_id INT,
-                             tag_id INT
+                             tag_id INT,
+                             PRIMARY KEY (link_id, tag_id)
 );
 
 ALTER TABLE tag ADD FOREIGN KEY (user_id) REFERENCES chat (id) ON DELETE CASCADE;
