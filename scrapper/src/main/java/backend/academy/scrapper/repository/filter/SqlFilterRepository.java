@@ -30,6 +30,11 @@ public class SqlFilterRepository implements FilterRepository {
     }
 
     @Override
+    public Optional<Filter> findByTgIdAndFilter(Long tgId, String filter) {
+        return Optional.empty();
+    }
+
+    @Override
     public Iterable<Filter> findAll() {
         return null;
     }

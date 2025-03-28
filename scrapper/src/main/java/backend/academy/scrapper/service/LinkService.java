@@ -20,8 +20,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.HashSet;
 import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -39,9 +37,9 @@ public class LinkService {
         List<Link> links;
 
         if (linksRequest.tags() != null && !linksRequest.tags().isEmpty()) {
-            links = (List<Link>) linkRepository.findLinksByChatIdAndTags(chatId, linksRequest.tags(), (long) linksRequest.tags().size());
+            links = (List<Link>) linkRepository.findLinksByTgIdAndTags(chatId, linksRequest.tags(), (long) linksRequest.tags().size());
         } else {
-            links = (List<Link>) linkRepository.findAllByChatId(chatId);
+            links = (List<Link>) linkRepository.findAllByTgId(chatId);
         }
         var linksResponse = links.stream().map(Mapper::linkToLinkResponse).toList();
         log.info("Get links: {}", linksResponse);
@@ -52,7 +50,7 @@ public class LinkService {
     public LinkResponse addTrackedLink(Long chatId, AddLinkRequest request) {
         chatRepository.findByTgId(chatId).orElseThrow(() -> new ChatException("Чат с tg-id %d не найден", chatId));
 
-        linkRepository.findByChatIdAndUrl(chatId, request.uri()).ifPresent(_ -> {
+        linkRepository.findByTgIdAndUrl(chatId, request.uri()).ifPresent(_ -> {
             var message = String.format("У пользователя с tg-id %d, уже существует ссылка %s в отслеживании", chatId, request.uri());
             log.error(message);
             throw new LinkException(message);
@@ -61,7 +59,7 @@ public class LinkService {
         var tags = new HashSet<Tag>();
         if (request.tags() != null){
             for(var tagName: request.tags()){
-                 var tag = tagRepository.findByChatIdAndTag(chatId, tagName).orElseGet(() -> Mapper.tagNameToTag(tagName));
+                 var tag = tagRepository.findByTgIdAndTag(chatId, tagName).orElseGet(() -> Mapper.tagNameToTag(tagName));
                  tags.add(tag);
             }
         }
@@ -69,7 +67,7 @@ public class LinkService {
         var filters = new HashSet<Filter>();
         if (request.filters() != null){
             for(var filterName: request.filters()){
-                var filter = filterRepository.findByChatIdAndFilter(chatId, filterName).orElseGet(() -> Mapper.filterNameToFilter(filterName));
+                var filter = filterRepository.findByTgIdAndFilter(chatId, filterName).orElseGet(() -> Mapper.filterNameToFilter(filterName));
                 filters.add(filter);
             }
         }
@@ -85,7 +83,7 @@ public class LinkService {
         chatRepository.findByTgId(chatId)
             .orElseThrow(() -> new ChatException("Чат с tg-id %d не найден", chatId));
 
-        Link link = linkRepository.findByChatIdAndUrl(chatId, request.uri())
+        Link link = linkRepository.findByTgIdAndUrl(chatId, request.uri())
             .orElseThrow(() -> new LinkException("Ссылка с uri %s не найдена для чата с id %d", request.uri(), chatId));
 
         log.info("User tg-id: {} will delete link with id: {} and uri: {}", chatId, link.id(), request.uri());

@@ -12,7 +12,7 @@ CREATE TABLE link (
 
 CREATE TABLE tag (
                      id INT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-                     user_id INT,
+                     chat_id INT,
                      tag VARCHAR(255)
 );
 
@@ -29,7 +29,7 @@ CREATE TABLE link_to_filter (
 );
 
 CREATE TABLE link_to_chat (
-                              user_id INT,
+                              chat_id INT,
                               link_id INT
 );
 

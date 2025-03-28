@@ -17,12 +17,12 @@ public interface OrmLinkRepository extends LinkRepository, JpaRepository<Link, U
     @Query(value = """
         """, nativeQuery = true)
     @Override
-    Iterable<Link> findAllByChatId(Long chatId);
+    Iterable<Link> findAllByTgId(Long chatId);
 
     @Override
     @Query(value = """
         """, nativeQuery = true)
-    Optional<Link> findByChatIdAndUrl(Long chatId, String url);
+    Optional<Link> findByTgIdAndUrl(Long chatId, String url);
 
     @Override
     Page<Link> findAll(Pageable pageable);

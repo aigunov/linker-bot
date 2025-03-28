@@ -30,7 +30,12 @@ public class SqlTagRepository implements TagRepository {
     }
 
     @Override
-    public Iterable<Tag> findAllByChatId(Long chatId) {
+    public Optional<Tag> findByTgIdAndTag(Long tgId, String tag) {
+        return Optional.empty();
+    }
+
+    @Override
+    public Iterable<Tag> findAllByTgId(Long chatId) {
         return null;
     }
 

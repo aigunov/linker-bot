@@ -32,7 +32,7 @@ public class SqlLinkRepository implements LinkRepository{
     }
 
     @Override
-    public Optional<Link> findByChatIdAndUrl(Long chatId, String url) {
+    public Optional<Link> findByTgIdAndUrl(Long chatId, String url) {
         return Optional.empty();
     }
 
@@ -47,12 +47,12 @@ public class SqlLinkRepository implements LinkRepository{
     }
 
     @Override
-    public Iterable<Link> findAllByChatId(Long chatId) {
+    public Iterable<Link> findAllByTgId(Long chatId) {
         return null;
     }
 
     @Override
-    public Iterable<Link> findLinksByChatIdAndTags(Long chatId, List<String> tags, long size) {
+    public Iterable<Link> findLinksByTgIdAndTags(Long chatId, List<String> tags, long size) {
         return null;
     }
 }

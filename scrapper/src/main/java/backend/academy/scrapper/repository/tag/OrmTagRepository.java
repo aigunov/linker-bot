@@ -15,5 +15,5 @@ public interface OrmTagRepository extends TagRepository, JpaRepository<Tag, UUID
     @Query(value = """
         """, nativeQuery = true)
     @Override
-    Iterable<Tag> findAllByChatId(@Param("userId") Long chatId);
+    Iterable<Tag> findAllByTgId(@Param("userId") Long chatId);
 }
