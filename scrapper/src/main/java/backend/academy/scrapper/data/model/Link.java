@@ -1,12 +1,8 @@
 package backend.academy.scrapper.data.model;
 
-import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -14,6 +10,11 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
+import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -38,7 +39,8 @@ public class Link {
 
     private LocalDateTime lastUpdate;
 
-    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE},
+        fetch = FetchType.EAGER)
     @JoinTable(
         name = "tag_to_link",
         joinColumns = {@JoinColumn(name="link_id")},
@@ -46,7 +48,8 @@ public class Link {
     )
     private Set<Tag> tags = new HashSet<>();
 
-    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE},
+        fetch = FetchType.EAGER)
     @JoinTable(
         name = "link_to_filter",
         joinColumns = {@JoinColumn(name="link_id")},
@@ -54,6 +57,7 @@ public class Link {
     )
     private Set<Filter> filters = new HashSet<>();
 
+    @NotNull
     @ManyToMany(mappedBy = "links")
     private Set<Chat> chats;
 }

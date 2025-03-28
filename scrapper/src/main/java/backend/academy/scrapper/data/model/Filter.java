@@ -8,6 +8,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -31,6 +32,7 @@ public class Filter {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @NotNull
     @ManyToOne
     @JoinColumn(name="chat_id")
     private Chat chat;
@@ -39,6 +41,7 @@ public class Filter {
 
     private String value;
 
+    @NotNull
     @ManyToMany(mappedBy="filters")
     private Set<Link> links = new HashSet<>();
 }
