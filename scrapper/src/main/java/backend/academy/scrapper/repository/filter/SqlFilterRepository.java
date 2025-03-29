@@ -36,16 +36,6 @@ public class SqlFilterRepository implements FilterRepository {
         jdbc.update(sql, params, keyHolder);
         filter.id((UUID) keyHolder.getKeys().get("id"));
 
-        var linkFilterSql = """
-            INSERT INTO link_to_filter (filter_id, link_id)
-            VALUES (:filterId, :linkId)
-            """;
-        filter.links().forEach(link -> {
-            MapSqlParameterSource param = new MapSqlParameterSource()
-                .addValue("filterId", filter.id().toString())
-                .addValue("linkId", link.id().toString());
-            jdbc.update(linkFilterSql, param);
-        });
         return filter;
     }
 

@@ -35,17 +35,6 @@ public class SqlTagRepository implements TagRepository {
         jdbc.update(tagSql, tagParams, keyHolder);
         tag.id((UUID) keyHolder.getKeys().get("id"));
 
-        var linkTagSql = """
-            INSERT INTO tag_to_link(link_id, tag_id)
-            VALUES (:linkId, :tagId)
-            """;
-
-        tag.links().forEach(link -> {
-            MapSqlParameterSource linkTagParams = new MapSqlParameterSource()
-                .addValue("linkId", link.id().toString())
-                .addValue("tagId", tag.id().toString());
-            jdbc.update(linkTagSql, linkTagParams);
-        });
         return tag;
     }
 

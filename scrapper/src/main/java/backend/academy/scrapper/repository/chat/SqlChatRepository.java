@@ -39,18 +39,6 @@ public class SqlChatRepository implements ChatRepository {
         jdbc.update(sql, params, keyHolder);
         chat.id((UUID) keyHolder.getKeys().get("id"));
 
-        if (chat.links() != null && !chat.links().isEmpty()) {
-            String deleteLinkChatSql = "DELETE FROM link_to_chat WHERE chat_id = :chatId";
-            jdbc.update(deleteLinkChatSql, new MapSqlParameterSource("chatId", chat.id().toString()));
-
-            String linkChatSql = "INSERT INTO link_to_chat (chat_id, link_id) VALUES (:chatId, :linkId)";
-            chat.links().forEach(link -> {
-                MapSqlParameterSource linkChatParams = new MapSqlParameterSource()
-                    .addValue("chatId", chat.id().toString())
-                    .addValue("linkId", link.id().toString());
-                jdbc.update(linkChatSql, linkChatParams);
-            });
-        }
         return chat;
     }
 
