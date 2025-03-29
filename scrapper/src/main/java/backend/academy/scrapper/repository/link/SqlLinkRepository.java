@@ -85,7 +85,7 @@ public class SqlLinkRepository implements LinkRepository{
 
         return link;
     }
-    //todo: добавить удаление опусташенных фильтров и тэгов
+
     @Transactional(propagation = Propagation.MANDATORY)
     @Override
     public void deleteById(final UUID id) {
@@ -116,6 +116,24 @@ public class SqlLinkRepository implements LinkRepository{
         // Удаление link из таблицы link
         String sql = "DELETE FROM link WHERE id = :id";
         jdbc.update(sql, new MapSqlParameterSource("id", id.toString()));
+
+        // Удаление пустых tags
+        String deleteEmptyTagsSql = """
+            DELETE
+            FROM tag
+            WHERE id NOT IN (SELECT tag_id
+                             FROM tag_to_link)
+            """;
+        jdbc.update(deleteEmptyTagsSql, new MapSqlParameterSource());
+
+        // Удаление пустых filters
+        String deleteEmptyFiltersSql = """
+            DELETE
+            FROM filter
+            WHERE id NOT IN (SELECT filter_id
+                             FROM link_to_filter)
+            """;
+        jdbc.update(deleteEmptyFiltersSql, new MapSqlParameterSource());
     }
 
     @Override

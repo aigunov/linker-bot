@@ -46,6 +46,8 @@ public class LinkService {
         return ListLinkResponse.builder().linkResponses(linksResponse).build();
     }
 
+    // Да, я знаю что в этом методе идет запросы в циклах,
+    // но хоть убейте ничего другого из-за сложной логики ничего лучше не придумал
     @Transactional
     public LinkResponse addTrackedLink(Long chatId, AddLinkRequest request) {
         var chat = chatRepository.findByTgId(chatId).orElseThrow(() -> new ChatException("Чат с tg-id %d не найден", chatId));
