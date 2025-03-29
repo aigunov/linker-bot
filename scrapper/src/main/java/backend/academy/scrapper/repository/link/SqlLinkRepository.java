@@ -22,70 +22,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class SqlLinkRepository implements LinkRepository{
     private final NamedParameterJdbcTemplate jdbc;
 
-    //todo: переработать для того чтобы метод работал еще как и update
-    @Transactional(propagation = Propagation.MANDATORY)
-    @Override
-    public Link save(final Link link) {
-        KeyHolder keyHolder = new GeneratedKeyHolder();
-        //Сохранение в link
-        var sql = """
-            INSERT INTO link(url, last_update)
-            VALUES (:url, :lastUpdate)
-            """;
-
-        var params = new MapSqlParameterSource()
-            .addValue("url", link.url())
-            .addValue("lastUpdate", link.lastUpdate());
-
-        jdbc.update(sql, params, keyHolder);
-        link.id((UUID) keyHolder.getKeys().get("id"));
-
-
-        //Сохранение в link_to_chat
-        var linkChatSql = """
-            INSERT INTO link_to_chat(chat_id, link_id)
-            VALUES (:chatId, :linkId)
-            """;
-
-        if (link.chats().stream().findFirst().isEmpty()) {
-            throw new SqlRepositoryException("No chat found");
-        }
-
-        var linkChatParams = new MapSqlParameterSource()
-            .addValue("chatId", link.chats().stream().findFirst().get().id().toString())
-            .addValue("linkId", link.id().toString());
-
-        jdbc.update(linkChatSql, linkChatParams);
-
-        //Сохранение в tag_to_link
-        var linkTagSql = """
-            INSERT INTO tag_to_link(link_id, tag_id)
-            VALUES (:linkId, :tagId)
-            """;
-
-        link.tags().forEach(tag -> {
-            var linkTagParams = new MapSqlParameterSource()
-                .addValue("linkId", link.id().toString())
-                .addValue("tagId", tag.id().toString());
-            jdbc.update(linkTagSql, linkTagParams);
-        });
-
-        ////Сохранение в link_to_filter
-        var linkFilterSql = """
-            INSERT INTO link_to_filter(link_id, filter_id)
-            VALUES (:linkId, :filterId)
-            """;
-
-        link.filters().forEach(filter -> {
-            var linkFilterParams = new MapSqlParameterSource()
-                .addValue("linkId", link.id().toString())
-                .addValue("filterId", filter.id().toString());
-            jdbc.update(linkFilterSql, linkFilterParams);
-        });
-
-        return link;
-    }
-
     @Transactional(propagation = Propagation.MANDATORY)
     @Override
     public void deleteById(final UUID id) {
@@ -251,5 +187,164 @@ public class SqlLinkRepository implements LinkRepository{
             .addValue("tags", tags)
             .addValue("size", size);
         return jdbc.query(sql, params, new LinkResultSetExtractor());
+    }
+
+    //todo: переработать для того чтобы метод работал еще как и update
+//    @Transactional(propagation = Propagation.MANDATORY)
+//    @Override
+//    public Link save(final Link link) {
+//        Optional<Link> existingLink = findByUrl(link.url());
+//
+//
+//        KeyHolder keyHolder = new GeneratedKeyHolder();
+//        //Сохранение в link
+//        var sql = """
+//            INSERT INTO link(url, last_update)
+//            VALUES (:url, :lastUpdate)
+//            """;
+//
+//        var params = new MapSqlParameterSource()
+//            .addValue("url", link.url())
+//            .addValue("lastUpdate", link.lastUpdate());
+//
+//        jdbc.update(sql, params, keyHolder);
+//        link.id((UUID) keyHolder.getKeys().get("id"));
+//
+//
+//        //Сохранение в link_to_chat
+//        var linkChatSql = """
+//            INSERT INTO link_to_chat(chat_id, link_id)
+//            VALUES (:chatId, :linkId)
+//            """;
+//
+//        if (link.chats().stream().findFirst().isEmpty()) {
+//            throw new SqlRepositoryException("No chat found");
+//        }
+//
+//        var linkChatParams = new MapSqlParameterSource()
+//            .addValue("chatId", link.chats().stream().findFirst().get().id().toString())
+//            .addValue("linkId", link.id().toString());
+//
+//        jdbc.update(linkChatSql, linkChatParams);
+//
+//        //Сохранение в tag_to_link
+//        var linkTagSql = """
+//            INSERT INTO tag_to_link(link_id, tag_id)
+//            VALUES (:linkId, :tagId)
+//            """;
+//
+//        link.tags().forEach(tag -> {
+//            var linkTagParams = new MapSqlParameterSource()
+//                .addValue("linkId", link.id().toString())
+//                .addValue("tagId", tag.id().toString());
+//            jdbc.update(linkTagSql, linkTagParams);
+//        });
+//
+//        ////Сохранение в link_to_filter
+//        var linkFilterSql = """
+//            INSERT INTO link_to_filter(link_id, filter_id)
+//            VALUES (:linkId, :filterId)
+//            """;
+//
+//        link.filters().forEach(filter -> {
+//            var linkFilterParams = new MapSqlParameterSource()
+//                .addValue("linkId", link.id().toString())
+//                .addValue("filterId", filter.id().toString());
+//            jdbc.update(linkFilterSql, linkFilterParams);
+//        });
+//
+//        return link;
+//    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    @Override
+    public Link save(final Link link) {
+        Optional<Link> existingLink = findByUrl(link.url());
+        if (existingLink.isPresent()) {
+            // Обновляем lastUpdate и добавляем новые связи
+            Link existing = existingLink.get();
+            existing.lastUpdate(link.lastUpdate());
+            // Добавляем новые связи в link_to_chat
+            saveLinkToChat(link);
+            // Добавляем новые связи в tag_to_link
+            saveLinkToTag(link);
+            // Добавляем новые связи в link_to_filter
+            saveLinkToFilter(link);
+
+            return existing;
+        } else {
+            // Сохранение новой записи
+            KeyHolder keyHolder = new GeneratedKeyHolder();
+            String insertLinkSql = """
+                INSERT INTO link(url, last_update)
+                VALUES (:url, :lastUpdate)
+                RETURNING id
+                """;
+            MapSqlParameterSource insertParams = new MapSqlParameterSource()
+                .addValue("url", link.url())
+                .addValue("lastUpdate", link.lastUpdate());
+            jdbc.update(insertLinkSql, insertParams, keyHolder);
+            link.id((UUID) keyHolder.getKeys().get("id"));
+            // Сохранение связей в link_to_chat
+            saveLinkToChat(link);
+            // Сохранение связей в tag_to_link
+            saveLinkToTag(link);
+            // Сохранение связей в link_to_filter
+            saveLinkToFilter(link);
+
+            return link;
+        }
+    }
+
+    private Optional<Link> findByUrl(String url) {
+        String sql = "SELECT * FROM link WHERE url = :url";
+        MapSqlParameterSource params = new MapSqlParameterSource("url", url);
+        List<Link> results = jdbc.query(sql, params, new LinkResultSetExtractor());
+        return results.isEmpty() ? Optional.empty() : Optional.of(results.getFirst());
+    }
+
+    private void saveLinkToChat(Link link) {
+        if (link.chats().stream().findFirst().isEmpty()) {
+            throw new SqlRepositoryException("No chat found");
+        }
+
+        var linkChatSql = """
+            INSERT INTO link_to_chat(chat_id, link_id)
+            VALUES (:chatId, :linkId)
+            """;
+
+        var linkChatParams = new MapSqlParameterSource()
+            .addValue("chatId", link.chats().stream().findFirst().get().id().toString())
+            .addValue("linkId", link.id().toString());
+
+        jdbc.update(linkChatSql, linkChatParams);
+    }
+
+    private void saveLinkToTag(Link link) {
+        var linkTagSql = """
+            INSERT INTO tag_to_link(link_id, tag_id)
+            VALUES (:linkId, :tagId)
+            """;
+
+        link.tags().forEach(tag -> {
+            var linkTagParams = new MapSqlParameterSource()
+                .addValue("linkId", link.id().toString())
+                .addValue("tagId", tag.id().toString());
+            jdbc.update(linkTagSql, linkTagParams);
+        });
+    }
+
+    private void saveLinkToFilter(Link link) {
+        var linkFilterSql = """
+            INSERT INTO link_to_filter(link_id, filter_id)
+            VALUES (:linkId, :filterId)
+            """;
+
+        link.filters().forEach(filter -> {
+            var linkFilterParams = new MapSqlParameterSource()
+                .addValue("linkId", link.id().toString())
+                .addValue("filterId", filter.id().toString());
+            jdbc.update(linkFilterSql, linkFilterParams);
+        });
     }
 }

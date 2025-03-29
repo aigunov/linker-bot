@@ -90,6 +90,7 @@ public class LinkService {
         return Mapper.linkToLinkResponse(link);
     }
 
+    //todo: переработать удаление ссылки чтобы было консистентно для chat таблицы
     @Transactional
     public LinkResponse removeTrackedLink(Long chatId, RemoveLinkRequest request) {
         chatRepository.findByTgId(chatId)
