@@ -42,6 +42,7 @@ public class SqlChatRepository implements ChatRepository {
         return chat;
     }
 
+    //todo: добавить удаления ВСЕГО что связано с чатом
     @Transactional(propagation = Propagation.MANDATORY)
     @Override
     public void deleteById(UUID id) {

@@ -33,7 +33,8 @@ CREATE TABLE IF NOT EXISTS link_to_filter (
 
 CREATE TABLE IF NOT EXISTS link_to_chat (
                               chat_id INT,
-                              link_id INT
+                              link_id INT,
+                              PRIMARY KEY (chat_id, link_id)
 );
 
 CREATE TABLE IF NOT EXISTS tag_to_link (
