@@ -21,7 +21,7 @@ public class SqlFilterRepository implements FilterRepository {
 
     @Transactional(propagation = Propagation.MANDATORY)
     @Override
-    public Filter save(Filter filter) {
+    public Filter save(final Filter filter) {
         GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
         var sql = """
             INSERT INTO filter (chat_id, parameter, value)
@@ -40,7 +40,7 @@ public class SqlFilterRepository implements FilterRepository {
 
     @Transactional(propagation = Propagation.MANDATORY)
     @Override
-    public void deleteById(UUID id) {
+    public void deleteById(final UUID id) {
         var deleteLinkFilterSql = """
             DELETE
             FROM link_to_filter
@@ -70,19 +70,19 @@ public class SqlFilterRepository implements FilterRepository {
         return result.isEmpty() ? Optional.empty() : Optional.of(result.getFirst());
     }
 
-    //TODO: Должна быть проверка по двумя полям таблицы filter
     @Override
-    public Optional<Filter> findByTgIdAndFilter(Long tgId, String filter) {
+    public Optional<Filter> findByTgIdAndFilter(final Long tgId, final String param, final String value) {
         var sql = """
             SELECT *
             FROM filter AS f
             JOIN chat AS c ON c.id = f.chat_id
-            WHERE c.tg_id = :tgId AND f.parameter = :filterParam
+            WHERE c.tg_id = :tgId AND f.parameter = :param AND f.value = :value
             """;
 
         MapSqlParameterSource params = new MapSqlParameterSource()
             .addValue("tgId", tgId)
-            .addValue("filterParam", filter);
+            .addValue("param", param)
+            .addValue("value", value);
         List<Filter> results = jdbc.query(sql, params, new FilterResultSetExtractor());
         return results.isEmpty() ? Optional.empty() : Optional.of(results.getFirst());
     }

@@ -23,13 +23,13 @@ public class Mapper {
     }
 
     //TODO: переделать
-    public static Link linkRequestToLink(AddLinkRequest request, Long chatId) {
+    public static Link linkRequestToLink(final AddLinkRequest request, final Long chatId) {
         return null;
     }
 
-    public static Tag tagNameToTag(String tag) {return null;}
+    public static Tag tagDtoToTag(final String tag, final Chat chat) {return null;}
 
-    public static Filter filterNameToFilter(String filterName) {return null;
+    public static Filter filterDtoToFilter(String filterParam, String filterName, Chat chat) {return null;
     }
 
     public static Link linkRequestToLink(String uri, Long chatId, HashSet<Tag> tags, HashSet<Filter> filters) {

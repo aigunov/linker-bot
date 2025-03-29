@@ -85,7 +85,7 @@ public class SqlLinkRepository implements LinkRepository{
 
         return link;
     }
-
+    //todo: добавить удаление опусташенных фильтров и тэгов
     @Transactional(propagation = Propagation.MANDATORY)
     @Override
     public void deleteById(final UUID id) {

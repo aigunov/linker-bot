@@ -46,10 +46,9 @@ public class LinkService {
         return ListLinkResponse.builder().linkResponses(linksResponse).build();
     }
 
-    //todo: доработать сохранения тегов + фильтров новой ссылки
     @Transactional
     public LinkResponse addTrackedLink(Long chatId, AddLinkRequest request) {
-        chatRepository.findByTgId(chatId).orElseThrow(() -> new ChatException("Чат с tg-id %d не найден", chatId));
+        var chat = chatRepository.findByTgId(chatId).orElseThrow(() -> new ChatException("Чат с tg-id %d не найден", chatId));
 
         linkRepository.findByTgIdAndUrl(chatId, request.uri()).ifPresent(_ -> {
             var message = String.format("У пользователя с tg-id %d, уже существует ссылка %s в отслеживании", chatId, request.uri());
@@ -60,18 +59,27 @@ public class LinkService {
         var tags = new HashSet<Tag>();
         if (request.tags() != null){
             for(var tagName: request.tags()){
-                 var tag = tagRepository.findByTgIdAndTag(chatId, tagName).orElseGet(() -> Mapper.tagNameToTag(tagName));
+                 var tag = tagRepository.findByTgIdAndTag(chatId, tagName).orElseGet(() -> {
+                     log.info("Сохранение нового тега переданного с ссылкой: {}", tagName);
+                     return tagRepository.save(Mapper.tagDtoToTag(tagName, chat));
+                 });
                  tags.add(tag);
             }
         }
 
-        //Todo: andFilter? что именно подразумевается
         var filters = new HashSet<Filter>();
         if (request.filters() != null){
-            for(var filterName: request.filters()){
-                var filter = filterRepository.findByTgIdAndFilter(chatId, filterName).orElseGet(() -> Mapper.filterNameToFilter(filterName));
+            for(var filt: request.filters()){
+                var filterEntry = filt.split(":");
+                var filterParam= filterEntry[0];
+                var filterValue = filterEntry[1];
+                var filter = filterRepository.findByTgIdAndFilter(chatId, filterParam, filterValue).orElseGet(() -> {
+                    log.info("Сохранение нового фильтра переданного с ссылкой: {}", filterEntry);
+                    return filterRepository.save(Mapper.filterDtoToFilter(filterParam, filterValue, chat));
+                });
                 filters.add(filter);
             }
+
         }
 
         var linkToSave = Mapper.linkRequestToLink(request.uri(), chatId, tags, filters);
