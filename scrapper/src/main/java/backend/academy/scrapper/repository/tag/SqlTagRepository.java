@@ -20,7 +20,6 @@ public class SqlTagRepository implements TagRepository {
     private final NamedParameterJdbcTemplate jdbc;
 
 
-    //todo: returning id?
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
     public Tag save(Tag tag) {

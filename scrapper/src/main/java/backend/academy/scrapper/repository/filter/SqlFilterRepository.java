@@ -19,7 +19,6 @@ import java.util.UUID;
 public class SqlFilterRepository implements FilterRepository {
     private final NamedParameterJdbcTemplate jdbc;
 
-    //todo: Returning id?
     @Transactional(propagation = Propagation.MANDATORY)
     @Override
     public Filter save(Filter filter) {
