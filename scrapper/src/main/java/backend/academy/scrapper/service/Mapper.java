@@ -8,31 +8,58 @@ import dto.AddLinkRequest;
 import dto.LinkResponse;
 import dto.RegisterChatRequest;
 import org.springframework.stereotype.Service;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Set;
 
 @Service
 public class Mapper {
-    //TODO: переделать
-    public static Chat chatDtoToEntity(RegisterChatRequest request) {
-        return null;
+
+    public static Chat chatDtoToEntity(final RegisterChatRequest request) {
+        return Chat.builder()
+            .nickname(request.name())
+            .tgId(request.chatId())
+            .tags(new HashSet<>())
+            .filters(new HashSet<>())
+            .links(new HashSet<>())
+            .build();
     }
 
-    //TODO: переделать
     public static LinkResponse linkToLinkResponse(Link link) {
-        return null;
+        return LinkResponse.builder()
+            .id(link.id())
+            .url(link.url())
+            .tags(link.tags().stream().map(Tag::tag).toList())
+            .filters(link.filters().stream().map(filter -> filter.parameter()+":"+filter.value()).toList())
+            .build();
     }
 
-    //TODO: переделать
-    public static Link linkRequestToLink(final AddLinkRequest request, final Long chatId) {
-        return null;
+    public static Link linkRequestToLink(final String uri, final Long chatId,
+                                         final HashSet<Tag> tags, final HashSet<Filter> filters) {
+        return Link.builder()
+            .url(uri)
+            .lastUpdate(LocalDateTime.MAX)
+            .tags(tags)
+            .filters(filters)
+            .chats(Set.of())
+            .build();
     }
 
-    public static Tag tagDtoToTag(final String tag, final Chat chat) {return null;}
-
-    public static Filter filterDtoToFilter(String filterParam, String filterName, Chat chat) {return null;
+    public static Tag tagDtoToTag(final String tag, final Chat chat) {
+        return Tag.builder()
+            .tag(tag)
+            .chat(chat)
+            .links(new HashSet<>())
+            .build();
     }
 
-    public static Link linkRequestToLink(String uri, Long chatId, HashSet<Tag> tags, HashSet<Filter> filters) {
-        return null;
+    public static Filter filterDtoToFilter(final String parameter, final String value, final Chat chat) {
+        return Filter.builder()
+            .value(value)
+            .parameter(parameter)
+            .chat(chat)
+            .links(new HashSet<>())
+            .build();
     }
 }
