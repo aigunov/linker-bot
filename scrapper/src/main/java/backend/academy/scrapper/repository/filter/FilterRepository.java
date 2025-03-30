@@ -8,7 +8,7 @@ public interface FilterRepository {
     Filter save(Filter filter);
     void deleteById(UUID id);
     Optional<Filter> findById(UUID id);
-    Optional<Filter> findByTgIdAndFilter(Long tgId, String filter, String filterValue);
+    Optional<Filter> findByTgIdAndFilter(Long tgId, String param, String value);
     Iterable<Filter> findAll();
 }
 

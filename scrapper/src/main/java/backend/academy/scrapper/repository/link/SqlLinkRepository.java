@@ -168,7 +168,7 @@ public class SqlLinkRepository implements LinkRepository{
     }
 
     @Override
-    public List<Link> findLinksByTgIdAndTags(final Long chatId, final List<String> tags, final long size) {
+    public List<Link> findLinksByTgIdAndTags(final Long chatId, final List<String> tags, final Long size) {
         var sql = """
             SELECT l.*, c.id as chat_id, c.tg_id, c.nickname,
                 t.id as tag_id, t.tag, f.id as filter_id, f.parameter, f.value

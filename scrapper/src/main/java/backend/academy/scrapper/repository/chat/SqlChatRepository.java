@@ -21,7 +21,6 @@ public class SqlChatRepository implements ChatRepository {
 
     private final NamedParameterJdbcTemplate jdbc;
 
-    //todo: сделать так чтобы save+update
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
     public Chat save(Chat chat) {
