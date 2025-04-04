@@ -43,8 +43,8 @@ CREATE TABLE IF NOT EXISTS tag_to_link (
                              PRIMARY KEY (link_id, tag_id)
 );
 
-ALTER TABLE tag ADD FOREIGN KEY (user_id) REFERENCES chat (id) ON DELETE CASCADE;
-ALTER TABLE filter ADD FOREIGN KEY (user_id) REFERENCES chat (id) ON DELETE CASCADE;
+ALTER TABLE tag ADD FOREIGN KEY (chat_id) REFERENCES chat (id) ON DELETE CASCADE;
+ALTER TABLE filter ADD FOREIGN KEY (chat_id) REFERENCES chat (id) ON DELETE CASCADE;
 
 ALTER TABLE link_to_filter ADD FOREIGN KEY (link_id) REFERENCES link (id) ON DELETE CASCADE;
 
@@ -56,4 +56,4 @@ ALTER TABLE tag_to_link ADD FOREIGN KEY (link_id) REFERENCES link (id) ON DELETE
 
 ALTER TABLE link_to_chat ADD FOREIGN KEY (link_id) REFERENCES link (id);
 
-ALTER TABLE link_to_chat ADD FOREIGN KEY (user_id) REFERENCES chat (id) ON DELETE CASCADE;
+ALTER TABLE link_to_chat ADD FOREIGN KEY (chat_id) REFERENCES chat (id) ON DELETE CASCADE;
