@@ -18,7 +18,7 @@ spring:
     username: aigunov
     password: 12345
   liquibase:
-    enabled: true
+    enabled: false
     change-log: classpath:migrations/db.changelog-master.xml
   jpa:
     hibernate:

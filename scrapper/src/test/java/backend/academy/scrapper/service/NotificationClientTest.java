@@ -11,6 +11,7 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import dto.LinkUpdate;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -51,7 +52,7 @@ class NotificationClientTest {
     @Test
     void sendLinkUpdate_success() throws Exception {
         LinkUpdate linkUpdate =
-                new LinkUpdate(UUID.randomUUID(), "https://example.com/test", "Link Updated", List.of(123L, 456L));
+                new LinkUpdate(UUID.randomUUID(), "https://example.com/test", "Link Updated", Set.of(123L, 456L));
 
         wireMockServer.stubFor(WireMock.post(WireMock.urlEqualTo("/updates"))
                 .withRequestBody(WireMock.equalToJson(objectMapper.writeValueAsString(linkUpdate)))
@@ -65,7 +66,7 @@ class NotificationClientTest {
     @Test
     void sendLinkUpdate_internalServerError() throws Exception {
         LinkUpdate linkUpdate =
-                new LinkUpdate(UUID.randomUUID(), "https://example.com/test", "Link Updated", List.of(123L, 456L));
+                new LinkUpdate(UUID.randomUUID(), "https://example.com/test", "Link Updated", Set.of(123L, 456L));
 
         wireMockServer.stubFor(WireMock.post(WireMock.urlEqualTo("/updates"))
                 .withRequestBody(WireMock.equalToJson(objectMapper.writeValueAsString(linkUpdate)))
@@ -77,7 +78,7 @@ class NotificationClientTest {
     @Test
     void sendLinkUpdate_otherError() throws Exception {
         LinkUpdate linkUpdate =
-                new LinkUpdate(UUID.randomUUID(), "https://example.com/test", "Link Updated", List.of(123L, 456L));
+                new LinkUpdate(UUID.randomUUID(), "https://example.com/test", "Link Updated", Set.of(123L, 456L));
 
         wireMockServer.stubFor(WireMock.post(WireMock.urlEqualTo("/updates"))
                 .withRequestBody(WireMock.equalToJson(objectMapper.writeValueAsString(linkUpdate)))
@@ -89,7 +90,7 @@ class NotificationClientTest {
     @Test
     void sendLinkUpdate_connectionError() throws Exception {
         LinkUpdate linkUpdate =
-                new LinkUpdate(UUID.randomUUID(), "https://example.com/test", "Link Updated", List.of(123L, 456L));
+                new LinkUpdate(UUID.randomUUID(), "https://example.com/test", "Link Updated", Set.of(123L, 456L));
 
         wireMockServer.stop();
 

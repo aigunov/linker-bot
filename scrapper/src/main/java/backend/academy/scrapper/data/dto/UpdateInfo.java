@@ -5,7 +5,7 @@ import java.time.format.DateTimeFormatter;
 import lombok.Builder;
 import lombok.Getter;
 
-@Getter
+
 @Builder
 public record UpdateInfo(String title,
                          String username,
