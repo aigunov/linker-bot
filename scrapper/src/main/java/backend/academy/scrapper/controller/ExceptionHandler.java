@@ -1,5 +1,6 @@
 package backend.academy.scrapper.controller;
 
+import backend.academy.scrapper.exception.ChatException;
 import dto.ApiErrorResponse;
 import java.util.NoSuchElementException;
 import lombok.extern.slf4j.Slf4j;
@@ -18,18 +19,18 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice("backend.academy.scrapper.controller")
 public class ExceptionHandler {
 
+    @org.springframework.web.bind.annotation.ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiErrorResponse> handleChatException(ChatException e){
+        log.info("Ошибка  чата: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(createErrorResponse(e, "400"));
+    }
+
     @org.springframework.web.bind.annotation.ExceptionHandler(AopInvocationException.class)
     public ResponseEntity<ApiErrorResponse> handleAopException(AopInvocationException e) {
         log.error("Ошибка AOP: {}", e.getMessage());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(createErrorResponse(e, "500"));
     }
 
-    @org.springframework.web.bind.annotation.ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiErrorResponse> handleGeneralException(Exception e) {
-        var errorResponse = createErrorResponse(e, "400");
-        log.error("Произошла ошибка: {}", errorResponse);
-        return ResponseEntity.badRequest().body(errorResponse);
-    }
 
     @org.springframework.web.bind.annotation.ExceptionHandler(NoSuchElementException.class)
     public ResponseEntity<ApiErrorResponse> handleNotFoundException(NoSuchElementException e) {
