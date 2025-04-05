@@ -10,8 +10,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ListRequestService {
     private final Map<Long, GetLinksRequest> listRequests = new ConcurrentHashMap<>();
 
-    public void createListRequest(Long chatId){
-        var request = GetLinksRequest.builder().build();
+    public void createListRequest(final Long chatId, final String tags){
+        var request = GetLinksRequest.builder().tags(List.of(tags.split(" "))).build();
         listRequests.put(chatId, request);
     }
 

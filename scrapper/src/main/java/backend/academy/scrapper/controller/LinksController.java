@@ -31,7 +31,7 @@ public class LinksController {
 
     private final LinkService linkService;
 
-    @GetMapping
+    @PostMapping("/getLinks")
     public ResponseEntity<ListLinkResponse> getAllTrackedLinks(@RequestHeader("Tg-Chat-Id") Long chatId,
                                                                @RequestBody GetLinksRequest linksRequest) {
         log.info("Getting all tracked links for chat ID: {}", chatId);

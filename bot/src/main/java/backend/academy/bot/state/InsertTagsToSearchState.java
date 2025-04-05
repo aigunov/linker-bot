@@ -38,7 +38,7 @@ public class InsertTagsToSearchState extends StateImpl {
             bot.execute(new SendMessage(chatId, message)
                 .replyMarkup(keyboardFactory.getNextAndBackButtonKeyboard())
                 .parseMode(ParseMode.HTML));
-            listRequestService.createListRequest(chatId);
+//            listRequestService.createListRequest(chatId);
         } catch (TelegramApiException e) {
             log.info("Error while sending feedback request message: {}", e.getMessage());
         }
@@ -74,7 +74,7 @@ public class InsertTagsToSearchState extends StateImpl {
     private void addTagsToLink(Update update, String message) {
         var chatId = update.message().chat().id();
         log.info("Adding tags {}", message);
-        listRequestService.updateListRequestTags(chatId, message);
-        stateManager.navigate(update, ChatState.ADD_FILTERS);
+        listRequestService.createListRequest(chatId, message);
+        stateManager.navigate(update, ChatState.LIST);
     }
 }

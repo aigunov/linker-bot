@@ -37,7 +37,8 @@ public interface OrmLinkRepository extends LinkRepository, JpaRepository<Link, U
         SELECT l
         FROM Link l
         JOIN l.chats c
-        WHERE c.tgId = :tgId""")
+        WHERE c.tgId = :tgId
+        """)
     @Override
     List<Link> findAllByTgId(@Param("tgId") Long tgId);
 }

@@ -21,7 +21,7 @@ public interface OrmTagRepository extends TagRepository, JpaRepository<Tag, UUID
         WHERE c.tg_id = :tgId
         """, nativeQuery = true)
     @Override
-    List<Tag> findAllByTgId(final @Param("userId") Long chatId);
+    List<Tag> findAllByTgId(final @Param("tgId") Long chatId);
 
 
     @Query(value = """
@@ -31,6 +31,7 @@ public interface OrmTagRepository extends TagRepository, JpaRepository<Tag, UUID
         WHERE c.tg_id = :tgId AND t.tag = :tag
         """, nativeQuery = true)
     @Override
-    Optional<Tag> findByTgIdAndTag(final @Param("tgId") Long tgId, final @Param("tag") String tag);
+    Optional<Tag> findByTgIdAndTag(final @Param("tgId") Long tgId,
+                                   final @Param("tag") String tag);
 
 }

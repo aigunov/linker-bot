@@ -17,7 +17,7 @@ public class TagService {
     private final ChatRepository chatRepository;
     private final TagRepository tagRepository;
 
-    public GetTagsResponse getUserTags(Long chatId) {
+    public GetTagsResponse getUserTags(final Long chatId) {
         chatRepository.findByTgId(chatId)
             .orElseThrow(() -> new ChatException("Чат с tg-id %d не найден", chatId));
 
