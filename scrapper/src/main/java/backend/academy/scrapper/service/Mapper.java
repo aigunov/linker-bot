@@ -35,14 +35,14 @@ public class Mapper {
             .build();
     }
 
-    public static Link linkRequestToLink(final String uri, final Long chatId,
+    public static Link linkRequestToLink(final String uri, final Chat chat,
                                          final HashSet<Tag> tags, final HashSet<Filter> filters) {
         return Link.builder()
             .url(uri)
-            .lastUpdate(LocalDateTime.MAX)
+            .lastUpdate(LocalDateTime.now())
             .tags(tags)
             .filters(filters)
-            .chats(Set.of())
+            .chats(Set.of(chat))
             .build();
     }
 

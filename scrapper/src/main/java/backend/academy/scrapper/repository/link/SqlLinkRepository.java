@@ -262,8 +262,8 @@ public class SqlLinkRepository implements LinkRepository{
         Optional<Link> existingLink = findByUrl(link.url());
         if (existingLink.isPresent()) {
             // Обновляем lastUpdate и добавляем новые связи
-            Link existing = existingLink.get();
-            existing.lastUpdate(link.lastUpdate());
+//            Link existing = existingLink.get();
+//            existing.lastUpdate(link.lastUpdate());
             // Добавляем новые связи в link_to_chat
             saveLinkToChat(link);
             // Добавляем новые связи в tag_to_link
@@ -271,7 +271,7 @@ public class SqlLinkRepository implements LinkRepository{
             // Добавляем новые связи в link_to_filter
             saveLinkToFilter(link);
 
-            return existing;
+            return existingLink.get();
         } else {
             // Сохранение новой записи
             KeyHolder keyHolder = new GeneratedKeyHolder();
@@ -296,7 +296,8 @@ public class SqlLinkRepository implements LinkRepository{
         }
     }
 
-    private Optional<Link> findByUrl(String url) {
+    @Override
+    public Optional<Link> findByUrl(String url) {
         String sql = "SELECT * FROM link WHERE url = :url";
         MapSqlParameterSource params = new MapSqlParameterSource("url", url);
         List<Link> results = jdbc.query(sql, params, new LinkResultSetExtractor());

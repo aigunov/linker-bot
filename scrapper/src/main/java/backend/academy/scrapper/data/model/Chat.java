@@ -50,11 +50,6 @@ public class Chat {
     @OneToMany(mappedBy = "chat", cascade = {CascadeType.REMOVE})
     private Set<Filter> filters = new HashSet<>();
 
-    @ManyToMany(cascade = {CascadeType.REMOVE})
-    @JoinTable(
-        name = "link_to_chat",
-        joinColumns = {@JoinColumn(name = "chat_id")},
-        inverseJoinColumns = {@JoinColumn(name = "link_id")}
-    )
+    @ManyToMany(mappedBy = "chats")
     private Set<Link> links = new HashSet<>();
 }

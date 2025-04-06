@@ -56,12 +56,14 @@ public class AddFiltersState extends StateImpl {
                 switch (message) {
                     case back_button -> cancelLinkInsertion(update);
                     case next_button -> {
+                        log.info("Link will be tracked without filters");
                         commitTracking(chatId);
-                        continueWithoutFilters(update);
+                        backToMenu(update);
                     }
                     default -> {
-                        commitTracking(chatId);
                         addFiltersToLink(update, message);
+                        commitTracking(chatId);
+                        backToMenu(update);
                     }
                 }
             } else {
@@ -98,11 +100,9 @@ public class AddFiltersState extends StateImpl {
         var chatId = update.message().chat().id();
         log.info("Adding filters {}", message);
         trackLinkService.updateLinkRequestFilters(chatId, message);
-        stateManager.navigate(update, ChatState.MENU);
     }
 
-    private void continueWithoutFilters(Update update) {
-        log.info("Link will be tracked without filters");
+    private void backToMenu(Update update){
         stateManager.navigate(update, ChatState.MENU);
     }
 

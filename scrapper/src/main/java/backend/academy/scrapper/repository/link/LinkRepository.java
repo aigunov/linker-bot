@@ -10,6 +10,7 @@ public interface LinkRepository {
     Link save(Link link);
     void deleteById(UUID id);
     Optional<Link> findById(UUID id);
+    Optional<Link> findByUrl(String url);
     Optional<Link> findByTgIdAndUrl(Long tgId, String url);
     Iterable<Link> findAll();
     Iterable<Link> findAll(Pageable pageable);
