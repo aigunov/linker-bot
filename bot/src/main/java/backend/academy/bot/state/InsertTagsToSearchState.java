@@ -77,6 +77,7 @@ public class InsertTagsToSearchState extends StateImpl {
             var errorMessage = String.format("Используются запрещенные символы в тегах: %s", message);
             log.error(errorMessage);
             validatorChecker(errorMessage, update.message().chat().id());
+            cancelListRequest(update);
             backToMenu(update);
             return;
         }

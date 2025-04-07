@@ -63,6 +63,7 @@ public class AddFiltersState extends StateImpl {
                     }
                     default -> {
                         if(!addFiltersToLink(update, message)){
+                            cancelLinkInsertion(update);
                             return;
                         }
                         commitTracking(chatId);
