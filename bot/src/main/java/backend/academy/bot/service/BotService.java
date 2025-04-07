@@ -8,6 +8,7 @@ import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.request.SendMessage;
 import dto.AddLinkRequest;
 import dto.ApiErrorResponse;
+import dto.GetLinksRequest;
 import dto.LinkUpdate;
 import dto.RegisterChatRequest;
 import dto.RemoveLinkRequest;
@@ -43,7 +44,8 @@ public class BotService {
         try {
             log.info("Fetching tracked links for chatId: {}", chatId);
             var requestBody = listRequestService.getListRequest(chatId);
-            var responseEntity = client.getAllTrackedLinks(chatId, requestBody);
+            var responseEntity = client.getAllTrackedLinks(chatId, requestBody == null ?
+                                                                    GetLinksRequest.builder().build() : requestBody);
 
             if (responseEntity.getStatusCode().is2xxSuccessful()) {
                 log.info("Successfully received tracked links for chatId: {}", chatId);

@@ -52,12 +52,12 @@ public class TagsState extends StateImpl{
 
     private String formatTags(GetTagsResponse tags) {
         if (tags.tags().isEmpty()) {
-            return "Вы пока не добавили ни одного тега.";
+            return "🏷 <i>Теги отсутствуют</i>\nВы пока не добавили ни одного тега.";
         }
         StringBuilder sb = new StringBuilder();
         sb.append("<b>Используемы теги:</b>\n\n");
         for (String tag : tags.tags()) {
-            sb.append(" ").append(tag).append("\n");
+            sb.append("🏷 <i>").append(tag).append("</i>\n");
         }
         return sb.toString();
     }

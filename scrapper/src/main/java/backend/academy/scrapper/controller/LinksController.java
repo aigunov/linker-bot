@@ -8,6 +8,7 @@ import dto.ListLinkResponse;
 import dto.RemoveLinkRequest;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -33,7 +34,7 @@ public class LinksController {
 
     @PostMapping("/getLinks")
     public ResponseEntity<ListLinkResponse> getAllTrackedLinks(@RequestHeader("Tg-Chat-Id") Long chatId,
-                                                               @RequestBody GetLinksRequest linksRequest) {
+                                                               @NotNull @RequestBody GetLinksRequest linksRequest) {
         log.info("Getting all tracked links for chat ID: {}", chatId);
         var response = linkService.getAllTrackedLinks(chatId, linksRequest);
         return ResponseEntity.ok(response);
