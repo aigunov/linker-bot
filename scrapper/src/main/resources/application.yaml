@@ -8,7 +8,15 @@ app:
     key: ${SO_TOKEN_KEY}
     access-token: ${SO_ACCESS_TOKEN}
   db:
-    access-type: jpa
+    access-type: ${ACCESS_TYPE}
+
+  bot:
+    url: http://localhost:8080
+  scrapper:
+    threads-count: ${THREADS_COUNT}
+    scheduled-time: ${SCHEDULED_TIME}
+    page-size: ${PAGE_SIZE}
+
 
 spring:
   application:
@@ -34,14 +42,3 @@ springdoc:
     path: /swagger-ui
 
 
-bot:
-  api:
-    url: http://localhost:8080
-
-#logging:
-#  structured:
-#    format:
-#      console: ecs
-#  file:
-#    name: logs/application.log
-#    pattern: '%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n'

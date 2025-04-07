@@ -20,8 +20,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -34,18 +36,27 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class ScrapperService {
 
+    @Value("${app.scrapper.page-size:1000}")
+    private int pageSize;
+    @Value("${app.scrapper.threads-count:4}")
+    private int threadsCount;
+
     private final LinkRepository linkRepository;
     private final LinkToApiRequestConverter converter;
     private final UpdateCheckingClient stackOverflowClient;
     private final UpdateCheckingClient gitHubClient;
     private final NotificationClient notificationClient;
 
-    private final ExecutorService executorService = Executors.newFixedThreadPool(4);
+    private ExecutorService executorService;
 
-    @Scheduled(fixedRate = 100000)
+    @PostConstruct
+    public void initializeExecutor() {
+        this.executorService = Executors.newFixedThreadPool(this.threadsCount);
+    }
+
+    @Scheduled(fixedDelayString = "${app.scrapper.scheduled-time:100000}")
     public void scrapper() {
         log.info("Scrapper scheduled started");
-        int pageSize = 1000;
         int pageNumber = 0;
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
         Iterable<Link> linksIterable;

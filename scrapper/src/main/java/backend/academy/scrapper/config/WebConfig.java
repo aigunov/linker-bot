@@ -16,7 +16,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 public class WebConfig {
 
     @Bean
-    public WebClient webClient(@Value("${bot.api.url}") String botUrl) {
+    public WebClient webClient(@Value("${app.bot.url}") String botUrl) {
         return WebClient.builder()
             .baseUrl(botUrl)
             .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)

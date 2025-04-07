@@ -11,7 +11,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
-@ConditionalOnProperty(prefix="app.db", name="access-type", havingValue="jpa")
+@ConditionalOnProperty(prefix="app.db", name="access-type", havingValue="orm")
 public interface OrmTagRepository extends TagRepository, JpaRepository<Tag, UUID> {
 
     @Query(value = """
