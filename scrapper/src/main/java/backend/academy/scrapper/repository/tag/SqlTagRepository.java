@@ -1,6 +1,9 @@
 package backend.academy.scrapper.repository.tag;
 
 import backend.academy.scrapper.data.model.Tag;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -9,9 +12,6 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 
 @Repository
 @RequiredArgsConstructor
@@ -78,6 +78,34 @@ public class SqlTagRepository implements TagRepository {
         var result = jdbc.query(sql, params, new TagResultSetExtractor());
         return result.isEmpty() ? Optional.empty() : Optional.of(result.getFirst());
     }
+
+    @Override
+    public List<Tag> findAllByChatIdAndNotInTagToLinkTable(final UUID chatId) {
+        var sql = """
+            SELECT *
+            FROM tag
+            WHERE chat_id = :chatId AND id NOT IN (SELECT tag_id
+                                                   FROM tag_to_link)
+            """;
+        var params = new MapSqlParameterSource()
+            .addValue("chatId", chatId);
+        return jdbc.query(sql, params, new TagResultSetExtractor());
+    }
+
+
+    @Override
+    public void deleteAll(Iterable<? extends Tag> tags) {
+        var tagIds = ((List<Tag>) tags).stream().map(Tag::id).toList();
+
+        var sql = """
+            DELETE
+            FROM tag
+            WHERE id IN (:ids)
+            """;
+
+        jdbc.update(sql, new MapSqlParameterSource("ids", tagIds));
+    }
+
 
     @Override
     public List<Tag> findAllByTgId(final Long tgId) {

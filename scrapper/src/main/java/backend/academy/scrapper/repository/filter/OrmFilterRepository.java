@@ -1,6 +1,7 @@
 package backend.academy.scrapper.repository.filter;
 
 import backend.academy.scrapper.data.model.Filter;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -24,4 +25,13 @@ public interface OrmFilterRepository extends FilterRepository, JpaRepository<Fil
     Optional<Filter> findByTgIdAndFilter(final @Param("tgId") Long tgId,
                                          final @Param("param") String param,
                                          final @Param("value") String value);
+
+    @Query(value = """
+        SELECT f.*
+        FROM filter as f
+        WHERE f.chat_id = :chatId AND f.id NOT IN (SELECT filter_id
+                                                   FROM link_to_filter)
+        """, nativeQuery = true)
+    @Override
+    List<Filter> findAllByChatIdAndNotInLinkToFilterTable(final @Param("chatId") UUID chatId);
 }

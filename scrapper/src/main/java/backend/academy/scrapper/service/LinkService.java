@@ -14,14 +14,12 @@ import dto.GetLinksRequest;
 import dto.LinkResponse;
 import dto.ListLinkResponse;
 import dto.RemoveLinkRequest;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import java.util.HashSet;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
@@ -92,18 +90,29 @@ public class LinkService {
         return Mapper.linkToLinkResponse(link);
     }
 
-    //todo: переработать удаление ссылки чтобы было консистентно для chat таблицы
     @Transactional
-    public LinkResponse removeTrackedLink(Long chatId, RemoveLinkRequest request) {
-        chatRepository.findByTgId(chatId)
-            .orElseThrow(() -> new ChatException("Чат с tg-id %d не найден", chatId));
+    public LinkResponse removeTrackedLink(Long tgId, RemoveLinkRequest request) {
+        var chat = chatRepository.findByTgId(tgId)
+            .orElseThrow(() -> new ChatException("Чат с tg-id %d не найден", tgId));
 
-        Link link = linkRepository.findByTgIdAndUrl(chatId, request.uri())
-            .orElseThrow(() -> new LinkException("Ссылка с uri %s не найдена для чата с id %d", request.uri(), chatId));
-
-        log.info("User tg-id: {} will delete link with id: {} and uri: {}", chatId, link.id(), request.uri());
-
+        Link link = linkRepository.findByTgIdAndUrl(tgId, request.uri())
+            .orElseThrow(() -> new LinkException("Ссылка с uri %s не найдена для чата с id %d", request.uri(), tgId));
+        log.info("User tg-id: {} will delete link with id: {} and uri: {}", tgId, link.id(), request.uri());
         linkRepository.deleteById(link.id());
+
+        //удаление тегов и фильтров которые "опустошились" после удаления ссылки
+        var tagsToDelete = (List<Tag>) tagRepository.findAllByChatIdAndNotInTagToLinkTable(chat.id());
+        if (!tagsToDelete.isEmpty()) {
+            log.info("List of tags: {} -- will delete, because after delete link: {} they don't use",
+                tagsToDelete, link.url());
+            tagRepository.deleteAll(tagsToDelete);
+        }
+        var filtersToDelete = (List<Filter>) filterRepository.findAllByChatIdAndNotInLinkToFilterTable(chat.id());
+        if (!filtersToDelete.isEmpty()) {
+            log.info("List of filters: {} -- will delete, because after delete link: {} they don't use",
+                filtersToDelete, link.url());
+            filterRepository.deleteAll(filtersToDelete);
+        }
 
         return Mapper.linkToLinkResponse(link);
     }

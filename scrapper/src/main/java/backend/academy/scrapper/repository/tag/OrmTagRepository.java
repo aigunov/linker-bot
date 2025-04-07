@@ -34,4 +34,12 @@ public interface OrmTagRepository extends TagRepository, JpaRepository<Tag, UUID
     Optional<Tag> findByTgIdAndTag(final @Param("tgId") Long tgId,
                                    final @Param("tag") String tag);
 
+    @Query(value = """
+        SELECT *
+        FROM tag
+        WHERE chat_id = :chatId AND id NOT IN (SELECT tag_id
+                                               FROM tag_to_link)
+        """, nativeQuery = true)
+    @Override
+    List<Tag> findAllByChatIdAndNotInTagToLinkTable(final @Param("chatId") UUID chatId);
 }

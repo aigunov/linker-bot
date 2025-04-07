@@ -1,6 +1,9 @@
 package backend.academy.scrapper.repository.filter;
 
 import backend.academy.scrapper.data.model.Filter;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -9,9 +12,6 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 
 @Repository
 @RequiredArgsConstructor
@@ -85,6 +85,42 @@ public class SqlFilterRepository implements FilterRepository {
             .addValue("value", value);
         List<Filter> results = jdbc.query(sql, params, new FilterResultSetExtractor());
         return results.isEmpty() ? Optional.empty() : Optional.of(results.getFirst());
+    }
+
+    // TODO: Убрать вызов удаления в сервисный слой
+    // Удаление пустых filters
+//    String deleteEmptyFiltersSql = """
+//            DELETE
+//            FROM filter
+//            WHERE id NOT IN (SELECT filter_id
+//                             FROM link_to_filter)
+//            """;
+//        jdbc.update(deleteEmptyFiltersSql, new MapSqlParameterSource());
+    @Override
+    public List<Filter> findAllByChatIdAndNotInLinkToFilterTable(final UUID chatId) {
+        var sql = """
+            SELECT f.*
+            FROM filter as f
+            WHERE f.chat_id = :chatId AND f.id NOT IN (SELECT filter_id
+                                                       FROM link_to_filter)
+            """;
+        var params = new MapSqlParameterSource()
+            .addValue("chatId", chatId);
+        return jdbc.query(sql, params, new FilterResultSetExtractor());
+    }
+
+    @Override
+    public void deleteAll(Iterable<? extends Filter> filters) {
+        var filterIds = ((List<Filter>) filters).stream().map(Filter::id).toList();
+
+
+        var sql = """
+            DELETE
+            FROM filter
+            WHERE id IN (:ids)
+            """;
+
+        jdbc.update(sql, new MapSqlParameterSource("ids", filterIds));
     }
 
     @Override

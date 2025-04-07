@@ -52,24 +52,6 @@ public class SqlLinkRepository implements LinkRepository{
         // Удаление link из таблицы link
         String sql = "DELETE FROM link WHERE id = :id";
         jdbc.update(sql, new MapSqlParameterSource("id", id.toString()));
-
-        // Удаление пустых tags
-        String deleteEmptyTagsSql = """
-            DELETE
-            FROM tag
-            WHERE id NOT IN (SELECT tag_id
-                             FROM tag_to_link)
-            """;
-        jdbc.update(deleteEmptyTagsSql, new MapSqlParameterSource());
-
-        // Удаление пустых filters
-        String deleteEmptyFiltersSql = """
-            DELETE
-            FROM filter
-            WHERE id NOT IN (SELECT filter_id
-                             FROM link_to_filter)
-            """;
-        jdbc.update(deleteEmptyFiltersSql, new MapSqlParameterSource());
     }
 
     @Override
@@ -261,9 +243,6 @@ public class SqlLinkRepository implements LinkRepository{
     public Link save(final Link link) {
         Optional<Link> existingLink = findByUrl(link.url());
         if (existingLink.isPresent()) {
-            // Обновляем lastUpdate и добавляем новые связи
-//            Link existing = existingLink.get();
-//            existing.lastUpdate(link.lastUpdate());
             // Добавляем новые связи в link_to_chat
             saveLinkToChat(link);
             // Добавляем новые связи в tag_to_link
