@@ -2,6 +2,7 @@ package backend.academy.bot.state;
 
 import backend.academy.bot.exception.TelegramApiException;
 import backend.academy.bot.service.AddLinkRequestService;
+import backend.academy.bot.service.Validator;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.model.request.ParseMode;
 import com.pengrad.telegrambot.request.SendMessage;
@@ -61,7 +62,9 @@ public class AddFiltersState extends StateImpl {
                         backToMenu(update);
                     }
                     default -> {
-                        addFiltersToLink(update, message);
+                        if(!addFiltersToLink(update, message)){
+                            return;
+                        }
                         commitTracking(chatId);
                         backToMenu(update);
                     }
@@ -96,14 +99,18 @@ public class AddFiltersState extends StateImpl {
         }
     }
 
-    private void addFiltersToLink(Update update, String message) {
+    private boolean addFiltersToLink(Update update, String message) {
+        if (!Validator.isValidFilters(message)){
+            var errorMessage = String.format("Некорректный формат фильтров: %s", message);
+            log.error(errorMessage);
+            validatorChecker(errorMessage, update.message().chat().id());
+            backToMenu(update);
+            return false;
+        }
         var chatId = update.message().chat().id();
         log.info("Adding filters {}", message);
         trackLinkService.updateLinkRequestFilters(chatId, message);
-    }
-
-    private void backToMenu(Update update){
-        stateManager.navigate(update, ChatState.MENU);
+        return true;
     }
 
     private void cancelLinkInsertion(Update update) {

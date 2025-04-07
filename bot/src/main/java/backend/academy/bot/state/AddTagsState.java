@@ -2,6 +2,7 @@ package backend.academy.bot.state;
 
 import backend.academy.bot.exception.TelegramApiException;
 import backend.academy.bot.service.AddLinkRequestService;
+import backend.academy.bot.service.Validator;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.model.request.ParseMode;
 import com.pengrad.telegrambot.request.SendMessage;
@@ -58,6 +59,13 @@ public class AddTagsState extends StateImpl {
     }
 
     private void addTagsToLink(Update update, String message) {
+        if (!Validator.isValidTag(message)){
+            var errorMessage = String.format("Используются запрещенные символы в тегах: %s", message);
+            log.error(errorMessage);
+            validatorChecker(errorMessage, update.message().chat().id());
+            backToMenu(update);
+            return;
+        }
         var chatId = update.message().chat().id();
         log.info("Adding tags {}", message);
         trackLinkService.updateLinkRequestTags(chatId, message);

@@ -81,4 +81,12 @@ public abstract class StateImpl implements State {
             return false;
         }
     }
+
+    protected void backToMenu(Update update) {
+        stateManager.navigate(update, ChatState.MENU);
+    }
+
+    protected void validatorChecker(final String message, final Long chatId) {
+        bot.execute(new SendMessage(chatId, "Опечатка. " + message).parseMode(ParseMode.HTML));
+    }
 }
