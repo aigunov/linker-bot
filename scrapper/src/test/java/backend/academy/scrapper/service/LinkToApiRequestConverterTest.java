@@ -1,88 +1,82 @@
 package backend.academy.scrapper.service;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import backend.academy.scrapper.config.GitHubConfig;
 import backend.academy.scrapper.config.StackOverflowConfig;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.TestPropertySource;
 
-@SpringBootTest
-@EnableConfigurationProperties({GitHubConfig.class, StackOverflowConfig.class})
 class LinkToApiRequestConverterTest {
 
-    @Autowired
     private LinkToApiRequestConverter converter;
 
-    @Autowired
-    private GitHubConfig gitHubConfig;
+    @BeforeEach
+    void setUp() {
+        GitHubConfig githubConfig = new GitHubConfig("fake-token", "https://api.github.com/repos");
+        StackOverflowConfig stackOverflowConfig = new StackOverflowConfig("fake-key", "fake-access", "https://api.stackexchange.com/2.3/questions");
 
-    @Autowired
-    private StackOverflowConfig stackOverflowConfig;
+        converter = new LinkToApiRequestConverter(githubConfig, stackOverflowConfig);
+    }
 
     @Test
     void convertGithubUrlToApi_shouldConvertValidGithubUrl() {
-        // arrange
         String githubUrl = "https://github.com/aigunov/backend-academy";
-        String expectedApiUrl = gitHubConfig.url() + "/aigunov/backend-academy";
+        String expected = "https://api.github.com/repos/aigunov/backend-academy";
 
-        // act
-        String actualApiUrl = converter.convertGithubUrlToApi(githubUrl);
+        String result = converter.convertGithubUrlToApi(githubUrl);
 
-        // assert
-        assertThat(actualApiUrl).isEqualTo(expectedApiUrl);
+        assertThat(result).isEqualTo(expected);
     }
 
     @Test
     void convertStackOverflowUrlToApi_shouldConvertValidStackOverflowUrl() {
-        // arrange
-        String stackOverflowUrl = "https://ru.stackoverflow.com/questions/1607351/%d0%9f%d0%be%d1%81%d0%bb%d0%b5"
-                + "%d0%b4%d0%be%d0%b2%d0%b0%d1%82%d0%b5%d0%bb%d1%8c%d0%bd%d1%8b%d0%b9-%d0%b2%d1%8b%d0%b7%d0%be%d0%b2-%d1%"
-                + "84%d1%83%d0%bd%d0%ba%d1%86%d0%b8%d0%b9-%d0%b2-java";
-        String expectedApiUrl = stackOverflowConfig.url() + "/1607351?order=desc&sort=activity&site=ru.stackoverflow";
+        String url = "https://ru.stackoverflow.com/questions/1607351/question-title";
+        String expected = "https://api.stackexchange.com/2.3/questions/1607351?order=desc&sort=activity&site=ru.stackoverflow";
 
-        // act
-        String actualApiUrl = converter.convertStackOverflowUrlToApi(stackOverflowUrl);
+        String result = converter.convertStackOverflowUrlToApi(url);
 
-        // assert
-        assertThat(actualApiUrl).isEqualTo(expectedApiUrl);
+        assertThat(result).isEqualTo(expected);
     }
 
     @Test
     void isGithubUrl_shouldReturnTrueForGithubUrl() {
-        // arrange
-        String githubUrl = "https://github.com/aigunov/backend-academy";
-
-        // act & assert
-        assertThat(converter.isGithubUrl(githubUrl)).isTrue();
+        assertThat(converter.isGithubUrl("https://github.com/aigunov/test")).isTrue();
     }
 
     @Test
     void isGithubUrl_shouldReturnFalseForNonGithubUrl() {
-        // arrange
-        String nonGithubUrl = "https://ru.stackoverflow.com/questions/1607351";
-
-        // act & assert
-        assertThat(converter.isGithubUrl(nonGithubUrl)).isFalse();
+        assertThat(converter.isGithubUrl("https://stackoverflow.com/questions/123")).isFalse();
     }
 
     @Test
     void isStackOverflowUrl_shouldReturnTrueForStackOverflowUrl() {
-        // arrange
-        String stackOverflowUrl = "https://ru.stackoverflow.com/questions/1607351";
-
-        // act & assert
-        assertThat(converter.isStackOverflowUrl(stackOverflowUrl)).isTrue();
+        assertThat(converter.isStackOverflowUrl("https://stackoverflow.com/questions/123")).isTrue();
     }
 
     @Test
     void isStackOverflowUrl_shouldReturnFalseForNonStackOverflowUrl() {
-        // arrange
-        String nonStackOverflowUrl = "https://github.com/aigunov/backend-academy";
+        assertThat(converter.isStackOverflowUrl("https://github.com/aigunov/test")).isFalse();
+    }
 
-        // act & assert
-        assertThat(converter.isStackOverflowUrl(nonStackOverflowUrl)).isFalse();
+    @Test
+    void convertGithubUrlToApi_shouldThrowOnInvalidUrl() {
+        String invalidUrl = "https://notgithub.com/user/repo";
+        assertThatThrownBy(() -> converter.convertGithubUrlToApi(invalidUrl))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Invalid GitHub URL format");
+    }
+
+    @Test
+    void convertStackOverflowUrlToApi_shouldThrowOnInvalidUrl() {
+        String invalidUrl = "https://not.stackoverflow.com/question/123";
+        assertThatThrownBy(() -> converter.convertStackOverflowUrlToApi(invalidUrl))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Invalid StackOverflow URL format");
     }
 }

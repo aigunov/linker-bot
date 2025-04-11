@@ -76,7 +76,7 @@ public class ScrapperService {
     private void processBatchInParallel(Iterable<Link> links) {
         Spliterator<Link> spliterator = links.spliterator();
 
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < threadsCount; i++) {
             Spliterator<Link> chunkSpliterator;
             if (i < 3) {
                 chunkSpliterator = spliterator.trySplit();

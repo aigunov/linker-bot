@@ -171,73 +171,6 @@ public class SqlLinkRepository implements LinkRepository{
         return jdbc.query(sql, params, new LinkResultSetExtractor());
     }
 
-    //todo: переработать для того чтобы метод работал еще как и update
-//    @Transactional(propagation = Propagation.MANDATORY)
-//    @Override
-//    public Link save(final Link link) {
-//        Optional<Link> existingLink = findByUrl(link.url());
-//
-//
-//        KeyHolder keyHolder = new GeneratedKeyHolder();
-//        //Сохранение в link
-//        var sql = """
-//            INSERT INTO link(url, last_update)
-//            VALUES (:url, :lastUpdate)
-//            """;
-//
-//        var params = new MapSqlParameterSource()
-//            .addValue("url", link.url())
-//            .addValue("lastUpdate", link.lastUpdate());
-//
-//        jdbc.update(sql, params, keyHolder);
-//        link.id((UUID) keyHolder.getKeys().get("id"));
-//
-//
-//        //Сохранение в link_to_chat
-//        var linkChatSql = """
-//            INSERT INTO link_to_chat(chat_id, link_id)
-//            VALUES (:chatId, :linkId)
-//            """;
-//
-//        if (link.chats().stream().findFirst().isEmpty()) {
-//            throw new SqlRepositoryException("No chat found");
-//        }
-//
-//        var linkChatParams = new MapSqlParameterSource()
-//            .addValue("chatId", link.chats().stream().findFirst().get().id().toString())
-//            .addValue("linkId", link.id().toString());
-//
-//        jdbc.update(linkChatSql, linkChatParams);
-//
-//        //Сохранение в tag_to_link
-//        var linkTagSql = """
-//            INSERT INTO tag_to_link(link_id, tag_id)
-//            VALUES (:linkId, :tagId)
-//            """;
-//
-//        link.tags().forEach(tag -> {
-//            var linkTagParams = new MapSqlParameterSource()
-//                .addValue("linkId", link.id().toString())
-//                .addValue("tagId", tag.id().toString());
-//            jdbc.update(linkTagSql, linkTagParams);
-//        });
-//
-//        ////Сохранение в link_to_filter
-//        var linkFilterSql = """
-//            INSERT INTO link_to_filter(link_id, filter_id)
-//            VALUES (:linkId, :filterId)
-//            """;
-//
-//        link.filters().forEach(filter -> {
-//            var linkFilterParams = new MapSqlParameterSource()
-//                .addValue("linkId", link.id().toString())
-//                .addValue("filterId", filter.id().toString());
-//            jdbc.update(linkFilterSql, linkFilterParams);
-//        });
-//
-//        return link;
-//    }
-
     @Transactional(propagation = Propagation.MANDATORY)
     @Override
     public Link save(final Link link) {
@@ -272,6 +205,22 @@ public class SqlLinkRepository implements LinkRepository{
             saveLinkToFilter(link);
 
             return link;
+        }
+    }
+
+    @Override
+    public void deleteAll() {
+        var sql = """
+            DELETE FROM link
+            """;
+        jdbc.update(sql, new MapSqlParameterSource());
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    @Override
+    public void saveAll(List<Link> githubLink) {
+        for (Link link : githubLink) {
+            save(link);
         }
     }
 

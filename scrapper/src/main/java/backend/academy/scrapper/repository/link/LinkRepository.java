@@ -8,6 +8,8 @@ import java.util.UUID;
 
 public interface LinkRepository {
     Link save(Link link);
+    void deleteAll();
+    void saveAll(List<Link> githubLink);
     void deleteById(UUID id);
     Optional<Link> findById(UUID id);
     Optional<Link> findByUrl(String url);
@@ -15,5 +17,6 @@ public interface LinkRepository {
     Iterable<Link> findAll();
     Iterable<Link> findAll(Pageable pageable);
     Iterable<Link> findAllByTgId(Long tgId);
+
     Iterable<Link> findLinksByTgIdAndTags(Long tgId, List<String> tags, Long size);
 }
