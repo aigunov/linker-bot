@@ -9,7 +9,7 @@ import java.util.UUID;
 public interface LinkRepository {
     Link save(Link link);
     void deleteAll();
-    void saveAll(List<Link> githubLink);
+    <S extends Link> List<S> saveAll(Iterable<S> links);
     void deleteById(UUID id);
     Optional<Link> findById(UUID id);
     Optional<Link> findByUrl(String url);

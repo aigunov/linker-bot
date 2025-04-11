@@ -49,4 +49,5 @@ public interface OrmLinkRepository extends LinkRepository, JpaRepository<Link, U
         """)
     @Override
     Optional<Link> findByUrl(@Param("url") String url);
+
 }

@@ -2,13 +2,19 @@ package backend.academy.scrapper.service;
 
 import backend.academy.scrapper.client.NotificationClient;
 import backend.academy.scrapper.client.UpdateCheckingClient;
+import backend.academy.scrapper.config.MigrationsRunner;
 import backend.academy.scrapper.data.dto.UpdateInfo;
 import backend.academy.scrapper.data.model.Chat;
 import backend.academy.scrapper.data.model.Link;
 import backend.academy.scrapper.repository.link.LinkRepository;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.StreamSupport;
+import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -19,20 +25,14 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.StreamSupport;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 
 @SpringBootTest
 @Testcontainers
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ScrapperServiceTest {
     @Container
-    static PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres:17.04")
+    static PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres:17.4")
         .withDatabaseName("scrapper_db")
         .withUsername("aigunov")
         .withPassword("12345");
@@ -50,6 +50,9 @@ public class ScrapperServiceTest {
     private NotificationClient notificationClient;
 
     @Autowired
+    private MigrationsRunner migrationsRunner;
+
+    @Autowired
     @InjectMocks
     private ScrapperService scrapperService;
 
@@ -62,10 +65,16 @@ public class ScrapperServiceTest {
         registry.add("spring.jpa.hibernate.ddl-auto", () -> "none"); // если используешь Liquibase
         registry.add("app.scrapper.page-size", () -> 10);
         registry.add("app.scrapper.threads-count", () -> 1);
+        registry.add("app.scrapper.scheduled-time", () -> 100000);
+        registry.add("app.db.access-type", () -> "orm");
     }
 
     @BeforeEach
-    void setup(){
+    void setup() {
+
+        migrationsRunner.runMigrations();
+
+
         linkRepository.deleteAll();
 
         Link githubLink = Link.builder()

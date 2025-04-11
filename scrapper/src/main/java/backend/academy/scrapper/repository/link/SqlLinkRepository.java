@@ -2,7 +2,10 @@ package backend.academy.scrapper.repository.link;
 
 import backend.academy.scrapper.data.model.Link;
 import backend.academy.scrapper.exception.SqlRepositoryException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -216,13 +219,6 @@ public class SqlLinkRepository implements LinkRepository{
         jdbc.update(sql, new MapSqlParameterSource());
     }
 
-    @Transactional(propagation = Propagation.MANDATORY)
-    @Override
-    public void saveAll(List<Link> githubLink) {
-        for (Link link : githubLink) {
-            save(link);
-        }
-    }
 
     @Override
     public Optional<Link> findByUrl(String url) {
@@ -275,5 +271,15 @@ public class SqlLinkRepository implements LinkRepository{
                 .addValue("filterId", filter.id().toString());
             jdbc.update(linkFilterSql, linkFilterParams);
         });
+    }
+
+    //todo: переработать
+    @Transactional(propagation = Propagation.MANDATORY)
+    @Override
+    public <S extends Link> List<S> saveAll(Iterable<S> links) {
+        for (Link link : links) {
+            save(link);
+        }
+        return List.of();
     }
 }
