@@ -49,7 +49,9 @@ public class SqlChatRepository implements ChatRepository {
             FROM link_to_chat
             WHERE chat_id = :chatId
             """;
-        jdbc.update(deleteLinkChatSql, new MapSqlParameterSource("chatId", id.toString()));
+        jdbc.update(deleteLinkChatSql, new MapSqlParameterSource("chatId", id));
+
+
 
         // Удаление связей из tag
         var deleteTagSql = """
@@ -57,7 +59,7 @@ public class SqlChatRepository implements ChatRepository {
             FROM tag
             WHERE chat_id = :chatId
             """;
-        jdbc.update(deleteTagSql, new MapSqlParameterSource("chatId", id.toString()));
+        jdbc.update(deleteTagSql, new MapSqlParameterSource("chatId", id));
 
         // Удаление связей из filter
         var deleteFilterSql = """
@@ -65,7 +67,7 @@ public class SqlChatRepository implements ChatRepository {
             FROM filter
             WHERE chat_id = :chatId
             """;
-        jdbc.update(deleteFilterSql, new MapSqlParameterSource("chatId", id.toString()));
+        jdbc.update(deleteFilterSql, new MapSqlParameterSource("chatId", id));
 
         // Удаление chat из таблицы chat
         var sql = """
@@ -73,7 +75,7 @@ public class SqlChatRepository implements ChatRepository {
             FROM chat
             WHERE id = :id
             """;
-        jdbc.update(sql, new MapSqlParameterSource("id", id.toString()));
+        jdbc.update(sql, new MapSqlParameterSource("id", id));
     }
 
     @Transactional

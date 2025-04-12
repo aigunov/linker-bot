@@ -87,15 +87,6 @@ public class SqlFilterRepository implements FilterRepository {
         return results.isEmpty() ? Optional.empty() : Optional.of(results.getFirst());
     }
 
-    // TODO: Убрать вызов удаления в сервисный слой
-    // Удаление пустых filters
-//    String deleteEmptyFiltersSql = """
-//            DELETE
-//            FROM filter
-//            WHERE id NOT IN (SELECT filter_id
-//                             FROM link_to_filter)
-//            """;
-//        jdbc.update(deleteEmptyFiltersSql, new MapSqlParameterSource());
     @Override
     public List<Filter> findAllByChatIdAndNotInLinkToFilterTable(final UUID chatId) {
         var sql = """

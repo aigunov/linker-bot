@@ -8,7 +8,7 @@ app:
     key: ${SO_TOKEN_KEY}
     access-token: ${SO_ACCESS_TOKEN}
   db:
-    access-type: orm
+    access-type: sql
 
   bot:
     url: http://localhost:8080

@@ -28,7 +28,7 @@ public class SqlTagRepository implements TagRepository {
             VALUES (:chatId, :tag)
             """;
         var tagParams = new MapSqlParameterSource()
-            .addValue("chatId", tag.chat().id().toString())
+            .addValue("chatId", tag.chat().id())
             .addValue("tag", tag.tag());
         GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
         jdbc.update(tagSql, tagParams, keyHolder);
@@ -113,10 +113,10 @@ public class SqlTagRepository implements TagRepository {
             SELECT t.*
             FROM tag AS t
             JOIN chat AS c ON t.chat_id = c.id
-            WHERE c.tg_id = :chatId
+            WHERE c.tg_id = :tgId
             """;
         var result = jdbc.query(sql,
-            new MapSqlParameterSource("tg_id", tgId), new TagResultSetExtractor());
+            new MapSqlParameterSource("tgId", tgId), new TagResultSetExtractor());
         return result;
     }
 

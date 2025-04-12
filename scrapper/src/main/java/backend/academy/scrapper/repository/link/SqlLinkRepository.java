@@ -91,7 +91,7 @@ public class SqlLinkRepository implements LinkRepository{
             WHERE c.tg_id = :tgId AND l.url = :url
             """;
         var params = new MapSqlParameterSource()
-            .addValue("tg_id", tgId)
+            .addValue("tgId", tgId)
             .addValue("url", url);
         var result = jdbc.query(sql, params, new LinkResultSetExtractor());
         return result.isEmpty() ? Optional.empty() : Optional.of(result.getFirst());
@@ -170,7 +170,7 @@ public class SqlLinkRepository implements LinkRepository{
     }
 
     @Override
-    public List<Link> findLinksByTgIdAndTags(final Long chatId, final List<String> tags, final Long size) {
+    public List<Link> findLinksByTgIdAndTags(final Long tgId, final List<String> tags, final Long size) {
         var sql = """
             SELECT l.*, c.id as chat_id, c.tg_id, c.nickname,
                 t.id as tag_id, t.tag, f.id as filter_id, f.parameter, f.value
@@ -185,7 +185,7 @@ public class SqlLinkRepository implements LinkRepository{
             LIMIT :limit
             """;
         var params = new MapSqlParameterSource()
-            .addValue("tgId", chatId)
+            .addValue("tgId", tgId)
             .addValue("tags", tags)
             .addValue("size", size);
         return jdbc.query(sql, params, new LinkResultSetExtractor());
@@ -256,8 +256,8 @@ public class SqlLinkRepository implements LinkRepository{
             """;
 
         var linkChatParams = new MapSqlParameterSource()
-            .addValue("chatId", link.chats().stream().findFirst().get().id().toString())
-            .addValue("linkId", link.id().toString());
+            .addValue("chatId", link.chats().stream().findFirst().get().id())
+            .addValue("linkId", link.id());
 
         jdbc.update(linkChatSql, linkChatParams);
     }
@@ -270,8 +270,8 @@ public class SqlLinkRepository implements LinkRepository{
 
         link.tags().forEach(tag -> {
             var linkTagParams = new MapSqlParameterSource()
-                .addValue("linkId", link.id().toString())
-                .addValue("tagId", tag.id().toString());
+                .addValue("linkId", link.id())
+                .addValue("tagId", tag.id());
             jdbc.update(linkTagSql, linkTagParams);
         });
     }
@@ -284,8 +284,8 @@ public class SqlLinkRepository implements LinkRepository{
 
         link.filters().forEach(filter -> {
             var linkFilterParams = new MapSqlParameterSource()
-                .addValue("linkId", link.id().toString())
-                .addValue("filterId", filter.id().toString());
+                .addValue("linkId", link.id())
+                .addValue("filterId", filter.id());
             jdbc.update(linkFilterSql, linkFilterParams);
         });
     }

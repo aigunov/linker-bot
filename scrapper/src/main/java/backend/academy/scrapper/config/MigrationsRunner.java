@@ -1,15 +1,12 @@
 package backend.academy.scrapper.config;
+
 import jakarta.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import liquibase.Contexts;
-import liquibase.LabelExpression;
-import liquibase.Liquibase;
 import liquibase.Scope;
 import liquibase.command.CommandScope;
 import liquibase.command.core.UpdateCommandStep;
@@ -18,11 +15,9 @@ import liquibase.database.Database;
 import liquibase.database.DatabaseFactory;
 import liquibase.database.jvm.JdbcConnection;
 import liquibase.exception.LiquibaseException;
-import liquibase.resource.ClassLoaderResourceAccessor;
 import liquibase.resource.DirectoryResourceAccessor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -31,7 +26,7 @@ import org.springframework.stereotype.Component;
 public class MigrationsRunner {
     private final DataSourceConfig dataSourceConfig;
 
-    @PostConstruct
+//    @PostConstruct
     public void runMigrations() {
         Path migrationsPath = new File(".").toPath().toAbsolutePath().getParent().getParent().resolve("migrations");
 

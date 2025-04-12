@@ -50,9 +50,9 @@ ALTER TABLE filter ADD FOREIGN KEY (chat_id) REFERENCES chat (id) ON DELETE CASC
 
 ALTER TABLE link_to_filter ADD FOREIGN KEY (link_id) REFERENCES link (id) ON DELETE CASCADE;
 
-ALTER TABLE link_to_filter ADD FOREIGN KEY (filter_id) REFERENCES filter (id);
+ALTER TABLE link_to_filter ADD FOREIGN KEY (filter_id) REFERENCES filter (id) ON DELETE CASCADE;
 
-ALTER TABLE tag_to_link ADD FOREIGN KEY (tag_id) REFERENCES tag (id);
+ALTER TABLE tag_to_link ADD FOREIGN KEY (tag_id) REFERENCES tag (id) ON DELETE CASCADE ;
 
 ALTER TABLE tag_to_link ADD FOREIGN KEY (link_id) REFERENCES link (id) ON DELETE CASCADE;
 

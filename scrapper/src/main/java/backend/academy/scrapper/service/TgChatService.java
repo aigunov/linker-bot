@@ -15,9 +15,9 @@ public class TgChatService {
     private final ChatRepository chatRepository;
 
     @Transactional
-    public String registerChat(Long id, RegisterChatRequest request) {
-        chatRepository.findByTgId(id).ifPresent(_ -> {
-            var message = String.format("Чат с id %d уже зарегистрирован", id);
+    public String registerChat(Long tgId, RegisterChatRequest request) {
+        chatRepository.findByTgId(tgId).ifPresent(_ -> {
+            var message = String.format("Чат с id %d уже зарегистрирован", tgId);
             log.error(message);
             throw new ChatException(message);
         });
