@@ -13,11 +13,13 @@ import backend.academy.scrapper.repository.link.LinkRepository;
 import dto.LinkUpdate;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Spliterator;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 import jakarta.annotation.PostConstruct;
@@ -62,32 +64,40 @@ public class ScrapperService {
         Iterable<Link> linksIterable;
 
         do {
-            linksIterable = linkRepository.findAll(pageable);
+            linksIterable = linkRepository.findAllWithChats(pageable);
             List<Link> links = StreamSupport.stream(linksIterable.spliterator(), false)
                 .collect(Collectors.toList());
             if (!links.isEmpty()) {
-                processBatchInParallel(links);
+                List<Future<?>> futures = processBatchInParallel(links);
+                for (Future<?> future : futures) {
+                    try {
+                        future.get();
+                    } catch (Exception e) {
+                        log.error("Error in processing link batch", e);
+                    }
+                }
             }
             pageNumber++;
             pageable = PageRequest.of(pageNumber, pageSize);
         } while (linksIterable.iterator().hasNext());
     }
 
-    private void processBatchInParallel(Iterable<Link> links) {
+    private List<Future<?>> processBatchInParallel(Iterable<Link> links) {
+        List<Future<?>> futures = new ArrayList<>();
         Spliterator<Link> spliterator = links.spliterator();
 
         for (int i = 0; i < threadsCount; i++) {
-            Spliterator<Link> chunkSpliterator;
-            if (i < 3) {
-                chunkSpliterator = spliterator.trySplit();
-            } else {
-                chunkSpliterator = spliterator;
-            }
-            executorService.submit(() -> {
+            Spliterator<Link> chunkSpliterator = (i < threadsCount - 1)
+                ? spliterator.trySplit()
+                : spliterator;
+
+            futures.add(executorService.submit(() -> {
                 StreamSupport.stream(chunkSpliterator, false)
                     .forEach(this::processLink);
-            });
+            }));
         }
+
+        return futures;
     }
 
 

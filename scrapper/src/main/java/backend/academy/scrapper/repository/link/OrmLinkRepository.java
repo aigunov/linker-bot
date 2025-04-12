@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -50,4 +52,8 @@ public interface OrmLinkRepository extends LinkRepository, JpaRepository<Link, U
     @Override
     Optional<Link> findByUrl(@Param("url") String url);
 
+    @EntityGraph(attributePaths = {"chats"})
+    @Query("SELECT l FROM Link as l")
+    @Override
+    List<Link> findAllWithChats(Pageable pageable);
 }

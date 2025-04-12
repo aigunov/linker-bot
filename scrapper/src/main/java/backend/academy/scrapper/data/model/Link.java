@@ -62,7 +62,7 @@ public class Link {
     private Set<Filter> filters = new HashSet<>();
 
     @NotNull
-    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}) // Убрали mappedBy
+    @ManyToMany(cascade = {CascadeType.MERGE})
     @JoinTable(
         name = "link_to_chat",
         joinColumns = {@JoinColumn(name = "link_id")},

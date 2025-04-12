@@ -135,6 +135,23 @@ public class SqlLinkRepository implements LinkRepository{
     }
 
     @Override
+    public List<Link> findAllWithChats(final Pageable pageable) {
+        var sql = """
+            SELECT l.*, c.id AS chat_id, c.tg_id, c.nickname
+            FROM link AS l
+            LEFT JOIN link_to_chat ltc ON l.id = ltc.link_id
+            LEFT JOIN chat AS c ON ltc.chat_id = c.id
+
+            LIMIT :limit OFFSET :offset
+            """;
+
+        var params = new MapSqlParameterSource()
+            .addValue("limit", pageable.getPageSize())
+            .addValue("offset", pageable.getOffset());
+        return jdbc.query(sql, params, new LinkResultSetExtractor());
+    }
+
+    @Override
     public List<Link> findAllByTgId(final Long tgId) {
         var sql = """
             SELECT l.*, c.id as chat_id, c.tg_id, c.nickname,

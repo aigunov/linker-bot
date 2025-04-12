@@ -6,22 +6,23 @@ import backend.academy.scrapper.config.MigrationsRunner;
 import backend.academy.scrapper.data.dto.UpdateInfo;
 import backend.academy.scrapper.data.model.Chat;
 import backend.academy.scrapper.data.model.Link;
+import backend.academy.scrapper.repository.chat.ChatRepository;
 import backend.academy.scrapper.repository.link.LinkRepository;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.StreamSupport;
-import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -30,6 +31,12 @@ import static org.mockito.ArgumentMatchers.any;
 
 @SpringBootTest
 @Testcontainers
+@TestPropertySource(properties = {
+    "app.scrapper.page-size=10",
+    "app.scrapper.threads-count=1",
+    "app.scrapper.scheduled-time=100000",
+    "app.db.access-type=orm"
+})
 public class ScrapperServiceTest {
     @Container
     static PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres:17.4")
@@ -39,21 +46,19 @@ public class ScrapperServiceTest {
 
     @Autowired
     private LinkRepository linkRepository;
-
-    @Mock
-    private UpdateCheckingClient gitHubClient;
-
-    @Mock
-    private UpdateCheckingClient stackOverflowClient;
-
-    @Mock
-    private NotificationClient notificationClient;
-
+    @Autowired
+    private ChatRepository chatRepository;
     @Autowired
     private MigrationsRunner migrationsRunner;
 
+    @MockitoBean
+    private UpdateCheckingClient gitHubClient;
+    @MockitoBean
+    private UpdateCheckingClient stackOverflowClient;
+    @MockitoBean
+    private NotificationClient notificationClient;
+
     @Autowired
-    @InjectMocks
     private ScrapperService scrapperService;
 
     @DynamicPropertySource
@@ -62,7 +67,7 @@ public class ScrapperServiceTest {
         registry.add("spring.datasource.username", postgresContainer::getUsername);
         registry.add("spring.datasource.password", postgresContainer::getPassword);
         registry.add("spring.datasource.driver-class-name", postgresContainer::getDriverClassName);
-        registry.add("spring.jpa.hibernate.ddl-auto", () -> "none"); // если используешь Liquibase
+        registry.add("spring.jpa.hibernate.ddl-auto", () -> "none");
         registry.add("app.scrapper.page-size", () -> 10);
         registry.add("app.scrapper.threads-count", () -> 1);
         registry.add("app.scrapper.scheduled-time", () -> 100000);
@@ -70,23 +75,32 @@ public class ScrapperServiceTest {
     }
 
     @BeforeEach
+    @Transactional
     void setup() {
+        var instant = LocalDateTime.now().minusDays(2);
 
         migrationsRunner.runMigrations();
 
 
         linkRepository.deleteAll();
 
+        Chat chat = Chat.builder()
+            .tgId(123L)
+            .nickname("mr-white")
+            .build();
+
+        chat = chatRepository.save(chat);
+
         Link githubLink = Link.builder()
             .url("https://github.com/test/repo")
-            .lastUpdate(LocalDateTime.now().minusDays(2))
-            .chats(Set.of(Chat.builder().tgId(123L).build()))
+            .lastUpdate(instant)
+            .chats(Set.of(chat))
             .build();
 
         Link soLink = Link.builder()
             .url("https://stackoverflow.com/questions/123456/test")
-            .lastUpdate(LocalDateTime.now().minusDays(2))
-            .chats(Set.of(Chat.builder().tgId(456L).build()))
+            .lastUpdate(instant)
+            .chats(Set.of(chat))
             .build();
 
         linkRepository.saveAll(List.of(githubLink, soLink));
@@ -99,10 +113,8 @@ public class ScrapperServiceTest {
     }
 
     @Test
-    void testScrapperShouldUpdateLinksAndSendNotification() throws InterruptedException {
+    void testScrapperShouldUpdateLinksAndSendNotification() {
         scrapperService.scrapper();
-
-        Thread.sleep(1000);
 
         var updatedLinks = StreamSupport.stream(linkRepository.findAll().spliterator(), false).toList();
         assertThat(updatedLinks).allMatch(link -> link.lastUpdate().isAfter(LocalDateTime.now().minusMinutes(1)));

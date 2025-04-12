@@ -33,7 +33,6 @@ public class MigrationsRunner {
 
     @PostConstruct
     public void runMigrations() {
-//        Path migrationsPath = Paths.get("classpath:migrations"); // Assuming 'migrations' directory is at the root
         Path migrationsPath = new File(".").toPath().toAbsolutePath().getParent().getParent().resolve("migrations");
 
         try (Connection connection =
