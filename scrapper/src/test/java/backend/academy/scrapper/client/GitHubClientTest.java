@@ -26,14 +26,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
-//@SpringBootTest(classes = {
-//    String.class,
-//    StackOverflowConfig.class,
-//    GitHubConfig.class,
-//    LinkToApiRequestConverter.class,
-//    TestClientConfig.class,
-//    GitHubClient.class
-//})
 @SpringBootTest
 @EnableConfigurationProperties({GitHubConfig.class, StackOverflowConfig.class})
 @TestPropertySource(properties = {
@@ -50,7 +42,6 @@ class GitHubClientTest {
         .withUsername("aigunov")
         .withPassword("12345");
 
-    //    @MockitoBean
     @Autowired
     private LinkToApiRequestConverter converterApi;
 

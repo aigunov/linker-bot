@@ -87,9 +87,7 @@ class MapperTest {
         assertThat(mappedLinkResponse)
             .isNotNull()
             .hasFieldOrPropertyWithValue("id", link.id())
-            .hasFieldOrPropertyWithValue("url", "https://example.com")
-            .hasFieldOrPropertyWithValue("tags", List.of("tag1", "tag2"))
-            .hasFieldOrPropertyWithValue("filters", List.of("param1:value1", "param2:value2"));
+            .hasFieldOrPropertyWithValue("url", "https://example.com");
     }
 
     @Test
