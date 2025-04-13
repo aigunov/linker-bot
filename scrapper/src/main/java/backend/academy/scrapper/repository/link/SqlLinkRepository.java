@@ -34,7 +34,7 @@ public class SqlLinkRepository implements LinkRepository{
             FROM tag_to_link
             WHERE link_id = :linkId
             """;
-        jdbc.update(deleteLinkTagSql, new MapSqlParameterSource("linkId", id.toString()));
+        jdbc.update(deleteLinkTagSql, new MapSqlParameterSource("linkId", id));
 
         // Удаление связей из link_to_filter
         var deleteLinkFilterSql = """
@@ -42,7 +42,7 @@ public class SqlLinkRepository implements LinkRepository{
             FROM link_to_chat
             WHERE link_id = :linkId
             """;
-        jdbc.update(deleteLinkFilterSql, new MapSqlParameterSource("linkId", id.toString()));
+        jdbc.update(deleteLinkFilterSql, new MapSqlParameterSource("linkId", id));
 
         // Удаление связей из link_to_chat
         var deleteLinkChatSql = """
@@ -50,11 +50,11 @@ public class SqlLinkRepository implements LinkRepository{
             FROM link_to_chat
             WHERE link_id = :linkId
             """;
-        jdbc.update(deleteLinkChatSql, new MapSqlParameterSource("linkId", id.toString()));
+        jdbc.update(deleteLinkChatSql, new MapSqlParameterSource("linkId", id));
 
         // Удаление link из таблицы link
         String sql = "DELETE FROM link WHERE id = :id";
-        jdbc.update(sql, new MapSqlParameterSource("id", id.toString()));
+        jdbc.update(sql, new MapSqlParameterSource("id", id));
     }
 
     @Override
@@ -69,7 +69,7 @@ public class SqlLinkRepository implements LinkRepository{
             LEFT JOIN tag AS t ON t.id = ttl.tag_id
             LEFT JOIN link_to_filter AS ltf ON ltf.link_id = l.id
             LEFT JOIN filter AS f ON ltf.filter_id = f.id
-            WHERE l.id = : id
+            WHERE l.id = :id
             """;
 
         var result = jdbc.query(sql, new MapSqlParameterSource("id", id), new LinkResultSetExtractor());
@@ -170,7 +170,7 @@ public class SqlLinkRepository implements LinkRepository{
     }
 
     @Override
-    public List<Link> findLinksByTgIdAndTags(final Long tgId, final List<String> tags, final Long size) {
+    public List<Link> findLinksByTgIdAndTags(final Long tgId, final List<String> tags) {
         var sql = """
             SELECT l.*, c.id as chat_id, c.tg_id, c.nickname,
                 t.id as tag_id, t.tag, f.id as filter_id, f.parameter, f.value
@@ -182,12 +182,10 @@ public class SqlLinkRepository implements LinkRepository{
             LEFT JOIN link_to_filter AS ltf ON ltf.link_id = l.id
             LEFT JOIN filter AS f ON ltf.filter_id = f.id
             WHERE c.tg_id = :tgId AND t.tag IN (:tags)
-            LIMIT :limit
             """;
         var params = new MapSqlParameterSource()
             .addValue("tgId", tgId)
-            .addValue("tags", tags)
-            .addValue("size", size);
+            .addValue("tags", tags);
         return jdbc.query(sql, params, new LinkResultSetExtractor());
     }
 

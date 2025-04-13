@@ -18,5 +18,5 @@ public interface LinkRepository {
     Iterable<Link> findAll(Pageable pageable);
     Iterable<Link> findAllWithChats(Pageable pageable);
     Iterable<Link> findAllByTgId(Long tgId);
-    Iterable<Link> findLinksByTgIdAndTags(Long tgId, List<String> tags, Long size);
+    Iterable<Link> findLinksByTgIdAndTags(Long tgId, List<String> tags);
 }

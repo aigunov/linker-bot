@@ -37,7 +37,7 @@ public class LinkService {
         List<Link> links;
 
         if (linksRequest.tags() != null && !linksRequest.tags().isEmpty()) {
-            links = (List<Link>) linkRepository.findLinksByTgIdAndTags(chatId, linksRequest.tags(), (long) linksRequest.tags().size());
+            links = (List<Link>) linkRepository.findLinksByTgIdAndTags(chatId, linksRequest.tags());
         } else {
             links = (List<Link>) linkRepository.findAllByTgId(chatId);
         }

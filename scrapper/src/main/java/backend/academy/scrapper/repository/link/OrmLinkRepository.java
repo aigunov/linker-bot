@@ -33,7 +33,7 @@ public interface OrmLinkRepository extends LinkRepository, JpaRepository<Link, U
         WHERE c.tgId = :tgId AND t.tag IN :tags
         """)
     @Override
-    List<Link> findLinksByTgIdAndTags(@Param("tgId") Long tgId, @Param("tags") List<String> tags, @Param("size") Long size);
+    List<Link> findLinksByTgIdAndTags(@Param("tgId") Long tgId, @Param("tags") List<String> tags);
 
     @Query("""
         SELECT l
