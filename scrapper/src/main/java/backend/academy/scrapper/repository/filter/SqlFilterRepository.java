@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 @RequiredArgsConstructor
-@ConditionalOnProperty(prefix="app.db", name="access-type", havingValue="sql")
+@ConditionalOnProperty(prefix = "app.db", name = "access-type", havingValue = "sql")
 public class SqlFilterRepository implements FilterRepository {
     private final NamedParameterJdbcTemplate jdbc;
 
@@ -23,14 +23,15 @@ public class SqlFilterRepository implements FilterRepository {
     @Override
     public Filter save(final Filter filter) {
         GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
-        var sql = """
+        var sql =
+                """
             INSERT INTO filter (chat_id, parameter, value)
             VALUES (:chatId, :parameter, :value)
             """;
         var params = new MapSqlParameterSource()
-            .addValue("chatId", filter.chat().id())
-            .addValue("parameter", filter.parameter())
-            .addValue("value", filter.value());
+                .addValue("chatId", filter.chat().id())
+                .addValue("parameter", filter.parameter())
+                .addValue("value", filter.value());
 
         jdbc.update(sql, params, keyHolder);
         filter.id((UUID) keyHolder.getKeys().get("id"));
@@ -41,7 +42,8 @@ public class SqlFilterRepository implements FilterRepository {
     @Transactional(propagation = Propagation.MANDATORY)
     @Override
     public void deleteById(final UUID id) {
-        var deleteLinkFilterSql = """
+        var deleteLinkFilterSql =
+                """
             DELETE
             FROM link_to_filter
             WHERE filter_id = :filterId
@@ -72,7 +74,8 @@ public class SqlFilterRepository implements FilterRepository {
 
     @Override
     public Optional<Filter> findByTgIdAndFilter(final Long tgId, final String param, final String value) {
-        var sql = """
+        var sql =
+                """
             SELECT *
             FROM filter AS f
             JOIN chat AS c ON c.id = f.chat_id
@@ -80,30 +83,29 @@ public class SqlFilterRepository implements FilterRepository {
             """;
 
         MapSqlParameterSource params = new MapSqlParameterSource()
-            .addValue("tgId", tgId)
-            .addValue("param", param)
-            .addValue("value", value);
+                .addValue("tgId", tgId)
+                .addValue("param", param)
+                .addValue("value", value);
         List<Filter> results = jdbc.query(sql, params, new FilterResultSetExtractor());
         return results.isEmpty() ? Optional.empty() : Optional.of(results.getFirst());
     }
 
     @Override
     public List<Filter> findAllByChatIdAndNotInLinkToFilterTable(final UUID chatId) {
-        var sql = """
+        var sql =
+                """
             SELECT f.*
             FROM filter as f
             WHERE f.chat_id = :chatId AND f.id NOT IN (SELECT filter_id
                                                        FROM link_to_filter)
             """;
-        var params = new MapSqlParameterSource()
-            .addValue("chatId", chatId);
+        var params = new MapSqlParameterSource().addValue("chatId", chatId);
         return jdbc.query(sql, params, new FilterResultSetExtractor());
     }
 
     @Override
     public void deleteAll(Iterable<? extends Filter> filters) {
         var filterIds = ((List<Filter>) filters).stream().map(Filter::id).toList();
-
 
         var sql = """
             DELETE
@@ -125,4 +127,3 @@ public class SqlFilterRepository implements FilterRepository {
         return jdbc.query(sql, new FilterResultSetExtractor());
     }
 }
-

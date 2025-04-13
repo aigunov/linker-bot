@@ -9,14 +9,14 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
 
 @Entity
 @Getter
@@ -32,7 +32,7 @@ public class Tag {
 
     @NotNull
     @ManyToOne
-    @JoinColumn(name="chat_id")
+    @JoinColumn(name = "chat_id")
     private Chat chat;
 
     private String tag;

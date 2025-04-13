@@ -4,7 +4,6 @@ import backend.academy.scrapper.data.model.Chat;
 import jakarta.validation.constraints.NotNull;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
@@ -21,11 +20,10 @@ public class ChatResultSetExtractor implements ResultSetExtractor<List<Chat>> {
         var chats = new LinkedList<Chat>();
         while (rs.next()) {
             chats.add(Chat.builder()
-                .id(UUID.fromString(rs.getString("id")))
-                .tgId(rs.getLong("tg_id"))
-                .nickname(rs.getString("nickname"))
-                .build()
-            );
+                    .id(UUID.fromString(rs.getString("id")))
+                    .tgId(rs.getLong("tg_id"))
+                    .nickname(rs.getString("nickname"))
+                    .build());
         }
         log.debug("Result set converted into List<Chat>: {}", chats);
         return chats;

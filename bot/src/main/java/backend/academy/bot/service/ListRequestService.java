@@ -1,20 +1,19 @@
 package backend.academy.bot.service;
 
 import dto.GetLinksRequest;
-import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import org.springframework.stereotype.Component;
 
 @Component
 public class ListRequestService {
     private final Map<Long, GetLinksRequest> listRequests = new ConcurrentHashMap<>();
 
-    public void createListRequest(final Long chatId, final String tags){
+    public void createListRequest(final Long chatId, final String tags) {
         var request = GetLinksRequest.builder().tags(List.of(tags.split(" "))).build();
         listRequests.put(chatId, request);
     }
-
 
     public void updateListRequestTags(Long chatId, String tags) {
         listRequests.computeIfPresent(chatId, (k, v) -> {
@@ -23,7 +22,7 @@ public class ListRequestService {
         });
     }
 
-    public GetLinksRequest getListRequest(Long chatId){
+    public GetLinksRequest getListRequest(Long chatId) {
         return listRequests.get(chatId);
     }
 

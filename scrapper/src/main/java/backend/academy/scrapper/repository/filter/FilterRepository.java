@@ -6,12 +6,18 @@ import java.util.UUID;
 
 public interface FilterRepository {
     Filter save(Filter filter);
+
     void deleteById(UUID id);
+
     void deleteAll(Iterable<? extends Filter> filters);
+
     void deleteAll();
+
     Optional<Filter> findById(UUID id);
+
     Optional<Filter> findByTgIdAndFilter(Long tgId, String param, String value);
+
     Iterable<Filter> findAllByChatIdAndNotInLinkToFilterTable(UUID id);
+
     Iterable<Filter> findAll();
 }
-

@@ -11,35 +11,42 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
-@ConditionalOnProperty(prefix="app.db", name="access-type", havingValue="orm")
+@ConditionalOnProperty(prefix = "app.db", name = "access-type", havingValue = "orm")
 public interface OrmTagRepository extends TagRepository, JpaRepository<Tag, UUID> {
 
-    @Query(value = """
+    @Query(
+            value =
+                    """
         SELECT t.*
         FROM tag AS t
         JOIN chat AS c ON t.chat_id = c.id
         WHERE c.tg_id = :tgId
-        """, nativeQuery = true)
+        """,
+            nativeQuery = true)
     @Override
     List<Tag> findAllByTgId(final @Param("tgId") Long chatId);
 
-
-    @Query(value = """
+    @Query(
+            value =
+                    """
         SELECT t.*
         FROM tag AS t
         JOIN chat AS c ON t.chat_id = c.id
         WHERE c.tg_id = :tgId AND t.tag = :tag
-        """, nativeQuery = true)
+        """,
+            nativeQuery = true)
     @Override
-    Optional<Tag> findByTgIdAndTag(final @Param("tgId") Long tgId,
-                                   final @Param("tag") String tag);
+    Optional<Tag> findByTgIdAndTag(final @Param("tgId") Long tgId, final @Param("tag") String tag);
 
-    @Query(value = """
+    @Query(
+            value =
+                    """
         SELECT *
         FROM tag
         WHERE chat_id = :chatId AND id NOT IN (SELECT tag_id
                                                FROM tag_to_link)
-        """, nativeQuery = true)
+        """,
+            nativeQuery = true)
     @Override
     List<Tag> findAllByChatIdAndNotInTagToLinkTable(final @Param("chatId") UUID chatId);
 }

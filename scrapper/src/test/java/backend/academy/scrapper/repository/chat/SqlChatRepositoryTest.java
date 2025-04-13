@@ -1,5 +1,6 @@
 package backend.academy.scrapper.repository.chat;
 
+import static org.assertj.core.api.Assertions.assertThat;
 
 import backend.academy.scrapper.config.MigrationsRunner;
 import backend.academy.scrapper.data.model.Chat;
@@ -29,20 +30,24 @@ import org.springframework.test.context.TestPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import static org.assertj.core.api.Assertions.assertThat;
 
 @JdbcTest
-@Import({SqlChatRepository.class, MigrationsRunner.class, SqlLinkRepository.class, SqlTagRepository.class,
-    SqlFilterRepository.class})
+@Import({
+    SqlChatRepository.class,
+    MigrationsRunner.class,
+    SqlLinkRepository.class,
+    SqlTagRepository.class,
+    SqlFilterRepository.class
+})
 @Testcontainers
 @TestPropertySource(properties = "app.db.access-type=sql")
 public class SqlChatRepositoryTest {
 
     @Container
     static final PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres:17.4")
-        .withDatabaseName("scrapper_db")
-        .withUsername("aigunov")
-        .withPassword("12345");
+            .withDatabaseName("scrapper_db")
+            .withUsername("aigunov")
+            .withPassword("12345");
 
     @Autowired
     JdbcTemplate jdbcTemplate;
@@ -52,13 +57,15 @@ public class SqlChatRepositoryTest {
 
     @Autowired
     private ChatRepository chatRepository;
+
     @Autowired
     private TagRepository tagRepository;
+
     @Autowired
     private LinkRepository linkRepository;
+
     @Autowired
     private FilterRepository filterRepository;
-
 
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {
@@ -105,10 +112,15 @@ public class SqlChatRepositoryTest {
 
         // Create related entities
         Tag tag = Tag.builder().chat(savedChat).tag("test_tag").build();
-        Filter filter = Filter.builder().chat(savedChat).parameter("param").value("val").build();
-        Link link = Link.builder().url("http://example.com").lastUpdate(LocalDateTime.now())
-            .chats(Set.of(savedChat)).tags(Set.of(tag)).filters(Set.of(filter)).build();
-
+        Filter filter =
+                Filter.builder().chat(savedChat).parameter("param").value("val").build();
+        Link link = Link.builder()
+                .url("http://example.com")
+                .lastUpdate(LocalDateTime.now())
+                .chats(Set.of(savedChat))
+                .tags(Set.of(tag))
+                .filters(Set.of(filter))
+                .build();
 
         tag = tagRepository.save(tag);
         filter = filterRepository.save(filter);
@@ -118,9 +130,12 @@ public class SqlChatRepositoryTest {
         assertThat(chatRepository.findById(chatId)).isEmpty();
 
         // Verify related entities are deleted
-        assertThat(jdbcTemplate.queryForList("SELECT * FROM link_to_chat WHERE chat_id = ?", UUID.class, chatId)).isEmpty();
-        assertThat(jdbcTemplate.queryForList("SELECT * FROM tag WHERE chat_id = ?", UUID.class, chatId)).isEmpty();
-        assertThat(jdbcTemplate.queryForList("SELECT * FROM filter WHERE chat_id = ?", UUID.class, chatId)).isEmpty();
+        assertThat(jdbcTemplate.queryForList("SELECT * FROM link_to_chat WHERE chat_id = ?", UUID.class, chatId))
+                .isEmpty();
+        assertThat(jdbcTemplate.queryForList("SELECT * FROM tag WHERE chat_id = ?", UUID.class, chatId))
+                .isEmpty();
+        assertThat(jdbcTemplate.queryForList("SELECT * FROM filter WHERE chat_id = ?", UUID.class, chatId))
+                .isEmpty();
     }
 
     @Test
@@ -129,24 +144,31 @@ public class SqlChatRepositoryTest {
         Long tgId = savedChat.tgId();
         UUID chatId = savedChat.id();
 
-
         Tag tag = Tag.builder().chat(savedChat).tag("test_tag").build();
-        Filter filter = Filter.builder().chat(savedChat).parameter("param").value("val").build();
-        Link link = Link.builder().url("http://example.com").lastUpdate(LocalDateTime.now())
-            .chats(Set.of(savedChat)).tags(Set.of(tag)).filters(Set.of(filter)).build();
+        Filter filter =
+                Filter.builder().chat(savedChat).parameter("param").value("val").build();
+        Link link = Link.builder()
+                .url("http://example.com")
+                .lastUpdate(LocalDateTime.now())
+                .chats(Set.of(savedChat))
+                .tags(Set.of(tag))
+                .filters(Set.of(filter))
+                .build();
 
         tag = tagRepository.save(tag);
         filter = filterRepository.save(filter);
         link = linkRepository.save(link);
 
-
         chatRepository.deleteByTgId(tgId);
         assertThat(chatRepository.findByTgId(tgId)).isEmpty();
 
         // Verify related entities are deleted
-        assertThat(jdbcTemplate.queryForList("SELECT * FROM link_to_chat WHERE chat_id = ?", UUID.class, chatId)).isEmpty();
-        assertThat(jdbcTemplate.queryForList("SELECT * FROM tag WHERE chat_id = ?", UUID.class, chatId)).isEmpty();
-        assertThat(jdbcTemplate.queryForList("SELECT * FROM filter WHERE chat_id = ?", UUID.class, chatId)).isEmpty();
+        assertThat(jdbcTemplate.queryForList("SELECT * FROM link_to_chat WHERE chat_id = ?", UUID.class, chatId))
+                .isEmpty();
+        assertThat(jdbcTemplate.queryForList("SELECT * FROM tag WHERE chat_id = ?", UUID.class, chatId))
+                .isEmpty();
+        assertThat(jdbcTemplate.queryForList("SELECT * FROM filter WHERE chat_id = ?", UUID.class, chatId))
+                .isEmpty();
     }
 
     @Test

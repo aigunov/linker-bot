@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class ExceptionHandler {
 
     @org.springframework.web.bind.annotation.ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiErrorResponse> handleChatException(ChatException e){
+    public ResponseEntity<ApiErrorResponse> handleChatException(ChatException e) {
         log.info("Ошибка  чата: {}", e.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(createErrorResponse(e, "400"));
     }
@@ -30,7 +30,6 @@ public class ExceptionHandler {
         log.error("Ошибка AOP: {}", e.getMessage());
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(createErrorResponse(e, "500"));
     }
-
 
     @org.springframework.web.bind.annotation.ExceptionHandler(NoSuchElementException.class)
     public ResponseEntity<ApiErrorResponse> handleNotFoundException(NoSuchElementException e) {

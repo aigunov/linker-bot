@@ -1,22 +1,19 @@
 package backend.academy.scrapper.repository.tag;
 
+import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+
 import backend.academy.scrapper.data.model.Chat;
+import backend.academy.scrapper.data.model.Tag;
+import backend.academy.scrapper.repository.chat.ChatRepository;
+import backend.academy.scrapper.repository.filter.FilterRepository;
+import backend.academy.scrapper.repository.link.LinkRepository;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import backend.academy.scrapper.data.model.Tag;
-import backend.academy.scrapper.repository.chat.ChatRepository;
-import backend.academy.scrapper.repository.chat.OrmChatRepository;
-import backend.academy.scrapper.repository.filter.FilterRepository;
-import backend.academy.scrapper.repository.filter.OrmFilterRepository;
-import backend.academy.scrapper.repository.link.LinkRepository;
-import backend.academy.scrapper.repository.link.OrmLinkRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
@@ -24,22 +21,22 @@ import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 @DataJpaTest
 @Testcontainers
-@TestPropertySource(properties = {
-    "app.db.access-type=orm",
-    "spring.jpa.hibernate.ddl-auto=validate",
-    "spring.jpa.hibernate.ddl-auto=create"
-})
+@TestPropertySource(
+        properties = {
+            "app.db.access-type=orm",
+            "spring.jpa.hibernate.ddl-auto=validate",
+            "spring.jpa.hibernate.ddl-auto=create"
+        })
 public class OrmTagRepositoryTest {
 
     @Container
     static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:17.4")
-        .withDatabaseName("scrapper_db")
-        .withUsername("aigunov")
-        .withPassword("12345");
+            .withDatabaseName("scrapper_db")
+            .withUsername("aigunov")
+            .withPassword("12345");
 
     @DynamicPropertySource
     static void postgresProperties(DynamicPropertyRegistry registry) {
@@ -51,10 +48,13 @@ public class OrmTagRepositoryTest {
 
     @Autowired
     private ChatRepository chatRepository;
+
     @Autowired
     private TagRepository tagRepository;
+
     @Autowired
     private LinkRepository linkRepository;
+
     @Autowired
     private FilterRepository filterRepository;
 
@@ -62,16 +62,15 @@ public class OrmTagRepositoryTest {
 
     @BeforeEach
     void setup() {
-        chat = chatRepository.save(Chat.builder()
-            .tgId(123L)
-            .nickname("orm-user")
-            .build());
+        chat = chatRepository.save(
+                Chat.builder().tgId(123L).nickname("orm-user").build());
     }
 
     @Test
     @Transactional
     void saveTag_shouldPersist() {
-        Tag tag = Tag.builder().chat(chat).tag("test_tag").links(new HashSet<>()).build();
+        Tag tag =
+                Tag.builder().chat(chat).tag("test_tag").links(new HashSet<>()).build();
         tag = tagRepository.save(tag);
 
         assertThat(tag.id()).isNotNull();
@@ -83,7 +82,8 @@ public class OrmTagRepositoryTest {
     @Test
     @Transactional
     void deleteById_shouldRemoveTag() {
-        Tag tag = tagRepository.save(Tag.builder().chat(chat).tag("delete_me").links(new HashSet<>()).build());
+        Tag tag = tagRepository.save(
+                Tag.builder().chat(chat).tag("delete_me").links(new HashSet<>()).build());
         tagRepository.deleteById(tag.id());
 
         assertThat(tagRepository.findById(tag.id())).isEmpty();
@@ -92,7 +92,11 @@ public class OrmTagRepositoryTest {
     @Test
     @Transactional
     void findByTgIdAndTag_shouldFindCorrectTag() {
-        Tag tag = tagRepository.save(Tag.builder().chat(chat).tag("search_tag").links(new HashSet<>()).build());
+        Tag tag = tagRepository.save(Tag.builder()
+                .chat(chat)
+                .tag("search_tag")
+                .links(new HashSet<>())
+                .build());
 
         Optional<Tag> found = tagRepository.findByTgIdAndTag(chat.tgId(), "search_tag");
 
@@ -103,7 +107,11 @@ public class OrmTagRepositoryTest {
     @Test
     @Transactional
     void findAllByChatIdAndNotInTagToLinkTable_shouldReturnTagIfNotLinked() {
-        Tag tag = tagRepository.save(Tag.builder().chat(chat).tag("unlinked_tag").links(new HashSet<>()).build());
+        Tag tag = tagRepository.save(Tag.builder()
+                .chat(chat)
+                .tag("unlinked_tag")
+                .links(new HashSet<>())
+                .build());
 
         List<Tag> result = (List<Tag>) tagRepository.findAllByChatIdAndNotInTagToLinkTable(chat.id());
         assertThat(result).hasSize(1);
@@ -113,8 +121,10 @@ public class OrmTagRepositoryTest {
     @Test
     @Transactional
     void deleteAll_shouldDeleteAllTags() {
-        var tag1 = tagRepository.save(Tag.builder().chat(chat).tag("t1").links(new HashSet<>()).build());
-        var tag2 = tagRepository.save(Tag.builder().chat(chat).tag("t2").links(new HashSet<>()).build());
+        var tag1 = tagRepository.save(
+                Tag.builder().chat(chat).tag("t1").links(new HashSet<>()).build());
+        var tag2 = tagRepository.save(
+                Tag.builder().chat(chat).tag("t2").links(new HashSet<>()).build());
 
         tagRepository.deleteAll();
 

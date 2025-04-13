@@ -11,7 +11,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
-@ConditionalOnProperty(prefix="app.db", name="access-type", havingValue="orm")
+@ConditionalOnProperty(prefix = "app.db", name = "access-type", havingValue = "orm")
 public interface OrmChatRepository extends ChatRepository, JpaRepository<Chat, UUID> {
     @Override
     @Query("""

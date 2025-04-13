@@ -1,5 +1,7 @@
 package backend.academy.scrapper.repository.filter;
 
+import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+
 import backend.academy.scrapper.data.model.Chat;
 import backend.academy.scrapper.data.model.Filter;
 import backend.academy.scrapper.repository.chat.ChatRepository;
@@ -18,22 +20,22 @@ import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 @DataJpaTest
 @Testcontainers
-@TestPropertySource(properties = {
-    "app.db.access-type=orm",
-    "spring.jpa.hibernate.ddl-auto=validate",
-    "spring.jpa.hibernate.ddl-auto=create"
-})
+@TestPropertySource(
+        properties = {
+            "app.db.access-type=orm",
+            "spring.jpa.hibernate.ddl-auto=validate",
+            "spring.jpa.hibernate.ddl-auto=create"
+        })
 public class OrmFilterRepositoryTest {
 
     @Container
     static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:17.4")
-        .withDatabaseName("scrapper_db")
-        .withUsername("aigunov")
-        .withPassword("12345");
+            .withDatabaseName("scrapper_db")
+            .withUsername("aigunov")
+            .withPassword("12345");
 
     @DynamicPropertySource
     static void postgresProperties(DynamicPropertyRegistry registry) {
@@ -45,10 +47,13 @@ public class OrmFilterRepositoryTest {
 
     @Autowired
     private ChatRepository chatRepository;
+
     @Autowired
     private TagRepository tagRepository;
+
     @Autowired
     private LinkRepository linkRepository;
+
     @Autowired
     private FilterRepository filterRepository;
 
@@ -56,16 +61,19 @@ public class OrmFilterRepositoryTest {
 
     @BeforeEach
     void setup() {
-        chat = chatRepository.save(Chat.builder()
-            .tgId(123L)
-            .nickname("orm-user")
-            .build());
+        chat = chatRepository.save(
+                Chat.builder().tgId(123L).nickname("orm-user").build());
     }
 
     @Test
     @Transactional
     void saveFilter_shouldPersist() {
-        Filter filter = Filter.builder().chat(chat).parameter("key").value("val").links(new HashSet<>()).build();
+        Filter filter = Filter.builder()
+                .chat(chat)
+                .parameter("key")
+                .value("val")
+                .links(new HashSet<>())
+                .build();
         filter = filterRepository.save(filter);
 
         assertThat(filter.id()).isNotNull();
@@ -79,11 +87,11 @@ public class OrmFilterRepositoryTest {
     @Transactional
     void deleteById_shouldRemoveFilter() {
         Filter filter = filterRepository.save(Filter.builder()
-            .chat(chat)
-            .parameter("del")
-            .value("me")
-            .links(new HashSet<>())
-            .build());
+                .chat(chat)
+                .parameter("del")
+                .value("me")
+                .links(new HashSet<>())
+                .build());
 
         filterRepository.deleteById(filter.id());
 
@@ -94,11 +102,11 @@ public class OrmFilterRepositoryTest {
     @Transactional
     void findByTgIdAndFilter_shouldFindCorrectFilter() {
         Filter filter = filterRepository.save(Filter.builder()
-            .chat(chat)
-            .parameter("lang")
-            .value("java")
-            .links(new HashSet<>())
-            .build());
+                .chat(chat)
+                .parameter("lang")
+                .value("java")
+                .links(new HashSet<>())
+                .build());
 
         var found = filterRepository.findByTgIdAndFilter(chat.tgId(), "lang", "java");
 
@@ -111,11 +119,11 @@ public class OrmFilterRepositoryTest {
     @Transactional
     void findAllByChatIdAndNotInLinkToFilterTable_shouldReturnFilterIfNotLinked() {
         Filter filter = filterRepository.save(Filter.builder()
-            .chat(chat)
-            .parameter("only")
-            .value("me")
-            .links(new HashSet<>())
-            .build());
+                .chat(chat)
+                .parameter("only")
+                .value("me")
+                .links(new HashSet<>())
+                .build());
 
         var result = (List<Filter>) filterRepository.findAllByChatIdAndNotInLinkToFilterTable(chat.id());
         assertThat(result).hasSize(1);
@@ -126,8 +134,18 @@ public class OrmFilterRepositoryTest {
     @Test
     @Transactional
     void deleteAll_shouldDeleteAllFilters() {
-        filterRepository.save(Filter.builder().chat(chat).parameter("p1").value("v1").links(new HashSet<>()).build());
-        filterRepository.save(Filter.builder().chat(chat).parameter("p2").value("v2").links(new HashSet<>()).build());
+        filterRepository.save(Filter.builder()
+                .chat(chat)
+                .parameter("p1")
+                .value("v1")
+                .links(new HashSet<>())
+                .build());
+        filterRepository.save(Filter.builder()
+                .chat(chat)
+                .parameter("p2")
+                .value("v2")
+                .links(new HashSet<>())
+                .build());
 
         filterRepository.deleteAll();
 

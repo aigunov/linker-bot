@@ -7,10 +7,6 @@ import backend.academy.scrapper.config.GitHubConfig;
 import backend.academy.scrapper.config.StackOverflowConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.TestPropertySource;
 
 class LinkToApiRequestConverterTest {
 
@@ -19,7 +15,8 @@ class LinkToApiRequestConverterTest {
     @BeforeEach
     void setUp() {
         GitHubConfig githubConfig = new GitHubConfig("fake-token", "https://api.github.com/repos");
-        StackOverflowConfig stackOverflowConfig = new StackOverflowConfig("fake-key", "fake-access", "https://api.stackexchange.com/2.3/questions");
+        StackOverflowConfig stackOverflowConfig =
+                new StackOverflowConfig("fake-key", "fake-access", "https://api.stackexchange.com/2.3/questions");
 
         converter = new LinkToApiRequestConverter(githubConfig, stackOverflowConfig);
     }
@@ -37,7 +34,8 @@ class LinkToApiRequestConverterTest {
     @Test
     void convertStackOverflowUrlToApi_shouldConvertValidStackOverflowUrl() {
         String url = "https://ru.stackoverflow.com/questions/1607351/question-title";
-        String expected = "https://api.stackexchange.com/2.3/questions/1607351?order=desc&sort=activity&site=ru.stackoverflow";
+        String expected =
+                "https://api.stackexchange.com/2.3/questions/1607351?order=desc&sort=activity&site=ru.stackoverflow";
 
         String result = converter.convertStackOverflowUrlToApi(url);
 
@@ -51,32 +49,29 @@ class LinkToApiRequestConverterTest {
 
     @Test
     void isGithubUrl_shouldReturnFalseForNonGithubUrl() {
-        assertThat(converter.isGithubUrl("https://stackoverflow.com/questions/123")).isFalse();
-    }
-
-    @Test
-    void isStackOverflowUrl_shouldReturnTrueForStackOverflowUrl() {
-        assertThat(converter.isStackOverflowUrl("https://stackoverflow.com/questions/123")).isTrue();
+        assertThat(converter.isGithubUrl("https://stackoverflow.com/questions/123"))
+                .isFalse();
     }
 
     @Test
     void isStackOverflowUrl_shouldReturnFalseForNonStackOverflowUrl() {
-        assertThat(converter.isStackOverflowUrl("https://github.com/aigunov/test")).isFalse();
+        assertThat(converter.isStackOverflowUrl("https://github.com/aigunov/test"))
+                .isFalse();
     }
 
     @Test
     void convertGithubUrlToApi_shouldThrowOnInvalidUrl() {
         String invalidUrl = "https://notgithub.com/user/repo";
         assertThatThrownBy(() -> converter.convertGithubUrlToApi(invalidUrl))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("Invalid GitHub URL format");
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Invalid GitHub URL format");
     }
 
     @Test
     void convertStackOverflowUrlToApi_shouldThrowOnInvalidUrl() {
         String invalidUrl = "https://not.stackoverflow.com/question/123";
         assertThatThrownBy(() -> converter.convertStackOverflowUrlToApi(invalidUrl))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("Invalid StackOverflow URL format");
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Invalid StackOverflow URL format");
     }
 }

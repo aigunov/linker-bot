@@ -43,30 +43,29 @@ public class Link {
     @Column(name = "last_update")
     private LocalDateTime lastUpdate;
 
-    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE},
-        fetch = FetchType.EAGER)
+    @ManyToMany(
+            cascade = {CascadeType.PERSIST, CascadeType.MERGE},
+            fetch = FetchType.EAGER)
     @JoinTable(
-        name = "tag_to_link",
-        joinColumns = {@JoinColumn(name="link_id")},
-        inverseJoinColumns = {@JoinColumn(name="tag_id")}
-    )
+            name = "tag_to_link",
+            joinColumns = {@JoinColumn(name = "link_id")},
+            inverseJoinColumns = {@JoinColumn(name = "tag_id")})
     private Set<Tag> tags = new HashSet<>();
 
-    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE},
-        fetch = FetchType.EAGER)
+    @ManyToMany(
+            cascade = {CascadeType.PERSIST, CascadeType.MERGE},
+            fetch = FetchType.EAGER)
     @JoinTable(
-        name = "link_to_filter",
-        joinColumns = {@JoinColumn(name="link_id")},
-        inverseJoinColumns = {@JoinColumn(name="filter_id")}
-    )
+            name = "link_to_filter",
+            joinColumns = {@JoinColumn(name = "link_id")},
+            inverseJoinColumns = {@JoinColumn(name = "filter_id")})
     private Set<Filter> filters = new HashSet<>();
 
     @NotNull
     @ManyToMany(cascade = {CascadeType.MERGE})
     @JoinTable(
-        name = "link_to_chat",
-        joinColumns = {@JoinColumn(name = "link_id")},
-        inverseJoinColumns = {@JoinColumn(name = "chat_id")}
-    )
+            name = "link_to_chat",
+            joinColumns = {@JoinColumn(name = "link_id")},
+            inverseJoinColumns = {@JoinColumn(name = "chat_id")})
     private Set<Chat> chats = new HashSet<>();
 }

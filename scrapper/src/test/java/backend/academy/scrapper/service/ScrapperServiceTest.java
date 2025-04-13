@@ -1,5 +1,8 @@
 package backend.academy.scrapper.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+
 import backend.academy.scrapper.client.NotificationClient;
 import backend.academy.scrapper.client.UpdateCheckingClient;
 import backend.academy.scrapper.config.MigrationsRunner;
@@ -26,35 +29,38 @@ import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 
 @SpringBootTest
 @Testcontainers
-@TestPropertySource(properties = {
-    "app.scrapper.page-size=10",
-    "app.scrapper.threads-count=1",
-    "app.scrapper.scheduled-time=100000",
-    "app.db.access-type=orm"
-})
+@TestPropertySource(
+        properties = {
+            "app.scrapper.page-size=10",
+            "app.scrapper.threads-count=1",
+            "app.scrapper.scheduled-time=100000",
+            "app.db.access-type=orm"
+        })
 public class ScrapperServiceTest {
     @Container
     static PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres:17.4")
-        .withDatabaseName("scrapper_db")
-        .withUsername("aigunov")
-        .withPassword("12345");
+            .withDatabaseName("scrapper_db")
+            .withUsername("aigunov")
+            .withPassword("12345");
 
     @Autowired
     private LinkRepository linkRepository;
+
     @Autowired
     private ChatRepository chatRepository;
+
     @Autowired
     private MigrationsRunner migrationsRunner;
 
     @MockitoBean
     private UpdateCheckingClient gitHubClient;
+
     @MockitoBean
     private UpdateCheckingClient stackOverflowClient;
+
     @MockitoBean
     private NotificationClient notificationClient;
 
@@ -81,47 +87,46 @@ public class ScrapperServiceTest {
 
         migrationsRunner.runMigrations();
 
-
         linkRepository.deleteAll();
 
-        Chat chat = Chat.builder()
-            .tgId(123L)
-            .nickname("mr-white")
-            .build();
+        Chat chat = Chat.builder().tgId(123L).nickname("mr-white").build();
 
         chat = chatRepository.save(chat);
 
         Link githubLink = Link.builder()
-            .url("https://github.com/test/repo")
-            .lastUpdate(instant)
-            .chats(Set.of(chat))
-            .build();
+                .url("https://github.com/test/repo")
+                .lastUpdate(instant)
+                .chats(Set.of(chat))
+                .build();
 
         Link soLink = Link.builder()
-            .url("https://stackoverflow.com/questions/123456/test")
-            .lastUpdate(instant)
-            .chats(Set.of(chat))
-            .build();
+                .url("https://stackoverflow.com/questions/123456/test")
+                .lastUpdate(instant)
+                .chats(Set.of(chat))
+                .build();
 
         linkRepository.saveAll(List.of(githubLink, soLink));
 
         Mockito.when(gitHubClient.checkUpdates(any()))
-            .thenReturn(Optional.of(UpdateInfo.builder().date(LocalDateTime.now()).build()));
+                .thenReturn(Optional.of(
+                        UpdateInfo.builder().date(LocalDateTime.now()).build()));
 
         Mockito.when(stackOverflowClient.checkUpdates(any()))
-            .thenReturn(Optional.of(UpdateInfo.builder().date(LocalDateTime.now()).build()));
+                .thenReturn(Optional.of(
+                        UpdateInfo.builder().date(LocalDateTime.now()).build()));
     }
 
     @Test
     void testScrapperShouldUpdateLinksAndSendNotification() {
         scrapperService.scrapper();
 
-        var updatedLinks = StreamSupport.stream(linkRepository.findAll().spliterator(), false).toList();
-        assertThat(updatedLinks).allMatch(link -> link.lastUpdate().isAfter(LocalDateTime.now().minusMinutes(1)));
+        var updatedLinks = StreamSupport.stream(linkRepository.findAll().spliterator(), false)
+                .toList();
+        assertThat(updatedLinks)
+                .allMatch(link -> link.lastUpdate().isAfter(LocalDateTime.now().minusMinutes(1)));
 
         Mockito.verify(notificationClient, Mockito.atLeastOnce())
-            .sendLinkUpdate(Mockito.argThat(update ->
-                update.url().contains("github.com") || update.url().contains("stackoverflow.com")));
+                .sendLinkUpdate(Mockito.argThat(update ->
+                        update.url().contains("github.com") || update.url().contains("stackoverflow.com")));
     }
-
 }

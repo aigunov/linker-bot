@@ -22,7 +22,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Entity
-@Table(name="filter")
+@Table(name = "filter")
 @AllArgsConstructor
 @RequiredArgsConstructor
 @Builder(toBuilder = true)
@@ -34,7 +34,7 @@ public class Filter {
 
     @NotNull
     @ManyToOne
-    @JoinColumn(name="chat_id")
+    @JoinColumn(name = "chat_id")
     private Chat chat;
 
     @NotNull
@@ -44,8 +44,6 @@ public class Filter {
     private String value;
 
     @NotNull
-    @ManyToMany(mappedBy = "filters",
-        fetch = FetchType.LAZY
-    )
+    @ManyToMany(mappedBy = "filters", fetch = FetchType.LAZY)
     private Set<Link> links = new HashSet<>();
 }

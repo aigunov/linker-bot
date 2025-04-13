@@ -5,10 +5,10 @@ import backend.academy.scrapper.exception.ChatException;
 import backend.academy.scrapper.repository.chat.ChatRepository;
 import backend.academy.scrapper.repository.tag.TagRepository;
 import dto.GetTagsResponse;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import java.util.List;
 
 @Slf4j
 @Service
@@ -18,10 +18,10 @@ public class TagService {
     private final TagRepository tagRepository;
 
     public GetTagsResponse getUserTags(final Long chatId) {
-        chatRepository.findByTgId(chatId)
-            .orElseThrow(() -> new ChatException("Чат с tg-id %d не найден", chatId));
+        chatRepository.findByTgId(chatId).orElseThrow(() -> new ChatException("Чат с tg-id %d не найден", chatId));
 
-        var tags = ((List<Tag>) tagRepository.findAllByTgId(chatId)).stream().map(Tag::tag).toList();
+        var tags = ((List<Tag>) tagRepository.findAllByTgId(chatId))
+                .stream().map(Tag::tag).toList();
         log.info("Found tg-id chat {} tags {}", chatId, tags);
         return GetTagsResponse.builder().tags(tags).build();
     }

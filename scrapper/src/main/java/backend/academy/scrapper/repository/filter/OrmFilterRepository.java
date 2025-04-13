@@ -11,10 +11,11 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
-@ConditionalOnProperty(prefix="app.db", name="access-type", havingValue="orm")
+@ConditionalOnProperty(prefix = "app.db", name = "access-type", havingValue = "orm")
 public interface OrmFilterRepository extends FilterRepository, JpaRepository<Filter, UUID> {
 
-    @Query("""
+    @Query(
+            """
         SELECT f
         FROM Filter f
         WHERE f.chat.tgId = :tgId AND
@@ -22,16 +23,18 @@ public interface OrmFilterRepository extends FilterRepository, JpaRepository<Fil
             f.value = :value
         """)
     @Override
-    Optional<Filter> findByTgIdAndFilter(final @Param("tgId") Long tgId,
-                                         final @Param("param") String param,
-                                         final @Param("value") String value);
+    Optional<Filter> findByTgIdAndFilter(
+            final @Param("tgId") Long tgId, final @Param("param") String param, final @Param("value") String value);
 
-    @Query(value = """
+    @Query(
+            value =
+                    """
         SELECT f.*
         FROM filter as f
         WHERE f.chat_id = :chatId AND f.id NOT IN (SELECT filter_id
                                                    FROM link_to_filter)
-        """, nativeQuery = true)
+        """,
+            nativeQuery = true)
     @Override
     List<Filter> findAllByChatIdAndNotInLinkToFilterTable(final @Param("chatId") UUID chatId);
 }

@@ -16,7 +16,7 @@ public class TgChatService {
 
     @Transactional
     public String registerChat(Long tgId, RegisterChatRequest request) {
-        chatRepository.findByTgId(tgId).ifPresent(_ -> {
+        chatRepository.findByTgId(tgId).ifPresent(x -> {
             var message = String.format("Чат с id %d уже зарегистрирован", tgId);
             log.error(message);
             throw new ChatException(message);
@@ -29,8 +29,8 @@ public class TgChatService {
 
     @Transactional
     public String deleteChat(Long chatId) {
-        var chatToDelete = chatRepository.findByTgId(chatId)
-            .orElseThrow(() -> new ChatException("chat %d not found", chatId));
+        var chatToDelete =
+                chatRepository.findByTgId(chatId).orElseThrow(() -> new ChatException("chat %d not found", chatId));
 
         chatRepository.deleteById(chatToDelete.id());
         log.info("Deleted chat: {}", chatToDelete);

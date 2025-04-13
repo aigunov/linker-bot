@@ -30,8 +30,8 @@ public class LinkService {
     private final TagRepository tagRepository;
     private final FilterRepository filterRepository;
 
-    //TODO: В дальнейшем переработать этот метод чтобы происходила фильтрация поиска и по фильтрам
-    @Transactional(readOnly=true)
+    // TODO: В дальнейшем переработать этот метод чтобы происходила фильтрация поиска и по фильтрам
+    @Transactional(readOnly = true)
     public ListLinkResponse getAllTrackedLinks(Long chatId, GetLinksRequest linksRequest) {
         chatRepository.findByTgId(chatId).orElseThrow(() -> new ChatException("Чат с tg-id %d не найден", chatId));
         List<Link> links;
@@ -50,38 +50,42 @@ public class LinkService {
     // но хоть убейте ничего другого из-за сложной логики ничего лучше не придумал
     @Transactional
     public LinkResponse addTrackedLink(Long chatId, AddLinkRequest request) {
-        var chat = chatRepository.findByTgId(chatId).orElseThrow(() -> new ChatException("Чат с tg-id %d не найден", chatId));
+        var chat = chatRepository
+                .findByTgId(chatId)
+                .orElseThrow(() -> new ChatException("Чат с tg-id %d не найден", chatId));
 
-        linkRepository.findByTgIdAndUrl(chatId, request.uri()).ifPresent(_ -> {
-            var message = String.format("У пользователя с tg-id %d, уже существует ссылка %s в отслеживании", chatId, request.uri());
+        linkRepository.findByTgIdAndUrl(chatId, request.uri()).ifPresent(x -> {
+            var message = String.format(
+                    "У пользователя с tg-id %d, уже существует ссылка %s в отслеживании", chatId, request.uri());
             log.error(message);
             throw new LinkException(message);
         });
 
         var tags = new HashSet<Tag>();
-        if (request.tags() != null){
-            for(var tagName: request.tags()){
-                 var tag = tagRepository.findByTgIdAndTag(chatId, tagName).orElseGet(() -> {
-                     log.info("Сохранение нового тега переданного с ссылкой: {}", tagName);
-                     return tagRepository.save(Mapper.tagDtoToTag(tagName, chat));
-                 });
-                 tags.add(tag);
+        if (request.tags() != null) {
+            for (var tagName : request.tags()) {
+                var tag = tagRepository.findByTgIdAndTag(chatId, tagName).orElseGet(() -> {
+                    log.info("Сохранение нового тега переданного с ссылкой: {}", tagName);
+                    return tagRepository.save(Mapper.tagDtoToTag(tagName, chat));
+                });
+                tags.add(tag);
             }
         }
 
         var filters = new HashSet<Filter>();
-        if (request.filters() != null){
-            for(var filt: request.filters()){
+        if (request.filters() != null) {
+            for (var filt : request.filters()) {
                 var filterEntry = filt.split(":");
-                var filterParam= filterEntry[0];
+                var filterParam = filterEntry[0];
                 var filterValue = filterEntry[1];
-                var filter = filterRepository.findByTgIdAndFilter(chatId, filterParam, filterValue).orElseGet(() -> {
-                    log.info("Сохранение нового фильтра переданного с ссылкой: {}", filterEntry);
-                    return filterRepository.save(Mapper.filterDtoToFilter(filterParam, filterValue, chat));
-                });
+                var filter = filterRepository
+                        .findByTgIdAndFilter(chatId, filterParam, filterValue)
+                        .orElseGet(() -> {
+                            log.info("Сохранение нового фильтра переданного с ссылкой: {}", filterEntry);
+                            return filterRepository.save(Mapper.filterDtoToFilter(filterParam, filterValue, chat));
+                        });
                 filters.add(filter);
             }
-
         }
 
         var linkToSave = Mapper.linkRequestToLink(request.uri(), chat, tags, filters);
@@ -92,25 +96,31 @@ public class LinkService {
 
     @Transactional
     public LinkResponse removeTrackedLink(Long tgId, RemoveLinkRequest request) {
-        var chat = chatRepository.findByTgId(tgId)
-            .orElseThrow(() -> new ChatException("Чат с tg-id %d не найден", tgId));
+        var chat =
+                chatRepository.findByTgId(tgId).orElseThrow(() -> new ChatException("Чат с tg-id %d не найден", tgId));
 
-        Link link = linkRepository.findByTgIdAndUrl(tgId, request.uri())
-            .orElseThrow(() -> new LinkException("Ссылка с uri %s не найдена для чата с id %d", request.uri(), tgId));
+        Link link = linkRepository
+                .findByTgIdAndUrl(tgId, request.uri())
+                .orElseThrow(
+                        () -> new LinkException("Ссылка с uri %s не найдена для чата с id %d", request.uri(), tgId));
         log.info("User tg-id: {} will delete link with id: {} and uri: {}", tgId, link.id(), request.uri());
         linkRepository.deleteById(link.id());
 
-        //удаление тегов и фильтров которые "опустошились" после удаления ссылки
+        // удаление тегов и фильтров которые "опустошились" после удаления ссылки
         var tagsToDelete = (List<Tag>) tagRepository.findAllByChatIdAndNotInTagToLinkTable(chat.id());
         if (!tagsToDelete.isEmpty()) {
-            log.info("List of tags: {} -- will delete, because after delete link: {} they don't use",
-                tagsToDelete, link.url());
+            log.info(
+                    "List of tags: {} -- will delete, because after delete link: {} they don't use",
+                    tagsToDelete,
+                    link.url());
             tagRepository.deleteAll(tagsToDelete);
         }
         var filtersToDelete = (List<Filter>) filterRepository.findAllByChatIdAndNotInLinkToFilterTable(chat.id());
         if (!filtersToDelete.isEmpty()) {
-            log.info("List of filters: {} -- will delete, because after delete link: {} they don't use",
-                filtersToDelete, link.url());
+            log.info(
+                    "List of filters: {} -- will delete, because after delete link: {} they don't use",
+                    filtersToDelete,
+                    link.url());
             filterRepository.deleteAll(filtersToDelete);
         }
 

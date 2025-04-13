@@ -1,8 +1,8 @@
 package backend.academy.scrapper.client;
 
+import backend.academy.scrapper.data.dto.StackOverflowResponse;
 import backend.academy.scrapper.data.dto.UpdateInfo;
 import backend.academy.scrapper.exception.StackOverflowApiException;
-import backend.academy.scrapper.data.dto.StackOverflowResponse;
 import backend.academy.scrapper.service.LinkToApiRequestConverter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.time.LocalDateTime;
@@ -49,42 +49,45 @@ public class StackOverflowClient extends AbstractUpdateCheckingClient {
             StackOverflowResponse parsedResponse =
                     objectMapper.readValue(fullResponse.getBody(), StackOverflowResponse.class);
 
-            if (parsedResponse.items() == null || parsedResponse.items().isEmpty()){
+            if (parsedResponse.items() == null || parsedResponse.items().isEmpty()) {
                 return Optional.empty();
             }
 
-            StackOverflowResponse.StackOverflowItem item = parsedResponse.items().getFirst();
+            StackOverflowResponse.StackOverflowItem item =
+                    parsedResponse.items().getFirst();
             String questionTitle = item.title();
 
-            Optional<UpdateInfo> latestAnswer = item.answers() != null && !item.answers().isEmpty()
-                ? item.answers().stream()
-                .max(Comparator.comparingLong(StackOverflowResponse.StackOverflowItem.Answer::creationDate))
-                .map(answer -> UpdateInfo.builder()
-                    .date(LocalDateTime.ofEpochSecond(answer.creationDate(), 0, ZoneOffset.UTC))
-                    .title(questionTitle)
-                    .username(answer.owner().displayName())
-                    .type("answer")
-                    .preview(StringUtils.substring(answer.body(), 0, 200))
-                    .build())
-                : Optional.empty();
+            Optional<UpdateInfo> latestAnswer = item.answers() != null
+                            && !item.answers().isEmpty()
+                    ? item.answers().stream()
+                            .max(Comparator.comparingLong(StackOverflowResponse.StackOverflowItem.Answer::creationDate))
+                            .map(answer -> UpdateInfo.builder()
+                                    .date(LocalDateTime.ofEpochSecond(answer.creationDate(), 0, ZoneOffset.UTC))
+                                    .title(questionTitle)
+                                    .username(answer.owner().displayName())
+                                    .type("answer")
+                                    .preview(StringUtils.substring(answer.body(), 0, 200))
+                                    .build())
+                    : Optional.empty();
 
-
-            Optional<UpdateInfo> latestComment = item.comments() != null && !item.comments().isEmpty()
-                ? item.comments().stream()
-                .max(Comparator.comparingLong(StackOverflowResponse.StackOverflowItem.Comment::creationDate))
-                .map(comment -> UpdateInfo.builder()
-                    .date(LocalDateTime.ofEpochSecond(comment.creationDate(), 0, ZoneOffset.UTC))
-                    .title(questionTitle)
-                    .username(comment.owner().displayName())
-                    .type("comment")
-                    .preview(StringUtils.substring(comment.body(), 0, 200))
-                    .build())
-                : Optional.empty();
+            Optional<UpdateInfo> latestComment = item.comments() != null
+                            && !item.comments().isEmpty()
+                    ? item.comments().stream()
+                            .max(Comparator.comparingLong(
+                                    StackOverflowResponse.StackOverflowItem.Comment::creationDate))
+                            .map(comment -> UpdateInfo.builder()
+                                    .date(LocalDateTime.ofEpochSecond(comment.creationDate(), 0, ZoneOffset.UTC))
+                                    .title(questionTitle)
+                                    .username(comment.owner().displayName())
+                                    .type("comment")
+                                    .preview(StringUtils.substring(comment.body(), 0, 200))
+                                    .build())
+                    : Optional.empty();
 
             Optional<UpdateInfo> latestUpdate = Stream.of(latestAnswer, latestComment)
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .max(Comparator.comparing(UpdateInfo::date));
+                    .filter(Optional::isPresent)
+                    .map(Optional::get)
+                    .max(Comparator.comparing(UpdateInfo::date));
 
             if (latestUpdate.isPresent()) {
                 var update = latestUpdate.get();

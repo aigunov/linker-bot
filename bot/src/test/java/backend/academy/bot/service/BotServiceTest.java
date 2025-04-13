@@ -17,7 +17,6 @@ import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.model.User;
 import dto.AddLinkRequest;
 import dto.LinkResponse;
-import dto.ListLinkResponse;
 import dto.RemoveLinkRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -56,18 +55,17 @@ class BotServiceTest {
         botService.setTelegramBot(telegramBot);
     }
 
-
-    //TODO: переделать тест
+    // TODO: переделать тест
     @Test
     void getTrackingLinks_shouldCallClientAndReturnBody() {
-//        Long chatId = 123L;
-//        ListLinkResponse expectedResponse = ListLinkResponse.builder().build();
-//        when(client.getAllTrackedLinks(chatId)).thenReturn(ResponseEntity.ok(expectedResponse));
-//
-//        Object result = botService.getTrackingLinks(chatId);
-//
-//        assertThat(result).isEqualTo(expectedResponse);
-//        verify(client).getAllTrackedLinks(chatId);
+        //        Long chatId = 123L;
+        //        ListLinkResponse expectedResponse = ListLinkResponse.builder().build();
+        //        when(client.getAllTrackedLinks(chatId)).thenReturn(ResponseEntity.ok(expectedResponse));
+        //
+        //        Object result = botService.getTrackingLinks(chatId);
+        //
+        //        assertThat(result).isEqualTo(expectedResponse);
+        //        verify(client).getAllTrackedLinks(chatId);
     }
 
     @Test

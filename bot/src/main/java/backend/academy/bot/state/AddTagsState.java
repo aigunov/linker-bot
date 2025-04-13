@@ -59,7 +59,7 @@ public class AddTagsState extends StateImpl {
     }
 
     private void addTagsToLink(Update update, String message) {
-        if (!Validator.isValidTag(message)){
+        if (!Validator.isValidTag(message)) {
             var errorMessage = String.format("Используются запрещенные символы в тегах: %s", message);
             log.error(errorMessage);
             validatorChecker(errorMessage, update.message().chat().id());

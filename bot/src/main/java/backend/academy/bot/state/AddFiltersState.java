@@ -62,7 +62,7 @@ public class AddFiltersState extends StateImpl {
                         backToMenu(update);
                     }
                     default -> {
-                        if(!addFiltersToLink(update, message)){
+                        if (!addFiltersToLink(update, message)) {
                             cancelLinkInsertion(update);
                             return;
                         }
@@ -101,7 +101,7 @@ public class AddFiltersState extends StateImpl {
     }
 
     private boolean addFiltersToLink(Update update, String message) {
-        if (!Validator.isValidFilters(message)){
+        if (!Validator.isValidFilters(message)) {
             var errorMessage = String.format("Некорректный формат фильтров: %s", message);
             log.error(errorMessage);
             validatorChecker(errorMessage, update.message().chat().id());

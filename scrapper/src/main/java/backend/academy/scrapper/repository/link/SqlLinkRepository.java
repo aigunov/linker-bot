@@ -2,10 +2,7 @@ package backend.academy.scrapper.repository.link;
 
 import backend.academy.scrapper.data.model.Link;
 import backend.academy.scrapper.exception.SqlRepositoryException;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -21,15 +18,16 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 @RequiredArgsConstructor
-@ConditionalOnProperty(prefix="app.db", name = "access-type", havingValue="sql")
-public class SqlLinkRepository implements LinkRepository{
+@ConditionalOnProperty(prefix = "app.db", name = "access-type", havingValue = "sql")
+public class SqlLinkRepository implements LinkRepository {
     private final NamedParameterJdbcTemplate jdbc;
 
     @Transactional(propagation = Propagation.MANDATORY)
     @Override
     public void deleteById(final UUID id) {
         // Удаление связей из tag_to_link
-        var deleteLinkTagSql = """
+        var deleteLinkTagSql =
+                """
             DELETE
             FROM tag_to_link
             WHERE link_id = :linkId
@@ -37,7 +35,8 @@ public class SqlLinkRepository implements LinkRepository{
         jdbc.update(deleteLinkTagSql, new MapSqlParameterSource("linkId", id));
 
         // Удаление связей из link_to_filter
-        var deleteLinkFilterSql = """
+        var deleteLinkFilterSql =
+                """
             DELETE
             FROM link_to_chat
             WHERE link_id = :linkId
@@ -45,7 +44,8 @@ public class SqlLinkRepository implements LinkRepository{
         jdbc.update(deleteLinkFilterSql, new MapSqlParameterSource("linkId", id));
 
         // Удаление связей из link_to_chat
-        var deleteLinkChatSql = """
+        var deleteLinkChatSql =
+                """
             DELETE
             FROM link_to_chat
             WHERE link_id = :linkId
@@ -59,7 +59,8 @@ public class SqlLinkRepository implements LinkRepository{
 
     @Override
     public Optional<Link> findById(UUID id) {
-        var sql = """
+        var sql =
+                """
             SELECT l.*, c.id as chat_id, c.tg_id, c.nickname,
                 t.id as tag_id, t.tag, f.id as filter_id, f.parameter, f.value
             FROM link AS l
@@ -78,7 +79,8 @@ public class SqlLinkRepository implements LinkRepository{
 
     @Override
     public Optional<Link> findByTgIdAndUrl(final Long tgId, final String url) {
-        var sql = """
+        var sql =
+                """
             SELECT l.*, c.id as chat_id, c.tg_id, c.nickname,
                 t.id as tag_id, t.tag, f.id as filter_id, f.parameter, f.value
             FROM link AS l
@@ -90,16 +92,15 @@ public class SqlLinkRepository implements LinkRepository{
             LEFT JOIN filter AS f ON ltf.filter_id = f.id
             WHERE c.tg_id = :tgId AND l.url = :url
             """;
-        var params = new MapSqlParameterSource()
-            .addValue("tgId", tgId)
-            .addValue("url", url);
+        var params = new MapSqlParameterSource().addValue("tgId", tgId).addValue("url", url);
         var result = jdbc.query(sql, params, new LinkResultSetExtractor());
         return result.isEmpty() ? Optional.empty() : Optional.of(result.getFirst());
     }
 
     @Override
     public List<Link> findAll() {
-        var sql = """
+        var sql =
+                """
             SELECT l.*, c.id as chat_id, c.tg_id, c.nickname,
                 t.id as tag_id, t.tag, f.id as filter_id, f.parameter, f.value
             FROM link AS l
@@ -115,7 +116,8 @@ public class SqlLinkRepository implements LinkRepository{
 
     @Override
     public List<Link> findAll(final Pageable pageable) {
-        var sql = """
+        var sql =
+                """
             SELECT l.*, c.id as chat_id, c.tg_id, c.nickname,
                 t.id as tag_id, t.tag, f.id as filter_id, f.parameter, f.value
             FROM link AS l
@@ -129,14 +131,15 @@ public class SqlLinkRepository implements LinkRepository{
             OFFSET :offset
             """;
         var params = new MapSqlParameterSource()
-            .addValue("limit", pageable.getPageSize())
-            .addValue("offset", pageable.getOffset());
+                .addValue("limit", pageable.getPageSize())
+                .addValue("offset", pageable.getOffset());
         return jdbc.query(sql, params, new LinkResultSetExtractor());
     }
 
     @Override
     public List<Link> findAllWithChats(final Pageable pageable) {
-        var sql = """
+        var sql =
+                """
             SELECT l.*, c.id AS chat_id, c.tg_id, c.nickname
             FROM link AS l
             LEFT JOIN link_to_chat ltc ON l.id = ltc.link_id
@@ -146,14 +149,15 @@ public class SqlLinkRepository implements LinkRepository{
             """;
 
         var params = new MapSqlParameterSource()
-            .addValue("limit", pageable.getPageSize())
-            .addValue("offset", pageable.getOffset());
+                .addValue("limit", pageable.getPageSize())
+                .addValue("offset", pageable.getOffset());
         return jdbc.query(sql, params, new LinkResultSetExtractor());
     }
 
     @Override
     public List<Link> findAllByTgId(final Long tgId) {
-        var sql = """
+        var sql =
+                """
             SELECT l.*, c.id as chat_id, c.tg_id, c.nickname,
                 t.id as tag_id, t.tag, f.id as filter_id, f.parameter, f.value
             FROM link AS l
@@ -166,12 +170,12 @@ public class SqlLinkRepository implements LinkRepository{
             WHERE c.tg_id = :tgId
             """;
         return jdbc.query(sql, new MapSqlParameterSource("tgId", tgId), new LinkResultSetExtractor());
-
     }
 
     @Override
     public List<Link> findLinksByTgIdAndTags(final Long tgId, final List<String> tags) {
-        var sql = """
+        var sql =
+                """
             SELECT l.*, c.id as chat_id, c.tg_id, c.nickname,
                 t.id as tag_id, t.tag, f.id as filter_id, f.parameter, f.value
             FROM link AS l
@@ -183,9 +187,7 @@ public class SqlLinkRepository implements LinkRepository{
             LEFT JOIN filter AS f ON ltf.filter_id = f.id
             WHERE c.tg_id = :tgId AND t.tag IN (:tags)
             """;
-        var params = new MapSqlParameterSource()
-            .addValue("tgId", tgId)
-            .addValue("tags", tags);
+        var params = new MapSqlParameterSource().addValue("tgId", tgId).addValue("tags", tags);
         return jdbc.query(sql, params, new LinkResultSetExtractor());
     }
 
@@ -205,14 +207,14 @@ public class SqlLinkRepository implements LinkRepository{
         } else {
             // Сохранение новой записи
             KeyHolder keyHolder = new GeneratedKeyHolder();
-            String insertLinkSql = """
+            String insertLinkSql =
+                    """
                 INSERT INTO link(url, last_update)
                 VALUES (:url, :lastUpdate)
                 RETURNING id
                 """;
-            MapSqlParameterSource insertParams = new MapSqlParameterSource()
-                .addValue("url", link.url())
-                .addValue("lastUpdate", link.lastUpdate());
+            MapSqlParameterSource insertParams =
+                    new MapSqlParameterSource().addValue("url", link.url()).addValue("lastUpdate", link.lastUpdate());
             jdbc.update(insertLinkSql, insertParams, keyHolder);
             link.id((UUID) keyHolder.getKeys().get("id"));
             // Сохранение связей в link_to_chat
@@ -226,7 +228,7 @@ public class SqlLinkRepository implements LinkRepository{
         }
     }
 
-    //todo: удаление связанных
+    // todo: удаление связанных
     @Override
     public void deleteAll() {
         var sql = """
@@ -234,7 +236,6 @@ public class SqlLinkRepository implements LinkRepository{
             """;
         jdbc.update(sql, new MapSqlParameterSource());
     }
-
 
     @Override
     public Optional<Link> findByUrl(String url) {
@@ -249,47 +250,48 @@ public class SqlLinkRepository implements LinkRepository{
             throw new SqlRepositoryException("No chat found");
         }
 
-        var linkChatSql = """
+        var linkChatSql =
+                """
             INSERT INTO link_to_chat(chat_id, link_id)
             VALUES (:chatId, :linkId)
             """;
 
         var linkChatParams = new MapSqlParameterSource()
-            .addValue("chatId", link.chats().stream().findFirst().get().id())
-            .addValue("linkId", link.id());
+                .addValue("chatId", link.chats().stream().findFirst().get().id())
+                .addValue("linkId", link.id());
 
         jdbc.update(linkChatSql, linkChatParams);
     }
 
     private void saveLinkToTag(Link link) {
-        var linkTagSql = """
+        var linkTagSql =
+                """
             INSERT INTO tag_to_link(link_id, tag_id)
             VALUES (:linkId, :tagId)
             """;
 
         link.tags().forEach(tag -> {
-            var linkTagParams = new MapSqlParameterSource()
-                .addValue("linkId", link.id())
-                .addValue("tagId", tag.id());
+            var linkTagParams =
+                    new MapSqlParameterSource().addValue("linkId", link.id()).addValue("tagId", tag.id());
             jdbc.update(linkTagSql, linkTagParams);
         });
     }
 
     private void saveLinkToFilter(Link link) {
-        var linkFilterSql = """
+        var linkFilterSql =
+                """
             INSERT INTO link_to_filter(link_id, filter_id)
             VALUES (:linkId, :filterId)
             """;
 
         link.filters().forEach(filter -> {
-            var linkFilterParams = new MapSqlParameterSource()
-                .addValue("linkId", link.id())
-                .addValue("filterId", filter.id());
+            var linkFilterParams =
+                    new MapSqlParameterSource().addValue("linkId", link.id()).addValue("filterId", filter.id());
             jdbc.update(linkFilterSql, linkFilterParams);
         });
     }
 
-    //todo: переработать
+    // todo: переработать
     @Transactional(propagation = Propagation.MANDATORY)
     @Override
     public <S extends Link> List<S> saveAll(Iterable<S> links) {

@@ -9,7 +9,6 @@ import com.pengrad.telegrambot.request.SendMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import java.util.List;
 
 @Slf4j
 @Component("insert-tags-to-search-state")
@@ -18,7 +17,7 @@ public class InsertTagsToSearchState extends StateImpl {
 
     private static final String next_button = "Далее";
     private static final String message =
-        """
+            """
     Добавьте теги для поиска (опционально):
 
     🔖 Введите теги через пробел (например: работа учеба проекты)
@@ -38,9 +37,9 @@ public class InsertTagsToSearchState extends StateImpl {
         log.info("Current state: {}", state);
         try {
             bot.execute(new SendMessage(chatId, message)
-                .replyMarkup(keyboardFactory.getNextAndBackButtonKeyboard())
-                .parseMode(ParseMode.HTML));
-//            listRequestService.createListRequest(chatId);
+                    .replyMarkup(keyboardFactory.getNextAndBackButtonKeyboard())
+                    .parseMode(ParseMode.HTML));
+            //            listRequestService.createListRequest(chatId);
         } catch (TelegramApiException e) {
             log.info("Error while sending feedback request message: {}", e.getMessage());
         }
@@ -74,7 +73,7 @@ public class InsertTagsToSearchState extends StateImpl {
     }
 
     private void addTagsToLink(Update update, String message) {
-        if (!Validator.isValidTag(message)){
+        if (!Validator.isValidTag(message)) {
             var errorMessage = String.format("Используются запрещенные символы в тегах: %s", message);
             log.error(errorMessage);
             validatorChecker(errorMessage, update.message().chat().id());

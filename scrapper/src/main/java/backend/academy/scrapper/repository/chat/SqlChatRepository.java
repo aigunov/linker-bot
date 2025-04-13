@@ -1,6 +1,5 @@
 package backend.academy.scrapper.repository.chat;
 
-
 import backend.academy.scrapper.data.model.Chat;
 import java.util.List;
 import java.util.Optional;
@@ -16,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 @RequiredArgsConstructor
-@ConditionalOnProperty(prefix="app.db", name="access-type", havingValue="sql")
+@ConditionalOnProperty(prefix = "app.db", name = "access-type", havingValue = "sql")
 public class SqlChatRepository implements ChatRepository {
 
     private final NamedParameterJdbcTemplate jdbc;
@@ -26,13 +25,12 @@ public class SqlChatRepository implements ChatRepository {
     public Chat save(Chat chat) {
         GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
 
-        var sql = """
+        var sql =
+                """
             INSERT INTO chat (tg_id, nickname)
             VALUES (:tgId, :nickname)
             """;
-        var params = new MapSqlParameterSource()
-            .addValue("tgId", chat.tgId())
-            .addValue("nickname", chat.nickname());
+        var params = new MapSqlParameterSource().addValue("tgId", chat.tgId()).addValue("nickname", chat.nickname());
 
         jdbc.update(sql, params, keyHolder);
         chat.id((UUID) keyHolder.getKeys().get("id"));
@@ -44,17 +42,17 @@ public class SqlChatRepository implements ChatRepository {
     @Override
     public void deleteById(final UUID id) {
         // Удаление связей из link_to_chat
-        var deleteLinkChatSql = """
+        var deleteLinkChatSql =
+                """
             DELETE
             FROM link_to_chat
             WHERE chat_id = :chatId
             """;
         jdbc.update(deleteLinkChatSql, new MapSqlParameterSource("chatId", id));
 
-
-
         // Удаление связей из tag
-        var deleteTagSql = """
+        var deleteTagSql =
+                """
             DELETE
             FROM tag
             WHERE chat_id = :chatId
@@ -62,7 +60,8 @@ public class SqlChatRepository implements ChatRepository {
         jdbc.update(deleteTagSql, new MapSqlParameterSource("chatId", id));
 
         // Удаление связей из filter
-        var deleteFilterSql = """
+        var deleteFilterSql =
+                """
             DELETE
             FROM filter
             WHERE chat_id = :chatId
@@ -82,7 +81,8 @@ public class SqlChatRepository implements ChatRepository {
     @Override
     public void deleteByTgId(final Long tgId) {
         // Удаление связей из link_to_chat
-        String deleteLinkChatSql = """
+        String deleteLinkChatSql =
+                """
                 DELETE
                 FROM link_to_chat
             WHERE chat_id = (SELECT id
@@ -92,7 +92,8 @@ public class SqlChatRepository implements ChatRepository {
         jdbc.update(deleteLinkChatSql, new MapSqlParameterSource("tgId", tgId));
 
         // Удаление связей из tag
-        var deleteTagSql = """
+        var deleteTagSql =
+                """
             DELETE
             FROM tag
             WHERE chat_id IN (SELECT id
@@ -101,9 +102,9 @@ public class SqlChatRepository implements ChatRepository {
             """;
         jdbc.update(deleteTagSql, new MapSqlParameterSource("tgId", tgId));
 
-
         // Удаление связей из filter
-        var deleteFilterSql = """
+        var deleteFilterSql =
+                """
             DELETE
             FROM filter
             WHERE chat_id IN (SELECT id
@@ -120,16 +121,16 @@ public class SqlChatRepository implements ChatRepository {
         jdbc.update(sql, new MapSqlParameterSource("tgId", tgId));
     }
 
-    //todo: удаление связанных
+    // todo: удаление связанных
     @Override
     public void deleteAll() {
         jdbc.update("DELETE FROM Chat", new MapSqlParameterSource());
     }
 
-    //todo: переработать
+    // todo: переработать
     @Override
     public <S extends Chat> List<S> saveAll(Iterable<S> chats) {
-        for(Chat chat: chats){
+        for (Chat chat : chats) {
             save(chat);
         }
         return List.of();

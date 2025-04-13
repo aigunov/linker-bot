@@ -6,13 +6,10 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
-import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -21,7 +18,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import org.springframework.data.annotation.CreatedDate;
 
 @Entity
 @Getter
@@ -37,17 +33,21 @@ public class Chat {
     private UUID id;
 
     @NotNull
-    @Column(name="tg_id")
+    @Column(name = "tg_id")
     private Long tgId;
 
     @NotNull
     @Column(name = "nickname")
     private String nickname;
 
-    @OneToMany(mappedBy = "chat", cascade = {CascadeType.REMOVE})
+    @OneToMany(
+            mappedBy = "chat",
+            cascade = {CascadeType.REMOVE})
     private Set<Tag> tags = new HashSet<>();
 
-    @OneToMany(mappedBy = "chat", cascade = {CascadeType.REMOVE})
+    @OneToMany(
+            mappedBy = "chat",
+            cascade = {CascadeType.REMOVE})
     private Set<Filter> filters = new HashSet<>();
 
     @ManyToMany(mappedBy = "chats")

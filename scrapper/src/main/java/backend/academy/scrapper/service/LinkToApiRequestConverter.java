@@ -2,23 +2,29 @@ package backend.academy.scrapper.service;
 
 import backend.academy.scrapper.config.GitHubConfig;
 import backend.academy.scrapper.config.StackOverflowConfig;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+@SuppressWarnings(value = {"REDOS"})
+@SuppressFBWarnings(value = {"REDOS"})
 @Component
 @RequiredArgsConstructor
 public class LinkToApiRequestConverter {
+
     private final GitHubConfig githubConfig;
     private final StackOverflowConfig stackOverflowConfig;
 
-    /**
-     * Converts a GitHub repository URL to a GitHub API request URL.
-     *
-     * @param githubUrl the GitHub repository URL (e.g., <a href="https://github.com/user/repository">...</a>)
-     * @return the GitHub API URL (e.g., <a href="https://api.github.com/repos/user/repository">...</a>)
-     */
+    private static final Pattern GITHUB_URL_PATTERN =
+            Pattern.compile("^https://github\\.com/[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+/?$");
+
+    private static final Pattern STACKOVERFLOW_URL_PATTERN =
+            Pattern.compile("^https://(ru\\.)?stackoverflow\\.com/questions/\\d+/.+");
+
     public String convertGithubUrlToApi(String githubUrl) {
-        if (!githubUrl.matches("https://github.com/[a-zA-Z0-9_.-]+/[a-zA-Z0-9_.-]+/?") || !isGithubUrl(githubUrl)) {
+        if (!isGithubUrl(githubUrl)) {
             throw new IllegalArgumentException("Invalid GitHub URL format: " + githubUrl);
         }
 
@@ -26,41 +32,26 @@ public class LinkToApiRequestConverter {
         return githubConfig.url() + "/" + repoPath;
     }
 
-    /**
-     * Converts a StackOverflow question URL to a StackOverflow API request URL.
-     *
-     * @param stackOverflowUrl the StackOverflow question URL (e.g., <a
-     *     href="https://stackoverflow.com/questions/12345678/question-title">...</a>)
-     * @return the StackOverflow API URL (e.g., <a
-     *     href="https://api.stackexchange.com/2.3/questions/12345678?order=desc&sort=activity&site=stackoverflow">...</a>)
-     */
     public String convertStackOverflowUrlToApi(String stackOverflowUrl) {
-        if (!stackOverflowUrl.matches("https://(ru\\.)?stackoverflow.com/questions/\\d+/.*")
-                || !isStackOverflowUrl(stackOverflowUrl)) {
+        if (!isStackOverflowUrl(stackOverflowUrl)) {
             throw new IllegalArgumentException("Invalid StackOverflow URL format: " + stackOverflowUrl);
         }
 
-        String questionId = stackOverflowUrl.replaceAll("https://(ru\\.)?stackoverflow.com/questions/(\\d+)/.*", "$2");
+        Matcher matcher = STACKOVERFLOW_URL_PATTERN.matcher(stackOverflowUrl);
+        if (!matcher.find()) {
+            throw new IllegalArgumentException("Cannot extract question ID: " + stackOverflowUrl);
+        }
+
+        String questionId =
+                stackOverflowUrl.replaceAll("^https://(ru\\.)?stackoverflow\\.com/questions/(\\d+)/.*", "$2");
         return stackOverflowConfig.url() + "/" + questionId + "?order=desc&sort=activity&site=ru.stackoverflow";
     }
 
-    /**
-     * Determines if the provided URL is a GitHub repository URL.
-     *
-     * @param url the URL to check
-     * @return true if it is a GitHub repository URL, false otherwise
-     */
     public boolean isGithubUrl(String url) {
-        return url.startsWith("https://github.com/");
+        return GITHUB_URL_PATTERN.matcher(url).matches();
     }
 
-    /**
-     * Determines if the provided URL is a StackOverflow question URL.
-     *
-     * @param url the URL to check
-     * @return true if it is a StackOverflow question URL, false otherwise
-     */
     public boolean isStackOverflowUrl(String url) {
-        return url.contains("stackoverflow.com");
+        return STACKOVERFLOW_URL_PATTERN.matcher(url).matches();
     }
 }

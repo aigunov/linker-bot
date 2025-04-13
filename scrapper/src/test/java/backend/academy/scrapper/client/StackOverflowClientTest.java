@@ -1,5 +1,12 @@
 package backend.academy.scrapper.client;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 import backend.academy.scrapper.config.GitHubConfig;
 import backend.academy.scrapper.config.StackOverflowConfig;
 import backend.academy.scrapper.data.dto.UpdateInfo;
@@ -24,29 +31,23 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest
 @EnableConfigurationProperties({GitHubConfig.class, StackOverflowConfig.class})
-@TestPropertySource(properties = {
-    "app.github.url=http://localhost:8089/repos",
-    "app.github.token=test-token",
-    "app.stackoverflow.key=test-key",
-    "app.stackoverflow.access_token=test-access",
-    "app.stackoverflow.url=http://localhost:8089/stackoverflow"
-})
+@TestPropertySource(
+        properties = {
+            "app.github.url=http://localhost:8089/repos",
+            "app.github.token=test-token",
+            "app.stackoverflow.key=test-key",
+            "app.stackoverflow.access_token=test-access",
+            "app.stackoverflow.url=http://localhost:8089/stackoverflow"
+        })
 class StackOverflowClientTest {
     @Container
     static final PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres:17.4")
-        .withDatabaseName("scrapper_db")
-        .withUsername("aigunov")
-        .withPassword("12345");
-
+            .withDatabaseName("scrapper_db")
+            .withUsername("aigunov")
+            .withPassword("12345");
 
     @Autowired
     private StackOverflowClient stackOverflowClient;
@@ -84,13 +85,15 @@ class StackOverflowClientTest {
     void tearDown() {
         wireMockServer.stop();
     }
+
     @Test
     void checkUpdates_ShouldReturnLatestAnswer_WhenAnswersExist() throws JsonProcessingException {
         // Given
         String questionUrl = "https://stackoverflow.com/questions/12345678/some-question";
         String apiUrl = "/stackoverflow/12345678?order=desc&sort=activity&site=ru.stackoverflow";
 
-        String responseJson = """
+        String responseJson =
+                """
             {
                 "items": [
                     {
@@ -115,10 +118,10 @@ class StackOverflowClientTest {
             """;
 
         stubFor(get(urlEqualTo(apiUrl))
-            .willReturn(aResponse()
-                .withStatus(200)
-                .withHeader("Content-Type", "application/json")
-                .withBody(responseJson)));
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(responseJson)));
 
         // When
         Optional<UpdateInfo> updateInfo = stackOverflowClient.checkUpdates(questionUrl);
@@ -127,9 +130,7 @@ class StackOverflowClientTest {
         assertThat(updateInfo).isPresent();
         assertThat(updateInfo.get().type()).isEqualTo("answer");
         assertThat(updateInfo.get().username()).isEqualTo("user1");
-        assertThat(updateInfo.get().date()).isEqualTo(
-            LocalDateTime.ofEpochSecond(1712345678, 0, ZoneOffset.UTC)
-        );
+        assertThat(updateInfo.get().date()).isEqualTo(LocalDateTime.ofEpochSecond(1712345678, 0, ZoneOffset.UTC));
     }
 
     @Test
@@ -138,7 +139,8 @@ class StackOverflowClientTest {
         String questionUrl = "https://stackoverflow.com/questions/12345678/some-question";
         String apiUrl = "/stackoverflow/12345678?order=desc&sort=activity&site=ru.stackoverflow";
 
-        String responseJson = """
+        String responseJson =
+                """
             {
                 "items": [
                     {
@@ -157,10 +159,10 @@ class StackOverflowClientTest {
             """;
 
         stubFor(get(urlEqualTo(apiUrl))
-            .willReturn(aResponse()
-                .withStatus(200)
-                .withHeader("Content-Type", "application/json")
-                .withBody(responseJson)));
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(responseJson)));
 
         // When
         Optional<UpdateInfo> updateInfo = stackOverflowClient.checkUpdates(questionUrl);
@@ -181,10 +183,10 @@ class StackOverflowClientTest {
             """;
 
         stubFor(get(urlEqualTo(apiUrl))
-            .willReturn(aResponse()
-                .withStatus(200)
-                .withHeader("Content-Type", "application/json")
-                .withBody(responseJson)));
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(responseJson)));
 
         // When
         Optional<UpdateInfo> updateInfo = stackOverflowClient.checkUpdates(questionUrl);
@@ -193,7 +195,6 @@ class StackOverflowClientTest {
         assertThat(updateInfo).isEmpty();
     }
 
-
     @Test
     void checkUpdates_ShouldThrow_WhenInvalidJsonResponse() {
         // Given
@@ -201,14 +202,14 @@ class StackOverflowClientTest {
         String apiUrl = "/stackoverflow/12345678?order=desc&sort=activity&site=ru.stackoverflow";
 
         stubFor(get(urlEqualTo(apiUrl))
-            .willReturn(aResponse()
-                .withStatus(200)
-                .withHeader("Content-Type", "application/json")
-                .withBody("{ invalid json }")));
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("{ invalid json }")));
 
         // When / Then
         assertThatThrownBy(() -> stackOverflowClient.checkUpdates(questionUrl))
-            .isInstanceOf(StackOverflowApiException.class)
-            .hasMessageContaining("Ошибка при обработке JSON-ответа");
+                .isInstanceOf(StackOverflowApiException.class)
+                .hasMessageContaining("Ошибка при обработке JSON-ответа");
     }
 }

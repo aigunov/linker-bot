@@ -1,5 +1,7 @@
 package backend.academy.scrapper.repository.link;
 
+import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+
 import backend.academy.scrapper.data.model.Chat;
 import backend.academy.scrapper.data.model.Filter;
 import backend.academy.scrapper.data.model.Link;
@@ -24,22 +26,22 @@ import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 @DataJpaTest
 @Testcontainers
-@TestPropertySource(properties = {
-    "app.db.access-type=orm",
-    "spring.jpa.hibernate.ddl-auto=validate",
-    "spring.jpa.hibernate.ddl-auto=create"
-})
+@TestPropertySource(
+        properties = {
+            "app.db.access-type=orm",
+            "spring.jpa.hibernate.ddl-auto=validate",
+            "spring.jpa.hibernate.ddl-auto=create"
+        })
 public class OrmLinkRepositoryTest {
 
     @Container
     static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:17.4")
-        .withDatabaseName("scrapper_db")
-        .withUsername("aigunov")
-        .withPassword("12345");
+            .withDatabaseName("scrapper_db")
+            .withUsername("aigunov")
+            .withPassword("12345");
 
     @DynamicPropertySource
     static void postgresProperties(DynamicPropertyRegistry registry) {
@@ -51,10 +53,13 @@ public class OrmLinkRepositoryTest {
 
     @Autowired
     private ChatRepository chatRepository;
+
     @Autowired
     private TagRepository tagRepository;
+
     @Autowired
     private LinkRepository linkRepository;
+
     @Autowired
     private FilterRepository filterRepository;
 
@@ -70,20 +75,20 @@ public class OrmLinkRepositoryTest {
         chat = chatRepository.save(Chat.builder().tgId(123L).nickname("user1").build());
     }
 
-
     @Test
     @Transactional
     void saveLink_shouldPersistCorrectly() {
         Tag tag = tagRepository.save(Tag.builder().chat(chat).tag("tag1").build());
-        Filter filter = filterRepository.save(Filter.builder().chat(chat).parameter("param").value("val").build());
+        Filter filter = filterRepository.save(
+                Filter.builder().chat(chat).parameter("param").value("val").build());
 
         Link link = Link.builder()
-            .url("https://example.org")
-            .lastUpdate(LocalDateTime.now())
-            .chats(Set.of(chat))
-            .tags(Set.of(tag))
-            .filters(Set.of(filter))
-            .build();
+                .url("https://example.org")
+                .lastUpdate(LocalDateTime.now())
+                .chats(Set.of(chat))
+                .tags(Set.of(tag))
+                .filters(Set.of(filter))
+                .build();
 
         Link saved = linkRepository.save(link);
 
@@ -95,10 +100,10 @@ public class OrmLinkRepositoryTest {
     @Transactional
     void findByTgIdAndUrl_shouldReturnCorrectLink() {
         Link link = Link.builder()
-            .url("https://find-me.com")
-            .lastUpdate(LocalDateTime.now())
-            .chats(Set.of(chat))
-            .build();
+                .url("https://find-me.com")
+                .lastUpdate(LocalDateTime.now())
+                .chats(Set.of(chat))
+                .build();
 
         linkRepository.save(link);
 
@@ -111,10 +116,10 @@ public class OrmLinkRepositoryTest {
     @Transactional
     void findByUrl_shouldReturnLink() {
         Link link = Link.builder()
-            .url("https://lookup.com")
-            .lastUpdate(LocalDateTime.now())
-            .chats(Set.of(chat))
-            .build();
+                .url("https://lookup.com")
+                .lastUpdate(LocalDateTime.now())
+                .chats(Set.of(chat))
+                .build();
 
         linkRepository.save(link);
 
@@ -128,10 +133,10 @@ public class OrmLinkRepositoryTest {
     void findAllByTgId_shouldReturnAllLinksOfChat() {
         for (int i = 1; i <= 3; i++) {
             linkRepository.save(Link.builder()
-                .url("https://site" + i + ".com")
-                .lastUpdate(LocalDateTime.now())
-                .chats(Set.of(chat))
-                .build());
+                    .url("https://site" + i + ".com")
+                    .lastUpdate(LocalDateTime.now())
+                    .chats(Set.of(chat))
+                    .build());
         }
 
         List<Link> links = (List<Link>) linkRepository.findAllByTgId(chat.tgId());
@@ -141,22 +146,24 @@ public class OrmLinkRepositoryTest {
     @Test
     @Transactional
     void findLinksByTgIdAndTags_shouldReturnMatchingLinks() {
-        Tag tag1 = tagRepository.save(Tag.builder().links(new HashSet<>()).chat(chat).tag("java").build());
-        Tag tag2 = tagRepository.save(Tag.builder().links(new HashSet<>()).chat(chat).tag("spring").build());
+        Tag tag1 = tagRepository.save(
+                Tag.builder().links(new HashSet<>()).chat(chat).tag("java").build());
+        Tag tag2 = tagRepository.save(
+                Tag.builder().links(new HashSet<>()).chat(chat).tag("spring").build());
 
         Link javaLink = linkRepository.save(Link.builder()
-            .url("https://java.dev")
-            .lastUpdate(LocalDateTime.now())
-            .chats(Set.of(chat))
-            .tags(Set.of(tag1))
-            .build());
+                .url("https://java.dev")
+                .lastUpdate(LocalDateTime.now())
+                .chats(Set.of(chat))
+                .tags(Set.of(tag1))
+                .build());
 
         Link springLink = linkRepository.save(Link.builder()
-            .url("https://spring.io")
-            .lastUpdate(LocalDateTime.now())
-            .chats(Set.of(chat))
-            .tags(Set.of(tag2))
-            .build());
+                .url("https://spring.io")
+                .lastUpdate(LocalDateTime.now())
+                .chats(Set.of(chat))
+                .tags(Set.of(tag2))
+                .build());
 
         List<Link> result = (List<Link>) linkRepository.findLinksByTgIdAndTags(chat.tgId(), List.of("spring"));
 
@@ -168,10 +175,10 @@ public class OrmLinkRepositoryTest {
     @Transactional
     void findAllWithChats_shouldIncludeChatsInEntityGraph() {
         Link link = linkRepository.save(Link.builder()
-            .url("https://linked.com")
-            .lastUpdate(LocalDateTime.now())
-            .chats(Set.of(chat))
-            .build());
+                .url("https://linked.com")
+                .lastUpdate(LocalDateTime.now())
+                .chats(Set.of(chat))
+                .build());
 
         List<Link> result = (List<Link>) linkRepository.findAllWithChats(PageRequest.of(0, 10));
         assertThat(result).isNotEmpty();

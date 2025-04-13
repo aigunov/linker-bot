@@ -14,7 +14,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -33,8 +32,8 @@ public class LinksController {
     private final LinkService linkService;
 
     @PostMapping("/getLinks")
-    public ResponseEntity<ListLinkResponse> getAllTrackedLinks(@RequestHeader("Tg-Chat-Id") Long chatId,
-                                                               @NotNull @RequestBody GetLinksRequest linksRequest) {
+    public ResponseEntity<ListLinkResponse> getAllTrackedLinks(
+            @RequestHeader("Tg-Chat-Id") Long chatId, @NotNull @RequestBody GetLinksRequest linksRequest) {
         log.info("Getting all tracked links for chat ID: {}", chatId);
         var response = linkService.getAllTrackedLinks(chatId, linksRequest);
         return ResponseEntity.ok(response);

@@ -1,5 +1,6 @@
 package backend.academy.scrapper.repository.tag;
 
+import static org.assertj.core.api.Assertions.assertThat;
 
 import backend.academy.scrapper.config.MigrationsRunner;
 import backend.academy.scrapper.data.model.Chat;
@@ -26,20 +27,24 @@ import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import static org.assertj.core.api.Assertions.assertThat;
 
 @JdbcTest
-@Import({SqlChatRepository.class, MigrationsRunner.class, SqlLinkRepository.class, SqlTagRepository.class,
-    SqlFilterRepository.class})
+@Import({
+    SqlChatRepository.class,
+    MigrationsRunner.class,
+    SqlLinkRepository.class,
+    SqlTagRepository.class,
+    SqlFilterRepository.class
+})
 @Testcontainers
 @TestPropertySource(properties = "app.db.access-type=sql")
 public class SqlTagRepositoryTest {
 
     @Container
     static final PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres:17.4")
-        .withDatabaseName("scrapper_db")
-        .withUsername("aigunov")
-        .withPassword("12345");
+            .withDatabaseName("scrapper_db")
+            .withUsername("aigunov")
+            .withPassword("12345");
 
     @Autowired
     JdbcTemplate jdbcTemplate;
@@ -49,13 +54,15 @@ public class SqlTagRepositoryTest {
 
     @Autowired
     private ChatRepository chatRepository;
+
     @Autowired
     private TagRepository tagRepository;
+
     @Autowired
     private LinkRepository linkRepository;
+
     @Autowired
     private FilterRepository filterRepository;
-
 
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {
@@ -86,11 +93,8 @@ public class SqlTagRepositoryTest {
     @Transactional
     void saveTag_shouldPersistTag() {
         chat = chatRepository.save(chat);
-        Tag tag = Tag.builder()
-            .chat(chat)
-            .tag("test_tag")
-            .links(new HashSet<>())
-            .build();
+        Tag tag =
+                Tag.builder().chat(chat).tag("test_tag").links(new HashSet<>()).build();
 
         tag = tagRepository.save(tag);
         assertThat(tag.id()).isNotNull();
@@ -107,10 +111,10 @@ public class SqlTagRepositoryTest {
     void deleteById_shouldDeleteTagAndRelatedLinks() {
         chat = chatRepository.save(chat);
         Tag tag = Tag.builder()
-            .chat(chat)
-            .tag("delete_test")
-            .links(new java.util.HashSet<>())
-            .build();
+                .chat(chat)
+                .tag("delete_test")
+                .links(new java.util.HashSet<>())
+                .build();
         tag = tagRepository.save(tag);
 
         tagRepository.deleteById(tag.id());
@@ -124,10 +128,10 @@ public class SqlTagRepositoryTest {
     void findByTgIdAndTag_shouldReturnTag() {
         chat = chatRepository.save(chat);
         Tag tag = Tag.builder()
-            .chat(chat)
-            .tag("lookup_tag")
-            .links(new java.util.HashSet<>())
-            .build();
+                .chat(chat)
+                .tag("lookup_tag")
+                .links(new java.util.HashSet<>())
+                .build();
         tag = tagRepository.save(tag);
 
         Optional<Tag> found = tagRepository.findByTgIdAndTag(chat.tgId(), "lookup_tag");
@@ -140,10 +144,10 @@ public class SqlTagRepositoryTest {
     void findAllByChatIdAndNotInTagToLinkTable_shouldReturnEmptyWhenAssociationExists() {
         chat = chatRepository.save(chat);
         Tag tag = Tag.builder()
-            .chat(chat)
-            .tag("isolated_tag")
-            .links(new java.util.HashSet<>())
-            .build();
+                .chat(chat)
+                .tag("isolated_tag")
+                .links(new java.util.HashSet<>())
+                .build();
         tagRepository.save(tag);
 
         List<Tag> results = (List<Tag>) tagRepository.findAllByChatIdAndNotInTagToLinkTable(chat.id());
@@ -164,9 +168,4 @@ public class SqlTagRepositoryTest {
         List<Tag> results = (List<Tag>) tagRepository.findAll();
         assertThat(results).isEmpty();
     }
-
 }
-
-
-
-

@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class TagsController {
     private final TagService tagsService;
 
-
     @GetMapping
     public ResponseEntity<GetTagsResponse> getAllTags(@RequestHeader("Tg-Chat-Id") Long id) {
         log.info("Get all tags for chat  ID: {}", id);

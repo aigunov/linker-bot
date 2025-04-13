@@ -44,8 +44,8 @@ public class BotService {
         try {
             log.info("Fetching tracked links for chatId: {}", chatId);
             var requestBody = listRequestService.getListRequest(chatId);
-            var responseEntity = client.getAllTrackedLinks(chatId, requestBody == null ?
-                                                                    GetLinksRequest.builder().build() : requestBody);
+            var responseEntity = client.getAllTrackedLinks(
+                    chatId, requestBody == null ? GetLinksRequest.builder().build() : requestBody);
 
             if (responseEntity.getStatusCode().is2xxSuccessful()) {
                 log.info("Successfully received tracked links for chatId: {}", chatId);
@@ -71,9 +71,7 @@ public class BotService {
                 log.info("Successfully received tags for chatId: {}", chatId);
             } else {
                 log.warn(
-                    "Failed to fetch tags for chatId: {}. Status code: {}",
-                    chatId,
-                    responseEntity.getStatusCode());
+                        "Failed to fetch tags for chatId: {}. Status code: {}", chatId, responseEntity.getStatusCode());
             }
             return responseEntity.getBody();
         } catch (Exception ex) {
@@ -172,5 +170,4 @@ public class BotService {
     private List<String> convertStackTraceToList(StackTraceElement[] stackTrace) {
         return Arrays.stream(stackTrace).map(StackTraceElement::toString).collect(Collectors.toList());
     }
-
 }

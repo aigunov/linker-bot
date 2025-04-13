@@ -1,5 +1,7 @@
 package backend.academy.scrapper.repository.chat;
 
+import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+
 import backend.academy.scrapper.data.model.Chat;
 import backend.academy.scrapper.repository.filter.FilterRepository;
 import backend.academy.scrapper.repository.link.LinkRepository;
@@ -18,22 +20,22 @@ import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 @DataJpaTest
 @Testcontainers
-@TestPropertySource(properties = {
-    "app.db.access-type=orm",
-    "spring.jpa.hibernate.ddl-auto=validate",
-    "spring.jpa.hibernate.ddl-auto=create"
-})
+@TestPropertySource(
+        properties = {
+            "app.db.access-type=orm",
+            "spring.jpa.hibernate.ddl-auto=validate",
+            "spring.jpa.hibernate.ddl-auto=create"
+        })
 public class OrmChatRepositoryTest {
 
     @Container
     static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:17.4")
-        .withDatabaseName("scrapper_db")
-        .withUsername("aigunov")
-        .withPassword("12345");
+            .withDatabaseName("scrapper_db")
+            .withUsername("aigunov")
+            .withPassword("12345");
 
     @DynamicPropertySource
     static void postgresProperties(DynamicPropertyRegistry registry) {
@@ -45,10 +47,13 @@ public class OrmChatRepositoryTest {
 
     @Autowired
     private ChatRepository chatRepository;
+
     @Autowired
     private TagRepository tagRepository;
+
     @Autowired
     private LinkRepository linkRepository;
+
     @Autowired
     private FilterRepository filterRepository;
 
@@ -83,7 +88,6 @@ public class OrmChatRepositoryTest {
         Chat savedChat = chatRepository.save(chat1);
         UUID chatId = savedChat.id();
 
-
         chatRepository.deleteById(chatId);
 
         assertThat(chatRepository.findById(chatId)).isEmpty();
@@ -105,7 +109,6 @@ public class OrmChatRepositoryTest {
         assertThat(found.get().nickname()).isEqualTo("user1");
     }
 }
-
 
 //    @Test
 //    @Transactional
@@ -152,4 +155,3 @@ public class OrmChatRepositoryTest {
 //        assertThat(filterRepository.findAll()).isEmpty();
 //        assertThat(linkRepository.findAll()).isEmpty(); // <-- если нужно проверить и это
 //    }
-

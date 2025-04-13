@@ -1,20 +1,20 @@
 package backend.academy.bot.state;
 
 import backend.academy.bot.exception.TelegramApiException;
-import backend.academy.bot.service.KeyboardFactory;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.model.request.ParseMode;
 import com.pengrad.telegrambot.request.SendMessage;
 import dto.ApiErrorResponse;
 import dto.GetTagsResponse;
-import dto.ListLinkResponse;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import java.util.List;
 
+@SuppressWarnings(value = {"POTENTIAL_XML_INJECTION"})
+@SuppressFBWarnings(value = {"POTENTIAL_XML_INJECTION"})
 @Slf4j
 @Component("tags-state")
-public class TagsState extends StateImpl{
+public class TagsState extends StateImpl {
     public TagsState() {
         super(ChatState.TAGS, "Список используемых тегов:");
     }
@@ -26,8 +26,8 @@ public class TagsState extends StateImpl{
             bot.execute(new SendMessage(chatId, message).parseMode(ParseMode.HTML));
             var message = handleScrapperResponse(botService.getTags(chatId));
             bot.execute(new SendMessage(chatId, message)
-                .replyMarkup(keyboardFactory.getBackStateKeyboard())
-                .parseMode(ParseMode.HTML));
+                    .replyMarkup(keyboardFactory.getBackStateKeyboard())
+                    .parseMode(ParseMode.HTML));
         } catch (TelegramApiException e) {
             log.info("Error while sending feedback request message: {}", e.getMessage());
         }
@@ -63,15 +63,14 @@ public class TagsState extends StateImpl{
     }
 
     public String formatErrorResponse(ApiErrorResponse error) {
-
         return String.format(
-            """
-                ❗ <b>Ошибка при выполнении запроса:</b>
-                📝 <b>Описание:</b>  %s
-                📋 <b>Код ошибки:</b> %s
-                🚨 <b>Тип исключения:</b> %s
+                """
+                ❗ <b>Ошибка при выполнении запроса:</b>%n
+                📝 <b>Описание:</b>  %s%n
+                📋 <b>Код ошибки:</b> %s%n
+                🚨 <b>Тип исключения:</b> %s%n
                 💥 <b>Сообщение исключения:</b> %s
                 """,
-            error.description(), error.code(), error.exceptionName(), error.exceptionMessage());
+                error.description(), error.code(), error.exceptionName(), error.exceptionMessage());
     }
 }

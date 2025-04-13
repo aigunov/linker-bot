@@ -1,5 +1,11 @@
 package backend.academy.scrapper.client;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+
 import backend.academy.scrapper.config.GitHubConfig;
 import backend.academy.scrapper.config.StackOverflowConfig;
 import backend.academy.scrapper.data.dto.UpdateInfo;
@@ -20,27 +26,23 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 @SpringBootTest
 @EnableConfigurationProperties({GitHubConfig.class, StackOverflowConfig.class})
-@TestPropertySource(properties = {
-    "app.github.url=http://localhost:8089/repos",
-    "app.github.token=test-token",
-    "app.stackoverflow.key=test-key",
-    "app.stackoverflow.access_token=test-access",
-    "app.stackoverflow.url=http://localhost:8089/stackoverflow",
-})
+@TestPropertySource(
+        properties = {
+            "app.github.url=http://localhost:8089/repos",
+            "app.github.token=test-token",
+            "app.stackoverflow.key=test-key",
+            "app.stackoverflow.access_token=test-access",
+            "app.stackoverflow.url=http://localhost:8089/stackoverflow",
+        })
 class GitHubClientTest {
     @Container
     static final PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres:17.4")
-        .withDatabaseName("scrapper_db")
-        .withUsername("aigunov")
-        .withPassword("12345");
+            .withDatabaseName("scrapper_db")
+            .withUsername("aigunov")
+            .withPassword("12345");
 
     @Autowired
     private LinkToApiRequestConverter converterApi;
@@ -78,12 +80,13 @@ class GitHubClientTest {
 
     @Test
     void checkUpdates_ShouldReturnLatestUpdateInfoFromGitHub() {
-        //Given
+        // Given
         String repoPath = "/repos/aigunov/java-shareit";
         String fullUrl = "https://github.com/aigunov/java-shareit";
 
-        //Mock issues response
-        String issuesJson = """
+        // Mock issues response
+        String issuesJson =
+                """
             [
                             {
                                 "title": "Issue #1",
@@ -95,7 +98,8 @@ class GitHubClientTest {
             """;
 
         // Mock PRs response
-        String prsJson = """
+        String prsJson =
+                """
                 [
                     {
                         "title": "PR #1",
@@ -106,25 +110,24 @@ class GitHubClientTest {
                 ]
             """;
 
-        //When
+        // When
         stubFor(get(urlEqualTo(repoPath + "/issues?state=all"))
-            .willReturn(aResponse()
-                .withStatus(200)
-                .withHeader("Content-Type", "application/json")
-                .withBody(issuesJson)));
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(issuesJson)));
 
         stubFor(get(urlEqualTo(repoPath + "/pulls?state=all"))
-            .willReturn(aResponse()
-                .withStatus(200)
-                .withHeader("Content-Type", "application/json")
-                .withBody(prsJson)));
-
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(prsJson)));
 
         Optional<UpdateInfo> updateInfoOpt = gitHubClient.checkUpdates(fullUrl);
-//        Mockito.when(converterApi.convertGithubUrlToApi(any()))
-//            .thenReturn(fullUrl);
+        //        Mockito.when(converterApi.convertGithubUrlToApi(any()))
+        //            .thenReturn(fullUrl);
 
-        //Then
+        // Then
         assertThat(updateInfoOpt).isPresent();
         UpdateInfo updateInfo = updateInfoOpt.get();
 

@@ -41,8 +41,10 @@ public class StackOverflowResponse {
         public static class Answer {
             @JsonProperty("creation_date")
             private long creationDate;
+
             @JsonProperty("owner")
             private Owner owner;
+
             private String body;
 
             @Getter
@@ -50,7 +52,7 @@ public class StackOverflowResponse {
             @NoArgsConstructor
             @AllArgsConstructor
             @JsonIgnoreProperties(ignoreUnknown = true)
-            public static class Owner{
+            public static class Owner {
                 @JsonProperty("display_name")
                 private String displayName;
             }
@@ -61,11 +63,13 @@ public class StackOverflowResponse {
         @NoArgsConstructor
         @AllArgsConstructor
         @JsonIgnoreProperties(ignoreUnknown = true)
-        public static class Comment{
+        public static class Comment {
             @JsonProperty("creation_date")
             private long creationDate;
+
             @JsonProperty("owner")
             private Owner owner;
+
             private String body;
 
             @Getter

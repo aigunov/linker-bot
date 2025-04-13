@@ -33,30 +33,53 @@ class MapperTest {
     void setUp() {
         mapper = new Mapper();
         registerChatRequest = new RegisterChatRequest(123L, "testUser");
-        addLinkRequest = new AddLinkRequest("https://example.com", List.of("tag1", "tag2"), List.of("param1:value1", "param2:value2"));
+        addLinkRequest = new AddLinkRequest(
+                "https://example.com", List.of("tag1", "tag2"), List.of("param1:value1", "param2:value2"));
 
         chat = Chat.builder()
-            .id(UUID.randomUUID())
-            .tgId(123L)
-            .nickname("testChat")
-            .tags(new HashSet<>())
-            .filters(new HashSet<>())
-            .links(new HashSet<>())
-            .build();
+                .id(UUID.randomUUID())
+                .tgId(123L)
+                .nickname("testChat")
+                .tags(new HashSet<>())
+                .filters(new HashSet<>())
+                .links(new HashSet<>())
+                .build();
 
-        tag1 = Tag.builder().id(UUID.randomUUID()).tag("tag1").chat(chat).links(new HashSet<>()).build();
-        tag2 = Tag.builder().id(UUID.randomUUID()).tag("tag2").chat(chat).links(new HashSet<>()).build();
-        filter1 = Filter.builder().id(UUID.randomUUID()).parameter("param1").value("value1").chat(chat).links(new HashSet<>()).build();
-        filter2 = Filter.builder().id(UUID.randomUUID()).parameter("param2").value("value2").chat(chat).links(new HashSet<>()).build();
+        tag1 = Tag.builder()
+                .id(UUID.randomUUID())
+                .tag("tag1")
+                .chat(chat)
+                .links(new HashSet<>())
+                .build();
+        tag2 = Tag.builder()
+                .id(UUID.randomUUID())
+                .tag("tag2")
+                .chat(chat)
+                .links(new HashSet<>())
+                .build();
+        filter1 = Filter.builder()
+                .id(UUID.randomUUID())
+                .parameter("param1")
+                .value("value1")
+                .chat(chat)
+                .links(new HashSet<>())
+                .build();
+        filter2 = Filter.builder()
+                .id(UUID.randomUUID())
+                .parameter("param2")
+                .value("value2")
+                .chat(chat)
+                .links(new HashSet<>())
+                .build();
 
         link = Link.builder()
-            .id(UUID.randomUUID())
-            .url("https://example.com")
-            .lastUpdate(LocalDateTime.now())
-            .tags(Set.of(tag1, tag2))
-            .filters(Set.of(filter1, filter2))
-            .chats(Set.of(chat))
-            .build();
+                .id(UUID.randomUUID())
+                .url("https://example.com")
+                .lastUpdate(LocalDateTime.now())
+                .tags(Set.of(tag1, tag2))
+                .filters(Set.of(filter1, filter2))
+                .chats(Set.of(chat))
+                .build();
     }
 
     @Test
@@ -66,13 +89,13 @@ class MapperTest {
 
         // assert
         assertThat(mappedChat)
-            .isNotNull()
-            .hasFieldOrProperty("id")
-            .hasFieldOrPropertyWithValue("tgId", 123L)
-            .hasFieldOrPropertyWithValue("nickname", "testUser")
-            .hasFieldOrProperty("tags")
-            .hasFieldOrProperty("filters")
-            .hasFieldOrProperty("links");
+                .isNotNull()
+                .hasFieldOrProperty("id")
+                .hasFieldOrPropertyWithValue("tgId", 123L)
+                .hasFieldOrPropertyWithValue("nickname", "testUser")
+                .hasFieldOrProperty("tags")
+                .hasFieldOrProperty("filters")
+                .hasFieldOrProperty("links");
         assertThat(mappedChat.tags()).isEmpty();
         assertThat(mappedChat.filters()).isEmpty();
         assertThat(mappedChat.links()).isEmpty();
@@ -85,38 +108,49 @@ class MapperTest {
 
         // assert
         assertThat(mappedLinkResponse)
-            .isNotNull()
-            .hasFieldOrPropertyWithValue("id", link.id())
-            .hasFieldOrPropertyWithValue("url", "https://example.com");
+                .isNotNull()
+                .hasFieldOrPropertyWithValue("id", link.id())
+                .hasFieldOrPropertyWithValue("url", "https://example.com");
     }
 
     @Test
     void linkRequestToLink_shouldMapAddLinkRequestAndChatToLink() {
         // arrange
-        HashSet<Tag> tags = new HashSet<>(List.of(Tag.builder().tag("tag1").chat(chat).links(new HashSet<>()).build(),
-            Tag.builder().tag("tag2").chat(chat).links(new HashSet<>()).build()));
-        HashSet<Filter> filters = new HashSet<>(List.of(Filter.builder().parameter("param1").value("value1").chat(chat).links(new HashSet<>()).build(),
-            Filter.builder().parameter("param2").value("value2").chat(chat).links(new HashSet<>()).build()));
+        HashSet<Tag> tags = new HashSet<>(List.of(
+                Tag.builder().tag("tag1").chat(chat).links(new HashSet<>()).build(),
+                Tag.builder().tag("tag2").chat(chat).links(new HashSet<>()).build()));
+        HashSet<Filter> filters = new HashSet<>(List.of(
+                Filter.builder()
+                        .parameter("param1")
+                        .value("value1")
+                        .chat(chat)
+                        .links(new HashSet<>())
+                        .build(),
+                Filter.builder()
+                        .parameter("param2")
+                        .value("value2")
+                        .chat(chat)
+                        .links(new HashSet<>())
+                        .build()));
 
         // act
         Link mappedLink = Mapper.linkRequestToLink(addLinkRequest.uri(), chat, tags, filters);
 
         // assert
         assertThat(mappedLink)
-            .isNotNull()
-            .hasFieldOrProperty("id")
-            .hasFieldOrPropertyWithValue("url", "https://example.com")
-            .hasFieldOrProperty("lastUpdate")
-            .hasFieldOrProperty("tags")
-            .hasFieldOrProperty("filters")
-            .hasFieldOrProperty("chats");
+                .isNotNull()
+                .hasFieldOrProperty("id")
+                .hasFieldOrPropertyWithValue("url", "https://example.com")
+                .hasFieldOrProperty("lastUpdate")
+                .hasFieldOrProperty("tags")
+                .hasFieldOrProperty("filters")
+                .hasFieldOrProperty("chats");
         assertThat(mappedLink.chats()).containsExactly(chat);
-        assertThat(mappedLink.tags()).hasSize(2)
-            .extracting(Tag::tag)
-            .containsExactlyInAnyOrder("tag1", "tag2");
-        assertThat(mappedLink.filters()).hasSize(2)
-            .extracting(f -> f.parameter() + ":" + f.value())
-            .containsExactlyInAnyOrder("param1:value1", "param2:value2");
+        assertThat(mappedLink.tags()).hasSize(2).extracting(Tag::tag).containsExactlyInAnyOrder("tag1", "tag2");
+        assertThat(mappedLink.filters())
+                .hasSize(2)
+                .extracting(f -> f.parameter() + ":" + f.value())
+                .containsExactlyInAnyOrder("param1:value1", "param2:value2");
         assertThat(mappedLink.lastUpdate()).isNotNull();
     }
 
@@ -130,11 +164,11 @@ class MapperTest {
 
         // assert
         assertThat(mappedTag)
-            .isNotNull()
-            .hasFieldOrProperty("id")
-            .hasFieldOrPropertyWithValue("tag", "newTag")
-            .hasFieldOrPropertyWithValue("chat", chat)
-            .hasFieldOrProperty("links");
+                .isNotNull()
+                .hasFieldOrProperty("id")
+                .hasFieldOrPropertyWithValue("tag", "newTag")
+                .hasFieldOrPropertyWithValue("chat", chat)
+                .hasFieldOrProperty("links");
         assertThat(mappedTag.links()).isEmpty();
     }
 
@@ -149,12 +183,12 @@ class MapperTest {
 
         // assert
         assertThat(mappedFilter)
-            .isNotNull()
-            .hasFieldOrProperty("id")
-            .hasFieldOrPropertyWithValue("parameter", "priority")
-            .hasFieldOrPropertyWithValue("value", "high")
-            .hasFieldOrPropertyWithValue("chat", chat)
-            .hasFieldOrProperty("links");
+                .isNotNull()
+                .hasFieldOrProperty("id")
+                .hasFieldOrPropertyWithValue("parameter", "priority")
+                .hasFieldOrPropertyWithValue("value", "high")
+                .hasFieldOrPropertyWithValue("chat", chat)
+                .hasFieldOrProperty("links");
         assertThat(mappedFilter.links()).isEmpty();
     }
 }

@@ -16,8 +16,8 @@ public class MenuState extends StateImpl {
     private static final String list_button = "/list";
     private static final String help_button = "/help";
     private static final String tag_button = "/tags";
-    private static final List<String> buttons = List.of(track_button, untrack_button, list_button,
-                                                        help_button, tag_button);
+    private static final List<String> buttons =
+            List.of(track_button, untrack_button, list_button, help_button, tag_button);
 
     public MenuState() {
         super(ChatState.MENU, "Главное меню");

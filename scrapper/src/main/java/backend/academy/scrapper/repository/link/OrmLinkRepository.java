@@ -13,10 +13,11 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
-@ConditionalOnProperty(prefix = "app.db", name="access-type", havingValue = "orm")
+@ConditionalOnProperty(prefix = "app.db", name = "access-type", havingValue = "orm")
 public interface OrmLinkRepository extends LinkRepository, JpaRepository<Link, UUID> {
 
-    @Query("""
+    @Query(
+            """
         SELECT l
         FROM Link l
         JOIN l.chats c
@@ -25,7 +26,8 @@ public interface OrmLinkRepository extends LinkRepository, JpaRepository<Link, U
     @Override
     Optional<Link> findByTgIdAndUrl(@Param("tgId") Long tgId, @Param("url") String url);
 
-    @Query("""
+    @Query(
+            """
         SELECT l
         FROM Link l
         JOIN l.chats c

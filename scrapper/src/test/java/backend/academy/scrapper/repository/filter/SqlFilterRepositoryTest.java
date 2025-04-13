@@ -1,5 +1,7 @@
 package backend.academy.scrapper.repository.filter;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import backend.academy.scrapper.config.MigrationsRunner;
 import backend.academy.scrapper.data.model.Chat;
 import backend.academy.scrapper.data.model.Filter;
@@ -8,14 +10,14 @@ import backend.academy.scrapper.repository.chat.ChatRepository;
 import backend.academy.scrapper.repository.chat.SqlChatRepository;
 import backend.academy.scrapper.repository.link.LinkRepository;
 import backend.academy.scrapper.repository.link.SqlLinkRepository;
+import backend.academy.scrapper.repository.tag.SqlTagRepository;
+import backend.academy.scrapper.repository.tag.TagRepository;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import backend.academy.scrapper.repository.tag.SqlTagRepository;
-import backend.academy.scrapper.repository.tag.TagRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,21 +31,24 @@ import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import static org.assertj.core.api.Assertions.assertThat;
-
 
 @JdbcTest
-@Import({SqlChatRepository.class, MigrationsRunner.class, SqlLinkRepository.class, SqlTagRepository.class,
-    SqlFilterRepository.class})
+@Import({
+    SqlChatRepository.class,
+    MigrationsRunner.class,
+    SqlLinkRepository.class,
+    SqlTagRepository.class,
+    SqlFilterRepository.class
+})
 @Testcontainers
 @TestPropertySource(properties = "app.db.access-type=sql")
 public class SqlFilterRepositoryTest {
 
     @Container
     static final PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres:17.4")
-        .withDatabaseName("scrapper_db")
-        .withUsername("aigunov")
-        .withPassword("12345");
+            .withDatabaseName("scrapper_db")
+            .withUsername("aigunov")
+            .withPassword("12345");
 
     @Autowired
     JdbcTemplate jdbcTemplate;
@@ -53,13 +58,15 @@ public class SqlFilterRepositoryTest {
 
     @Autowired
     private ChatRepository chatRepository;
+
     @Autowired
     private TagRepository tagRepository;
+
     @Autowired
     private LinkRepository linkRepository;
+
     @Autowired
     private FilterRepository filterRepository;
-
 
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {
@@ -91,11 +98,11 @@ public class SqlFilterRepositoryTest {
     void saveFilter_shouldPersistFilter() {
         chat = chatRepository.save(chat);
         Filter filter = Filter.builder()
-            .chat(chat)
-            .parameter("param1")
-            .value("value1")
-            .links(new HashSet<>())
-            .build();
+                .chat(chat)
+                .parameter("param1")
+                .value("value1")
+                .links(new HashSet<>())
+                .build();
 
         Filter savedFilter = filterRepository.save(filter);
         assertThat(savedFilter.id()).isNotNull();
@@ -112,27 +119,28 @@ public class SqlFilterRepositoryTest {
     void deleteById_shouldDeleteFilterAndRemoveFromLinkToFilter() {
         chat = chatRepository.save(chat);
         Filter filter = Filter.builder()
-            .chat(chat)
-            .parameter("param_delete")
-            .value("value_delete")
-            .links(new HashSet<>())
-            .build();
+                .chat(chat)
+                .parameter("param_delete")
+                .value("value_delete")
+                .links(new HashSet<>())
+                .build();
         filter = filterRepository.save(filter);
 
         Link link = Link.builder()
-            .url("http://example.com/delete")
-            .lastUpdate(LocalDateTime.now())
-            .chats(Set.of(chat))
-            .filters(Set.of(filter))
-            .tags(new HashSet<>())
-            .build();
+                .url("http://example.com/delete")
+                .lastUpdate(LocalDateTime.now())
+                .chats(Set.of(chat))
+                .filters(Set.of(filter))
+                .tags(new HashSet<>())
+                .build();
         link = linkRepository.save(link);
 
         filterRepository.deleteById(filter.id());
 
         assertThat(filterRepository.findById(filter.id())).isEmpty();
-        assertThat(jdbcTemplate
-            .queryForList("SELECT filter_id FROM link_to_filter WHERE link_id = ?", UUID.class, link.id())).isEmpty();
+        assertThat(jdbcTemplate.queryForList(
+                        "SELECT filter_id FROM link_to_filter WHERE link_id = ?", UUID.class, link.id()))
+                .isEmpty();
     }
 
     @Test
@@ -140,11 +148,11 @@ public class SqlFilterRepositoryTest {
     void findById_shouldReturnCorrectFilter() {
         chat = chatRepository.save(chat);
         Filter filter = Filter.builder()
-            .chat(chat)
-            .parameter("param_find")
-            .value("value_find")
-            .links(new HashSet<>())
-            .build();
+                .chat(chat)
+                .parameter("param_find")
+                .value("value_find")
+                .links(new HashSet<>())
+                .build();
         filter = filterRepository.save(filter);
 
         Optional<Filter> foundFilter = filterRepository.findById(filter.id());
@@ -158,11 +166,11 @@ public class SqlFilterRepositoryTest {
     void findByTgIdAndFilter_shouldReturnCorrectFilter() {
         chat = chatRepository.save(chat);
         Filter filter = Filter.builder()
-            .chat(chat)
-            .parameter("param_tgid")
-            .value("value_tgid")
-            .links(new HashSet<>())
-            .build();
+                .chat(chat)
+                .parameter("param_tgid")
+                .value("value_tgid")
+                .links(new HashSet<>())
+                .build();
         filterRepository.save(filter);
 
         Optional<Filter> foundFilter = filterRepository.findByTgIdAndFilter(chat.tgId(), "param_tgid", "value_tgid");
@@ -175,12 +183,28 @@ public class SqlFilterRepositoryTest {
     @Transactional
     void findAllByChatIdAndNotInLinkToFilterTable_shouldReturnFiltersNotInLinkToFilter() {
         chat = chatRepository.save(chat);
-        Filter filter1 = Filter.builder().chat(chat).parameter("param_not_in").value("value_not_in").links(new HashSet<>()).build();
-        Filter filter2 = Filter.builder().chat(chat).parameter("param_in").value("value_in").links(new HashSet<>()).build();
+        Filter filter1 = Filter.builder()
+                .chat(chat)
+                .parameter("param_not_in")
+                .value("value_not_in")
+                .links(new HashSet<>())
+                .build();
+        Filter filter2 = Filter.builder()
+                .chat(chat)
+                .parameter("param_in")
+                .value("value_in")
+                .links(new HashSet<>())
+                .build();
         filter1 = filterRepository.save(filter1);
         filter2 = filterRepository.save(filter2);
 
-        Link link = Link.builder().url("http://example.com/notin").lastUpdate(LocalDateTime.now()).chats(Set.of(chat)).filters(Set.of(filter2)).tags(new HashSet<>()).build();
+        Link link = Link.builder()
+                .url("http://example.com/notin")
+                .lastUpdate(LocalDateTime.now())
+                .chats(Set.of(chat))
+                .filters(Set.of(filter2))
+                .tags(new HashSet<>())
+                .build();
         linkRepository.save(link);
 
         List<Filter> result = (List<Filter>) filterRepository.findAllByChatIdAndNotInLinkToFilterTable(chat.id());
@@ -192,8 +216,18 @@ public class SqlFilterRepositoryTest {
     @Transactional
     void deleteAllFilters_shouldDeleteAllFilters() {
         chat = chatRepository.save(chat);
-        Filter filter1 = Filter.builder().chat(chat).parameter("param_delete_all1").value("value_delete_all1").links(new HashSet<>()).build();
-        Filter filter2 = Filter.builder().chat(chat).parameter("param_delete_all2").value("value_delete_all2").links(new HashSet<>()).build();
+        Filter filter1 = Filter.builder()
+                .chat(chat)
+                .parameter("param_delete_all1")
+                .value("value_delete_all1")
+                .links(new HashSet<>())
+                .build();
+        Filter filter2 = Filter.builder()
+                .chat(chat)
+                .parameter("param_delete_all2")
+                .value("value_delete_all2")
+                .links(new HashSet<>())
+                .build();
         filterRepository.save(filter1);
         filterRepository.save(filter2);
 
@@ -210,9 +244,24 @@ public class SqlFilterRepositoryTest {
     @Transactional
     void deleteAllIterable_shouldDeleteSpecifiedFilters() {
         chat = chatRepository.save(chat);
-        Filter filter1 = Filter.builder().chat(chat).parameter("param_delete_iter1").value("value_delete_iter1").links(new HashSet<>()).build();
-        Filter filter2 = Filter.builder().chat(chat).parameter("param_delete_iter2").value("value_delete_iter2").links(new HashSet<>()).build();
-        Filter filter3 = Filter.builder().chat(chat).parameter("param_delete_iter3").value("value_delete_iter3").links(new HashSet<>()).build();
+        Filter filter1 = Filter.builder()
+                .chat(chat)
+                .parameter("param_delete_iter1")
+                .value("value_delete_iter1")
+                .links(new HashSet<>())
+                .build();
+        Filter filter2 = Filter.builder()
+                .chat(chat)
+                .parameter("param_delete_iter2")
+                .value("value_delete_iter2")
+                .links(new HashSet<>())
+                .build();
+        Filter filter3 = Filter.builder()
+                .chat(chat)
+                .parameter("param_delete_iter3")
+                .value("value_delete_iter3")
+                .links(new HashSet<>())
+                .build();
         filter1 = filterRepository.save(filter1);
         filter2 = filterRepository.save(filter2);
         filter3 = filterRepository.save(filter3);

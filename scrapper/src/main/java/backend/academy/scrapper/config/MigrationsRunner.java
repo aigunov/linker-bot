@@ -1,6 +1,5 @@
 package backend.academy.scrapper.config;
 
-import jakarta.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -26,14 +25,15 @@ import org.springframework.stereotype.Component;
 public class MigrationsRunner {
     private final DataSourceConfig dataSourceConfig;
 
-//    @PostConstruct
+    //    @PostConstruct
     public void runMigrations() {
-        Path migrationsPath = new File(".").toPath().toAbsolutePath().getParent().getParent().resolve("migrations");
+        Path migrationsPath =
+                new File(".").toPath().toAbsolutePath().getParent().getParent().resolve("migrations");
 
-        try (Connection connection =
-                 DriverManager.getConnection(dataSourceConfig.url(), dataSourceConfig.username(), dataSourceConfig.password())) {
+        try (Connection connection = DriverManager.getConnection(
+                dataSourceConfig.url(), dataSourceConfig.username(), dataSourceConfig.password())) {
             Database database =
-                DatabaseFactory.getInstance().findCorrectDatabaseImplementation(new JdbcConnection(connection));
+                    DatabaseFactory.getInstance().findCorrectDatabaseImplementation(new JdbcConnection(connection));
 
             DirectoryResourceAccessor resourceAccessor = new DirectoryResourceAccessor(migrationsPath.toFile());
 
