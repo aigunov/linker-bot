@@ -21,7 +21,7 @@ public class TagResultSetExtractor implements ResultSetExtractor<List<Tag>> {
         var tags = new LinkedList<Tag>();
         while (rs.next()) {
             tags.add(Tag.builder()
-                .id(UUID.fromString("id"))
+                .id(UUID.fromString(rs.getString("id")))
                 .tag(rs.getString("tag"))
                 .build()
             );

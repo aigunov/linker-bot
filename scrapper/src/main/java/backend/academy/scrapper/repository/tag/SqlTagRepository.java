@@ -44,13 +44,13 @@ public class SqlTagRepository implements TagRepository {
             DELETE FROM tag_to_link
             WHERE tag_id = :tagId
             """;
-        jdbc.update(deleteLinkTagSql, new MapSqlParameterSource("tagId", id.toString()));
+        jdbc.update(deleteLinkTagSql, new MapSqlParameterSource("tagId", id));
 
         var deleteTagSql = """
             DELETE FROM tag
             WHERE id = :id
             """;
-        jdbc.update(deleteTagSql, new MapSqlParameterSource("id", id.toString()));
+        jdbc.update(deleteTagSql, new MapSqlParameterSource("id", id));
     }
 
     @Override
@@ -60,7 +60,7 @@ public class SqlTagRepository implements TagRepository {
             FROM tag
             WHERE id = :id
             """;
-        var result = jdbc.query(sql, new MapSqlParameterSource("id", id.toString()), new TagResultSetExtractor());
+        var result = jdbc.query(sql, new MapSqlParameterSource("id", id), new TagResultSetExtractor());
         return result.isEmpty() ? Optional.empty() : Optional.of(result.getFirst());
     }
 
