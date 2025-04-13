@@ -228,6 +228,7 @@ public class SqlLinkRepository implements LinkRepository{
         }
     }
 
+    //todo: удаление связанных
     @Override
     public void deleteAll() {
         var sql = """

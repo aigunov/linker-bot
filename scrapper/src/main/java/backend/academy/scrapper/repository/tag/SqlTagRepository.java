@@ -106,6 +106,12 @@ public class SqlTagRepository implements TagRepository {
         jdbc.update(sql, new MapSqlParameterSource("ids", tagIds));
     }
 
+    //todo: удаление всех связанных
+    @Override
+    public void deleteAll() {
+        jdbc.update("DELETE FROM Tag", new MapSqlParameterSource());
+    }
+
 
     @Override
     public List<Tag> findAllByTgId(final Long tgId) {

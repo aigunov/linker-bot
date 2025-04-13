@@ -120,6 +120,21 @@ public class SqlChatRepository implements ChatRepository {
         jdbc.update(sql, new MapSqlParameterSource("tgId", tgId));
     }
 
+    //todo: удаление связанных
+    @Override
+    public void deleteAll() {
+        jdbc.update("DELETE FROM Chat", new MapSqlParameterSource());
+    }
+
+    //todo: переработать
+    @Override
+    public <S extends Chat> List<S> saveAll(Iterable<S> chats) {
+        for(Chat chat: chats){
+            save(chat);
+        }
+        return List.of();
+    }
+
     @Override
     public Optional<Chat> findById(final UUID id) {
         var sql = """

@@ -115,6 +115,11 @@ public class SqlFilterRepository implements FilterRepository {
     }
 
     @Override
+    public void deleteAll() {
+        jdbc.update("DELETE FROM Filter", new MapSqlParameterSource());
+    }
+
+    @Override
     public List<Filter> findAll() {
         String sql = "SELECT * FROM filter";
         return jdbc.query(sql, new FilterResultSetExtractor());
