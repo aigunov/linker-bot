@@ -36,7 +36,7 @@ public class Mapper {
     }
 
     public static Link linkRequestToLink(
-            final String uri, final Chat chat, final HashSet<Tag> tags, final HashSet<Filter> filters) {
+            final String uri, final Chat chat, final Set<Tag> tags, final Set<Filter> filters) {
         return Link.builder()
                 .url(uri)
                 .lastUpdate(LocalDateTime.now())

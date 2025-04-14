@@ -7,6 +7,7 @@ import java.util.UUID;
 public interface TagRepository {
     Tag save(Tag tag);
 
+    <S extends Tag> Iterable<S> saveAll(Iterable<S> tags);
     void deleteById(UUID id);
 
     void deleteAll(Iterable<? extends Tag> tags);

@@ -7,6 +7,8 @@ import java.util.UUID;
 public interface FilterRepository {
     Filter save(Filter filter);
 
+    <S extends Filter> Iterable<S> saveAll(Iterable<S> filters);
+
     void deleteById(UUID id);
 
     void deleteAll(Iterable<? extends Filter> filters);

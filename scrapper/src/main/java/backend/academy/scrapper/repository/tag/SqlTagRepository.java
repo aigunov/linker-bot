@@ -1,6 +1,7 @@
 package backend.academy.scrapper.repository.tag;
 
 import backend.academy.scrapper.data.model.Tag;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -25,14 +26,29 @@ public class SqlTagRepository implements TagRepository {
         var tagSql = """
             INSERT INTO tag(chat_id, tag)
             VALUES (:chatId, :tag)
+            ON CONFLICT (chat_id, tag)
+            DO UPDATE SET tag = EXCLUDED.tag
+            RETURNING id
             """;
-        var tagParams =
-                new MapSqlParameterSource().addValue("chatId", tag.chat().id()).addValue("tag", tag.tag());
+        var tagParams = new MapSqlParameterSource()
+            .addValue("chatId", tag.chat().id())
+            .addValue("tag", tag.tag());
+
         GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
         jdbc.update(tagSql, tagParams, keyHolder);
-        tag.id((UUID) keyHolder.getKeys().get("id"));
 
+        tag.id((UUID) keyHolder.getKeys().get("id"));
         return tag;
+    }
+
+    @Transactional
+    @Override
+    public <S extends Tag> Iterable<S> saveAll(Iterable<S> tags) {
+        var list = new ArrayList<S>();
+        for (var tag: tags){
+            list.add((S) save(tag));
+        }
+        return list;
     }
 
     @Override
@@ -63,6 +79,7 @@ public class SqlTagRepository implements TagRepository {
         return result.isEmpty() ? Optional.empty() : Optional.of(result.getFirst());
     }
 
+    //todo: ошибка TgId -> ChatId
     @Override
     public Optional<Tag> findByTgIdAndTag(final Long tgId, final String tag) {
         var sql =

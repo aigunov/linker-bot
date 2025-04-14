@@ -1,6 +1,7 @@
 package backend.academy.scrapper.repository.chat;
 
 import backend.academy.scrapper.data.model.Chat;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -67,12 +68,15 @@ public class SqlChatRepository implements ChatRepository {
     }
 
     // todo: переработать
+    @Transactional
     @Override
     public <S extends Chat> List<S> saveAll(Iterable<S> chats) {
+        var list = new ArrayList<S>();
         for (Chat chat : chats) {
-            save(chat);
+            list.add((S) save(chat));
+
         }
-        return List.of();
+        return list;
     }
 
     @Override

@@ -116,6 +116,47 @@ public class SqlFilterRepositoryTest {
 
     @Test
     @Transactional
+    void saveAll_shouldUpsertExistingFilterInsteadOfCreatingNew() {
+        chat = chatRepository.save(chat);
+
+        Filter filter1 = Filter.builder()
+                .chat(chat)
+                .parameter("lang")
+                .value("java")
+                .links(new HashSet<>())
+                .build();
+
+        filter1 = filterRepository.save(filter1);
+
+        var filtersToSave = List.of(
+                Filter.builder()
+                        .chat(chat)
+                        .parameter("lang")
+                        .value("java")
+                        .links(new HashSet<>())
+                        .build(),
+                Filter.builder()
+                        .chat(chat)
+                        .parameter("topic")
+                        .value("spring")
+                        .links(new HashSet<>())
+                        .build()
+        );
+
+        var saved = (List<Filter>) filterRepository.saveAll(filtersToSave);
+
+        assertThat(saved).hasSize(2);
+        assertThat(saved.getFirst().id()).isEqualTo(filter1.id());
+        assertThat(saved.getLast().parameter()).isEqualTo("topic");
+        assertThat(saved.getLast().value()).isEqualTo("spring");
+
+        var all = filterRepository.findAll();
+        assertThat(all).hasSize(2);
+    }
+
+
+    @Test
+    @Transactional
     void deleteById_shouldDeleteFilterAndRemoveFromLinkToFilter() {
         chat = chatRepository.save(chat);
         Filter filter = Filter.builder()

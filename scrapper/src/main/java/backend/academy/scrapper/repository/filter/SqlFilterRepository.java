@@ -1,6 +1,7 @@
 package backend.academy.scrapper.repository.filter;
 
 import backend.academy.scrapper.data.model.Filter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -23,10 +24,12 @@ public class SqlFilterRepository implements FilterRepository {
     @Override
     public Filter save(final Filter filter) {
         GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
-        var sql =
-                """
+        var sql = """
             INSERT INTO filter (chat_id, parameter, value)
             VALUES (:chatId, :parameter, :value)
+            ON CONFLICT (chat_id, parameter, value)
+            DO UPDATE SET parameter = :parameter, value = :value
+            RETURNING id
             """;
         var params = new MapSqlParameterSource()
                 .addValue("chatId", filter.chat().id())
@@ -37,6 +40,16 @@ public class SqlFilterRepository implements FilterRepository {
         filter.id((UUID) keyHolder.getKeys().get("id"));
 
         return filter;
+    }
+
+    @Transactional
+    @Override
+    public <S extends Filter> Iterable<S> saveAll(Iterable<S> filters) {
+        var list = new ArrayList<S>();
+        for (var filter: filters){
+            list.add((S) save(filter));
+        }
+        return filters;
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
