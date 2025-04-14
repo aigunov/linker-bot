@@ -25,7 +25,6 @@ public class SqlLinkRepository implements LinkRepository {
     @Transactional(propagation = Propagation.MANDATORY)
     @Override
     public void deleteById(final UUID id) {
-        // Удаление связей из tag_to_link
         var deleteLinkTagSql =
                 """
             DELETE
@@ -34,7 +33,6 @@ public class SqlLinkRepository implements LinkRepository {
             """;
         jdbc.update(deleteLinkTagSql, new MapSqlParameterSource("linkId", id));
 
-        // Удаление связей из link_to_filter
         var deleteLinkFilterSql =
                 """
             DELETE
@@ -43,7 +41,6 @@ public class SqlLinkRepository implements LinkRepository {
             """;
         jdbc.update(deleteLinkFilterSql, new MapSqlParameterSource("linkId", id));
 
-        // Удаление связей из link_to_chat
         var deleteLinkChatSql =
                 """
             DELETE
@@ -52,7 +49,6 @@ public class SqlLinkRepository implements LinkRepository {
             """;
         jdbc.update(deleteLinkChatSql, new MapSqlParameterSource("linkId", id));
 
-        // Удаление link из таблицы link
         String sql = "DELETE FROM link WHERE id = :id";
         jdbc.update(sql, new MapSqlParameterSource("id", id));
     }
@@ -196,16 +192,12 @@ public class SqlLinkRepository implements LinkRepository {
     public Link save(final Link link) {
         Optional<Link> existingLink = findByUrl(link.url());
         if (existingLink.isPresent()) {
-            // Добавляем новые связи в link_to_chat
             saveLinkToChat(link);
-            // Добавляем новые связи в tag_to_link
             saveLinkToTag(link);
-            // Добавляем новые связи в link_to_filter
             saveLinkToFilter(link);
 
             return existingLink.get();
         } else {
-            // Сохранение новой записи
             KeyHolder keyHolder = new GeneratedKeyHolder();
             String insertLinkSql =
                     """
@@ -217,11 +209,8 @@ public class SqlLinkRepository implements LinkRepository {
                     new MapSqlParameterSource().addValue("url", link.url()).addValue("lastUpdate", link.lastUpdate());
             jdbc.update(insertLinkSql, insertParams, keyHolder);
             link.id((UUID) keyHolder.getKeys().get("id"));
-            // Сохранение связей в link_to_chat
             saveLinkToChat(link);
-            // Сохранение связей в tag_to_link
             saveLinkToTag(link);
-            // Сохранение связей в link_to_filter
             saveLinkToFilter(link);
 
             return link;

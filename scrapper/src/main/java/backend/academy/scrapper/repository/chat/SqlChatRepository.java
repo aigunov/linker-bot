@@ -41,34 +41,6 @@ public class SqlChatRepository implements ChatRepository {
     @Transactional(propagation = Propagation.MANDATORY)
     @Override
     public void deleteById(final UUID id) {
-        // Удаление связей из link_to_chat
-        var deleteLinkChatSql =
-                """
-            DELETE
-            FROM link_to_chat
-            WHERE chat_id = :chatId
-            """;
-        jdbc.update(deleteLinkChatSql, new MapSqlParameterSource("chatId", id));
-
-        // Удаление связей из tag
-        var deleteTagSql =
-                """
-            DELETE
-            FROM tag
-            WHERE chat_id = :chatId
-            """;
-        jdbc.update(deleteTagSql, new MapSqlParameterSource("chatId", id));
-
-        // Удаление связей из filter
-        var deleteFilterSql =
-                """
-            DELETE
-            FROM filter
-            WHERE chat_id = :chatId
-            """;
-        jdbc.update(deleteFilterSql, new MapSqlParameterSource("chatId", id));
-
-        // Удаление chat из таблицы chat
         var sql = """
             DELETE
             FROM chat
@@ -80,40 +52,7 @@ public class SqlChatRepository implements ChatRepository {
     @Transactional
     @Override
     public void deleteByTgId(final Long tgId) {
-        // Удаление связей из link_to_chat
-        String deleteLinkChatSql =
-                """
-                DELETE
-                FROM link_to_chat
-            WHERE chat_id = (SELECT id
-                             FROM chat
-                             WHERE tg_id = :tgId)
-                """;
-        jdbc.update(deleteLinkChatSql, new MapSqlParameterSource("tgId", tgId));
 
-        // Удаление связей из tag
-        var deleteTagSql =
-                """
-            DELETE
-            FROM tag
-            WHERE chat_id IN (SELECT id
-                              FROM chat
-                              WHERE tg_id = :tgId)
-            """;
-        jdbc.update(deleteTagSql, new MapSqlParameterSource("tgId", tgId));
-
-        // Удаление связей из filter
-        var deleteFilterSql =
-                """
-            DELETE
-            FROM filter
-            WHERE chat_id IN (SELECT id
-                              FROM chat
-                              WHERE tg_id = :tgId)
-            """;
-        jdbc.update(deleteFilterSql, new MapSqlParameterSource("tgId", tgId));
-
-        // Удаление chat из таблицы chat
         String sql = """
             DELETE
             FROM chat

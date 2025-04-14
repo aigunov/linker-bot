@@ -231,6 +231,6 @@ public class SqlLinkRepositoryTest {
 
         List<Link> result = (List<Link>) linkRepository.findLinksByTgIdAndTags(chat.tgId(), List.of("spring"));
         assertThat(result).hasSize(1);
-        assertThat(result.get(0).url()).isEqualTo("https://spring.dev");
+        assertThat(result.getFirst().url()).isEqualTo("https://spring.dev");
     }
 }

@@ -32,9 +32,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Import({
     SqlChatRepository.class,
     MigrationsRunner.class,
-    SqlLinkRepository.class,
     SqlTagRepository.class,
-    SqlFilterRepository.class
 })
 @Testcontainers
 @TestPropertySource(properties = "app.db.access-type=sql")
@@ -57,12 +55,6 @@ public class SqlTagRepositoryTest {
 
     @Autowired
     private TagRepository tagRepository;
-
-    @Autowired
-    private LinkRepository linkRepository;
-
-    @Autowired
-    private FilterRepository filterRepository;
 
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {

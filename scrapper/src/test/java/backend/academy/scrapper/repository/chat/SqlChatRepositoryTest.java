@@ -110,7 +110,6 @@ public class SqlChatRepositoryTest {
         Chat savedChat = chatRepository.save(chat1);
         UUID chatId = savedChat.id();
 
-        // Create related entities
         Tag tag = Tag.builder().chat(savedChat).tag("test_tag").build();
         Filter filter =
                 Filter.builder().chat(savedChat).parameter("param").value("val").build();
@@ -122,14 +121,13 @@ public class SqlChatRepositoryTest {
                 .filters(Set.of(filter))
                 .build();
 
-        tag = tagRepository.save(tag);
-        filter = filterRepository.save(filter);
-        link = linkRepository.save(link);
+        tagRepository.save(tag);
+        filterRepository.save(filter);
+        linkRepository.save(link);
 
         chatRepository.deleteById(chatId);
         assertThat(chatRepository.findById(chatId)).isEmpty();
 
-        // Verify related entities are deleted
         assertThat(jdbcTemplate.queryForList("SELECT * FROM link_to_chat WHERE chat_id = ?", UUID.class, chatId))
                 .isEmpty();
         assertThat(jdbcTemplate.queryForList("SELECT * FROM tag WHERE chat_id = ?", UUID.class, chatId))
@@ -155,14 +153,13 @@ public class SqlChatRepositoryTest {
                 .filters(Set.of(filter))
                 .build();
 
-        tag = tagRepository.save(tag);
-        filter = filterRepository.save(filter);
-        link = linkRepository.save(link);
+        tagRepository.save(tag);
+        filterRepository.save(filter);
+        linkRepository.save(link);
 
         chatRepository.deleteByTgId(tgId);
         assertThat(chatRepository.findByTgId(tgId)).isEmpty();
 
-        // Verify related entities are deleted
         assertThat(jdbcTemplate.queryForList("SELECT * FROM link_to_chat WHERE chat_id = ?", UUID.class, chatId))
                 .isEmpty();
         assertThat(jdbcTemplate.queryForList("SELECT * FROM tag WHERE chat_id = ?", UUID.class, chatId))
