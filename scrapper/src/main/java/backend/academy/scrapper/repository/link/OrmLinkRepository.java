@@ -46,13 +46,8 @@ public interface OrmLinkRepository extends LinkRepository, JpaRepository<Link, U
     @Override
     List<Link> findAllByTgId(@Param("tgId") Long tgId);
 
-    @Query("""
-        SELECT l
-        FROM Link l
-        WHERE l.url = :url
-        """)
     @Override
-    Optional<Link> findByUrl(@Param("url") String url);
+    Optional<Link> findByUrl(String url);
 
     @EntityGraph(attributePaths = {"chats"})
     @Query("SELECT l FROM Link as l")

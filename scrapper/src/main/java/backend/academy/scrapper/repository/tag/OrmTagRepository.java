@@ -14,17 +14,16 @@ import org.springframework.stereotype.Repository;
 @ConditionalOnProperty(prefix = "app.db", name = "access-type", havingValue = "orm")
 public interface OrmTagRepository extends TagRepository, JpaRepository<Tag, UUID> {
 
-    @Query(
-            value =
-                    """
-        SELECT t.*
-        FROM tag AS t
-        JOIN chat AS c ON t.chat_id = c.id
-        WHERE c.tg_id = :tgId
-        """,
-            nativeQuery = true)
+    @Query(value =
+            """
+                SELECT t.*
+                FROM tag AS t
+                JOIN chat AS c ON t.chat_id = c.id
+                WHERE c.tg_id = :tgId
+                """,
+        nativeQuery = true)
     @Override
-    List<Tag> findAllByTgId(final @Param("tgId") Long chatId);
+    List<Tag> findAllByTgId(final @Param("tgId") Long tgId);
 
     @Query(
             value =

@@ -13,20 +13,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 @ConditionalOnProperty(prefix = "app.db", name = "access-type", havingValue = "orm")
 public interface OrmChatRepository extends ChatRepository, JpaRepository<Chat, UUID> {
-    @Override
-    @Query("""
-        SELECT c
-        FROM Chat c
-        WHERE c.tgId = :tgId
-        """)
-    Optional<Chat> findByTgId(final @Param("tgId") Long tgId);
+    Optional<Chat> findByTgId(Long tgId);
 
-    @Override
-    @Modifying
-    @Query("""
-        DELETE
-        FROM Chat c
-        WHERE c.tgId = :tgId
-        """)
-    void deleteByTgId(final @Param("tgId") Long tgId);
+    void deleteByTgId(Long tgId);
 }

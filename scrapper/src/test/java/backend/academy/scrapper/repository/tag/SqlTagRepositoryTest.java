@@ -186,7 +186,7 @@ public class SqlTagRepositoryTest {
 
     @Test
     @Transactional
-    void findAllByChatIdAndNotInTagToLinkTable_shouldReturnEmptyWhenAssociationExists() {
+    void findAllByTgIdIdAndNotInTagToLinkTable_shouldReturnEmptyWhenAssociationExists() {
         chat = chatRepository.save(chat);
         Tag tag = Tag.builder()
                 .chat(chat)

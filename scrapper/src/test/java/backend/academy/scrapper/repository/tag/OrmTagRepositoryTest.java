@@ -106,7 +106,7 @@ public class OrmTagRepositoryTest {
 
     @Test
     @Transactional
-    void findAllByChatIdAndNotInTagToLinkTable_shouldReturnTagIfNotLinked() {
+    void findAllByTgIdIdAndNotInTagToLinkTable_shouldReturnTagIfNotLinked() {
         Tag tag = tagRepository.save(Tag.builder()
                 .chat(chat)
                 .tag("unlinked_tag")

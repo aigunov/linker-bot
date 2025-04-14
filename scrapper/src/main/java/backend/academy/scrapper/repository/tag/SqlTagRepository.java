@@ -126,6 +126,7 @@ public class SqlTagRepository implements TagRepository {
         jdbc.update("DELETE FROM Tag", new MapSqlParameterSource());
     }
 
+    //todo: tgid -> chatid
     @Override
     public List<Tag> findAllByTgId(final Long tgId) {
         var sql =

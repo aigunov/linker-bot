@@ -20,7 +20,7 @@ public interface TagRepository {
 
     Iterable<Tag> findAllByChatIdAndNotInTagToLinkTable(UUID chatId);
 
-    Iterable<Tag> findAllByTgId(Long chatId);
+    Iterable<Tag> findAllByTgId(Long tgId);
 
     Iterable<Tag> findAll();
 }

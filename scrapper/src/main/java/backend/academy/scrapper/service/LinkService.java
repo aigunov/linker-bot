@@ -34,31 +34,30 @@ public class LinkService {
 
     // TODO: В дальнейшем переработать этот метод чтобы происходила фильтрация поиска и по фильтрам
     @Transactional(readOnly = true)
-    public ListLinkResponse getAllTrackedLinks(Long chatId, GetLinksRequest linksRequest) {
-        chatRepository.findByTgId(chatId).orElseThrow(() -> new ChatException("Чат с tg-id %d не найден", chatId));
+    public ListLinkResponse getAllTrackedLinks(Long tgId, GetLinksRequest linksRequest) {
+        chatRepository.findByTgId(tgId).orElseThrow(() -> new ChatException("Чат с tg-id %d не найден", tgId));
         List<Link> links;
 
         if (linksRequest.tags() != null && !linksRequest.tags().isEmpty()) {
-            links = (List<Link>) linkRepository.findLinksByTgIdAndTags(chatId, linksRequest.tags());
+            links = (List<Link>) linkRepository.findLinksByTgIdAndTags(tgId, linksRequest.tags());
         } else {
-            links = (List<Link>) linkRepository.findAllByTgId(chatId);
+            links = (List<Link>) linkRepository.findAllByTgId(tgId);
         }
         var linksResponse = links.stream().map(Mapper::linkToLinkResponse).toList();
         log.info("Get links: {}", linksResponse);
         return ListLinkResponse.builder().linkResponses(linksResponse).build();
     }
 
-    // Да, я знаю что в этом методе идет запросы в циклах,
-    // но хоть убейте ничего другого из-за сложной логики ничего лучше не придумал
-    @Transactional
-    public LinkResponse addTrackedLink(Long chatId, AddLinkRequest request) {
-        var chat = chatRepository
-                .findByTgId(chatId)
-                .orElseThrow(() -> new ChatException("Чат с tg-id %d не найден", chatId));
 
-        linkRepository.findByTgIdAndUrl(chatId, request.uri()).ifPresent(x -> {
+    @Transactional
+    public LinkResponse addTrackedLink(Long tgId, AddLinkRequest request) {
+        var chat = chatRepository
+                .findByTgId(tgId)
+                .orElseThrow(() -> new ChatException("Чат с tg-id %d не найден", tgId));
+
+        linkRepository.findByTgIdAndUrl(tgId, request.uri()).ifPresent(x -> {
             var message = String.format(
-                    "У пользователя с tg-id %d, уже существует ссылка %s в отслеживании", chatId, request.uri());
+                    "У пользователя с tg-id %d, уже существует ссылка %s в отслеживании", tgId, request.uri());
             log.error(message);
             throw new LinkException(message);
         });

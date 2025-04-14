@@ -17,12 +17,12 @@ public class TagService {
     private final ChatRepository chatRepository;
     private final TagRepository tagRepository;
 
-    public GetTagsResponse getUserTags(final Long chatId) {
-        chatRepository.findByTgId(chatId).orElseThrow(() -> new ChatException("Чат с tg-id %d не найден", chatId));
+    public GetTagsResponse getUserTags(final Long tgId) {
+        chatRepository.findByTgId(tgId).orElseThrow(() -> new ChatException("Чат с tg-id %d не найден", tgId));
 
-        var tags = ((List<Tag>) tagRepository.findAllByTgId(chatId))
+        var tags = ((List<Tag>) tagRepository.findAllByTgId(tgId))
                 .stream().map(Tag::tag).toList();
-        log.info("Found tg-id chat {} tags {}", chatId, tags);
+        log.info("Found tg-id chat {} tags {}", tgId, tags);
         return GetTagsResponse.builder().tags(tags).build();
     }
 }
