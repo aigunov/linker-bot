@@ -17,7 +17,6 @@ import dto.RemoveLinkRequest;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.StreamSupport;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -48,12 +47,10 @@ public class LinkService {
         return ListLinkResponse.builder().linkResponses(linksResponse).build();
     }
 
-
     @Transactional
     public LinkResponse addTrackedLink(Long tgId, AddLinkRequest request) {
-        var chat = chatRepository
-                .findByTgId(tgId)
-                .orElseThrow(() -> new ChatException("Чат с tg-id %d не найден", tgId));
+        var chat =
+                chatRepository.findByTgId(tgId).orElseThrow(() -> new ChatException("Чат с tg-id %d не найден", tgId));
 
         linkRepository.findByTgIdAndUrl(tgId, request.uri()).ifPresent(x -> {
             var message = String.format(
@@ -64,22 +61,22 @@ public class LinkService {
         Set<Tag> tags = new HashSet<>();
 
         if (!request.tags().isEmpty()) {
-            tags = (Set<Tag>) tagRepository
-                .saveAll(request.tags().stream().map(tag ->
-                    Mapper.tagDtoToTag(tag, chat)).toList());
+            tags = (Set<Tag>) tagRepository.saveAll(request.tags().stream()
+                    .map(tag -> Mapper.tagDtoToTag(tag, chat))
+                    .toList());
         }
 
         Set<Filter> filters = new HashSet<>();
 
-        if (!request.filters().isEmpty()){
+        if (!request.filters().isEmpty()) {
             filters = (Set<Filter>) filterRepository.saveAll(request.filters().stream()
-                .map(filter -> filter.split(":"))
-                .map(filterValues ->
-                {
-                    var param = filterValues[0];
-                    var value = filterValues[1];
-                    return Mapper.filterDtoToFilter(param, value, chat);
-                }).toList());
+                    .map(filter -> filter.split(":"))
+                    .map(filterValues -> {
+                        var param = filterValues[0];
+                        var value = filterValues[1];
+                        return Mapper.filterDtoToFilter(param, value, chat);
+                    })
+                    .toList());
         }
 
         var linkToSave = Mapper.linkRequestToLink(request.uri(), chat, tags, filters);

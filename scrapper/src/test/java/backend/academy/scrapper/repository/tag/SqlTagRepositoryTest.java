@@ -1,10 +1,15 @@
 package backend.academy.scrapper.repository.tag;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import backend.academy.scrapper.config.MigrationsRunner;
 import backend.academy.scrapper.data.model.Chat;
 import backend.academy.scrapper.data.model.Tag;
 import backend.academy.scrapper.repository.chat.ChatRepository;
 import backend.academy.scrapper.repository.chat.SqlChatRepository;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,12 +23,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @JdbcTest
 @Import({
@@ -99,18 +98,12 @@ public class SqlTagRepositoryTest {
     @Transactional
     void saveTag_shouldUpsertTagInsteadOfCreatingNew() {
         chat = chatRepository.save(chat);
-        Tag tag = Tag.builder()
-                .chat(chat)
-                .tag("test_tag")
-                .links(new HashSet<>())
-                .build();
+        Tag tag =
+                Tag.builder().chat(chat).tag("test_tag").links(new HashSet<>()).build();
 
         tag = tagRepository.save(tag);
-        var updatedTag = Tag.builder()
-                .chat(chat)
-                .tag("test_tag")
-                .links(new HashSet<>())
-                .build();
+        var updatedTag =
+                Tag.builder().chat(chat).tag("test_tag").links(new HashSet<>()).build();
 
         updatedTag = tagRepository.save(tag);
 
@@ -124,31 +117,17 @@ public class SqlTagRepositoryTest {
     @Transactional
     void saveAll_shouldUpsertExistingTagInsteadOfCreatingNew() {
         chat = chatRepository.save(chat);
-        Tag tag1 = Tag.builder()
-                .chat(chat)
-                .tag("tag_1")
-                .links(new HashSet<>())
-                .build();
+        Tag tag1 = Tag.builder().chat(chat).tag("tag_1").links(new HashSet<>()).build();
 
         tag1 = tagRepository.save(tag1);
         var tags = List.of(
-                Tag.builder()
-                        .chat(chat)
-                        .tag("tag_1")
-                        .links(new HashSet<>())
-                        .build(),
-
-                Tag.builder()
-                        .chat(chat)
-                        .tag("tag_2")
-                        .links(new HashSet<>())
-                        .build());
+                Tag.builder().chat(chat).tag("tag_1").links(new HashSet<>()).build(),
+                Tag.builder().chat(chat).tag("tag_2").links(new HashSet<>()).build());
         tags = (List<Tag>) tagRepository.saveAll(tags);
 
         assertThat(tags).hasSize(2);
         assertThat(tag1.id()).isEqualTo(tags.getFirst().id());
         assertThat(tags.getLast().tag()).isEqualTo("tag_2");
-
     }
 
     @Test

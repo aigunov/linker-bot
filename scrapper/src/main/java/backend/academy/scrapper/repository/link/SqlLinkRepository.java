@@ -2,6 +2,7 @@ package backend.academy.scrapper.repository.link;
 
 import backend.academy.scrapper.data.model.Link;
 import backend.academy.scrapper.exception.SqlRepositoryException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -217,7 +218,6 @@ public class SqlLinkRepository implements LinkRepository {
         }
     }
 
-    // todo: удаление связанных
     @Override
     public void deleteAll() {
         var sql = """
@@ -280,13 +280,13 @@ public class SqlLinkRepository implements LinkRepository {
         });
     }
 
-    // todo: переработать
     @Transactional(propagation = Propagation.MANDATORY)
     @Override
     public <S extends Link> List<S> saveAll(Iterable<S> links) {
+        var list = new ArrayList<S>();
         for (Link link : links) {
-            save(link);
+            list.add((S) save(link));
         }
-        return List.of();
+        return list;
     }
 }

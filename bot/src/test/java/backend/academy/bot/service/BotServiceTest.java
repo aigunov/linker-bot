@@ -55,19 +55,6 @@ class BotServiceTest {
         botService.setTelegramBot(telegramBot);
     }
 
-    // TODO: переделать тест
-    @Test
-    void getTrackingLinks_shouldCallClientAndReturnBody() {
-        //        Long chatId = 123L;
-        //        ListLinkResponse expectedResponse = ListLinkResponse.builder().build();
-        //        when(client.getAllTrackedLinks(chatId)).thenReturn(ResponseEntity.ok(expectedResponse));
-        //
-        //        Object result = botService.getTrackingLinks(chatId);
-        //
-        //        assertThat(result).isEqualTo(expectedResponse);
-        //        verify(client).getAllTrackedLinks(chatId);
-    }
-
     @Test
     void chatRegistration_shouldCallClientAndReturnBody() {
         Update update = Mockito.mock(Update.class);

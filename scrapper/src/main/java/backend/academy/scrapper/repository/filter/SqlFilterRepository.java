@@ -24,7 +24,8 @@ public class SqlFilterRepository implements FilterRepository {
     @Override
     public Filter save(final Filter filter) {
         GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
-        var sql = """
+        var sql =
+                """
             INSERT INTO filter (chat_id, parameter, value)
             VALUES (:chatId, :parameter, :value)
             ON CONFLICT (chat_id, parameter, value)
@@ -46,7 +47,7 @@ public class SqlFilterRepository implements FilterRepository {
     @Override
     public <S extends Filter> Iterable<S> saveAll(Iterable<S> filters) {
         var list = new ArrayList<S>();
-        for (var filter: filters){
+        for (var filter : filters) {
             list.add((S) save(filter));
         }
         return filters;

@@ -140,8 +140,7 @@ public class SqlFilterRepositoryTest {
                         .parameter("topic")
                         .value("spring")
                         .links(new HashSet<>())
-                        .build()
-        );
+                        .build());
 
         var saved = (List<Filter>) filterRepository.saveAll(filtersToSave);
 
@@ -153,7 +152,6 @@ public class SqlFilterRepositoryTest {
         var all = filterRepository.findAll();
         assertThat(all).hasSize(2);
     }
-
 
     @Test
     @Transactional

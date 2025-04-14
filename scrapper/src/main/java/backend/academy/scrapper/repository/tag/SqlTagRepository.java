@@ -23,16 +23,16 @@ public class SqlTagRepository implements TagRepository {
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
     public Tag save(Tag tag) {
-        var tagSql = """
+        var tagSql =
+                """
             INSERT INTO tag(chat_id, tag)
             VALUES (:chatId, :tag)
             ON CONFLICT (chat_id, tag)
             DO UPDATE SET tag = EXCLUDED.tag
             RETURNING id
             """;
-        var tagParams = new MapSqlParameterSource()
-            .addValue("chatId", tag.chat().id())
-            .addValue("tag", tag.tag());
+        var tagParams =
+                new MapSqlParameterSource().addValue("chatId", tag.chat().id()).addValue("tag", tag.tag());
 
         GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
         jdbc.update(tagSql, tagParams, keyHolder);
@@ -45,7 +45,7 @@ public class SqlTagRepository implements TagRepository {
     @Override
     public <S extends Tag> Iterable<S> saveAll(Iterable<S> tags) {
         var list = new ArrayList<S>();
-        for (var tag: tags){
+        for (var tag : tags) {
             list.add((S) save(tag));
         }
         return list;
@@ -79,7 +79,6 @@ public class SqlTagRepository implements TagRepository {
         return result.isEmpty() ? Optional.empty() : Optional.of(result.getFirst());
     }
 
-    //todo: ошибка TgId -> ChatId
     @Override
     public Optional<Tag> findByTgIdAndTag(final Long tgId, final String tag) {
         var sql =
@@ -120,13 +119,11 @@ public class SqlTagRepository implements TagRepository {
         jdbc.update(sql, new MapSqlParameterSource("ids", tagIds));
     }
 
-    // todo: удаление всех связанных
     @Override
     public void deleteAll() {
         jdbc.update("DELETE FROM Tag", new MapSqlParameterSource());
     }
 
-    //todo: tgid -> chatid
     @Override
     public List<Tag> findAllByTgId(final Long tgId) {
         var sql =
@@ -136,8 +133,7 @@ public class SqlTagRepository implements TagRepository {
             JOIN chat AS c ON t.chat_id = c.id
             WHERE c.tg_id = :tgId
             """;
-        var result = jdbc.query(sql, new MapSqlParameterSource("tgId", tgId), new TagResultSetExtractor());
-        return result;
+        return jdbc.query(sql, new MapSqlParameterSource("tgId", tgId), new TagResultSetExtractor());
     }
 
     @Override
