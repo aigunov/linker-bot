@@ -50,7 +50,7 @@ public class ScrapperClient {
         return makeAndSendRequest(TG_CHAT + "/{chatId}", HttpMethod.DELETE, headers, null, String.class, chatId);
     }
 
-    public ResponseEntity<Object> getAllTrackedLinks(final Long chatId, final GetLinksRequest linksRequest) {
+    public ResponseEntity<Object> getAllLinks(final Long chatId, final GetLinksRequest linksRequest) {
         log.info("Request: get all tracked links");
         Map<String, String> headers = new HashMap<>();
         headers.put("Tg-Chat-Id", String.valueOf(chatId));
@@ -86,7 +86,6 @@ public class ScrapperClient {
             Class<E> responseType,
             Object... uriParameters) {
         log.info("Request: {} {}, headers: {}, body: {}", httpMethod, uri, headers, body);
-
         RestClient.RequestHeadersSpec<?> requestSpec = restClient
                 .method(httpMethod)
                 .uri(uri, uriParameters)
@@ -95,6 +94,7 @@ public class ScrapperClient {
                 .headers(httpHeaders -> headers.forEach(httpHeaders::add));
 
         try {
+
             ResponseEntity<E> response = requestSpec.retrieve().toEntity(responseType);
             log.info("Response: {} {}", response.getStatusCode(), response.getBody());
             return ResponseEntity.status(response.getStatusCode()).body(response.getBody());

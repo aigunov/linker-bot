@@ -53,7 +53,6 @@ public class GitHubClient extends AbstractUpdateCheckingClient {
                     issuesResponse.getBody(),
                     objectMapper.getTypeFactory().constructCollectionType(List.class, GitHubIssue.class));
 
-            // Получаем список pull requests
             ResponseEntity<String> prsResponse = restClient
                     .get()
                     .uri(apiUrl + "/pulls?state=all")

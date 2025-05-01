@@ -50,7 +50,7 @@ class BotServiceTest {
 
     @BeforeEach
     void setUp() {
-        addLinkRequestService = new AddLinkRequestService();
+//        addLinkRequestService = new AddLinkRequestService();
         botService = new BotService(client, addLinkRequestService, listRequestService);
         botService.setTelegramBot(telegramBot);
     }

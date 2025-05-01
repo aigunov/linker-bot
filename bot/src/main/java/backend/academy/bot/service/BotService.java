@@ -20,6 +20,8 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -40,11 +42,15 @@ public class BotService {
         this.telegramBot = telegramBot;
     }
 
-    public Object getTrackingLinks(Long chatId) {
+    //todo: имя кэша конфигурируемое
+    @Cacheable(value = "trackedLinks", key = "#chatId",
+        unless = "#result instanceof T(dto.ApiErrorResponse)"
+    )
+    public Object getAllLinks(Long chatId) {
         try {
             log.info("Fetching tracked links for chatId: {}", chatId);
             var requestBody = listRequestService.getListRequest(chatId);
-            var responseEntity = client.getAllTrackedLinks(
+            var responseEntity = client.getAllLinks(
                     chatId, requestBody == null ? GetLinksRequest.builder().build() : requestBody);
 
             if (responseEntity.getStatusCode().is2xxSuccessful()) {
@@ -103,6 +109,7 @@ public class BotService {
         }
     }
 
+    @CacheEvict(value="trackedLinks", key = "#chatId")
     public Object commitLinkTracking(Long chatId) {
         try {
             AddLinkRequest linkRequest = addLinkRequestService.getLinkRequest(chatId);
@@ -126,6 +133,7 @@ public class BotService {
         }
     }
 
+    @CacheEvict(value="trackedLinks", key = "#chatId")
     public Object commitLinkUntrack(Long chatId, String message) {
         try {
             var responseEntity = client.removeTrackedLink(chatId, new RemoveLinkRequest(message));

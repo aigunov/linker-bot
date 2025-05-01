@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Spliterator;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -72,7 +73,7 @@ public class ScrapperService {
                 for (Future<?> future : futures) {
                     try {
                         future.get();
-                    } catch (Exception e) {
+                    } catch (NullPointerException | InterruptedException | ExecutionException e) {
                         log.error("Error in processing link batch", e);
                     }
                 }

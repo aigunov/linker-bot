@@ -1,11 +1,13 @@
 package backend.academy.bot.state;
 
 import backend.academy.bot.exception.TelegramApiException;
+import backend.academy.bot.service.ListRequestService;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.model.request.ParseMode;
 import com.pengrad.telegrambot.request.SendMessage;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -18,9 +20,12 @@ public class MenuState extends StateImpl {
     private static final String tag_button = "/tags";
     private static final List<String> buttons =
             List.of(track_button, untrack_button, list_button, help_button, tag_button);
+    private final ListRequestService listRequestService;
 
-    public MenuState() {
+    @Autowired
+    public MenuState(ListRequestService listRequestService, ListRequestService listRequestService1) {
         super(ChatState.MENU, "Главное меню");
+        this.listRequestService = listRequestService1;
     }
 
     @Override
@@ -43,7 +48,10 @@ public class MenuState extends StateImpl {
             switch (button) {
                 case track_button -> stateManager.navigate(update, ChatState.TRACK);
                 case untrack_button -> stateManager.navigate(update, ChatState.UNTRACKED);
-                case list_button -> stateManager.navigate(update, ChatState.INSERT_TAGS_TO_SEARCH);
+                case list_button -> {
+                    listRequestService.createListRequest(update.message().chat().id());
+                    stateManager.navigate(update, ChatState.INSERT_TAGS_TO_SEARCH);
+                }
                 case help_button -> stateManager.navigate(update, ChatState.HELP);
                 case tag_button -> stateManager.navigate(update, ChatState.TAGS);
                 default -> {
