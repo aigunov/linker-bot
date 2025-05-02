@@ -90,6 +90,10 @@ public class ScrapperService {
         for (int i = 0; i < threadsCount; i++) {
             Spliterator<Link> chunkSpliterator = (i < threadsCount - 1) ? spliterator.trySplit() : spliterator;
 
+            if (chunkSpliterator == null) {
+                continue;
+            }
+
             futures.add(executorService.submit(() -> {
                 StreamSupport.stream(chunkSpliterator, false).forEach(this::processLink);
             }));
