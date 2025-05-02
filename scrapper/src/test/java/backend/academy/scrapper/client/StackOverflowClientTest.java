@@ -1,11 +1,19 @@
 package backend.academy.scrapper.client;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import backend.academy.scrapper.config.GitHubConfig;
+import backend.academy.scrapper.config.StackOverflowConfig;
+import backend.academy.scrapper.data.dto.UpdateInfo;
 import backend.academy.scrapper.exception.StackOverflowApiException;
+import backend.academy.scrapper.service.LinkToApiRequestConverter;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
@@ -16,116 +24,192 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
 
 @SpringBootTest
-@TestPropertySource(properties = {"app.stackoverflow.url=http://localhost:8089/questions"})
+@EnableConfigurationProperties({GitHubConfig.class, StackOverflowConfig.class})
+@TestPropertySource(
+        properties = {
+            "app.github.url=http://localhost:8089/repos",
+            "app.github.token=test-token",
+            "app.stackoverflow.key=test-key",
+            "app.stackoverflow.access_token=test-access",
+            "app.stackoverflow.url=http://localhost:8089/stackoverflow"
+        })
 class StackOverflowClientTest {
+    @Container
+    static final PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres:17.4")
+            .withDatabaseName("scrapper_db")
+            .withUsername("aigunov")
+            .withPassword("12345");
 
     @Autowired
-    @Qualifier("stackOverflowClient")
     private StackOverflowClient stackOverflowClient;
+
+    @Autowired
+    private LinkToApiRequestConverter converterApi;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     private WireMockServer wireMockServer;
 
+    @DynamicPropertySource
+    static void configureTestProperties(DynamicPropertyRegistry registry) {
+        postgresContainer.start();
+        registry.add("spring.datasource.url", postgresContainer::getJdbcUrl);
+        registry.add("spring.datasource.username", postgresContainer::getUsername);
+        registry.add("spring.datasource.password", postgresContainer::getPassword);
+        registry.add("spring.datasource.driver-class-name", postgresContainer::getDriverClassName);
+        registry.add("spring.jpa.hibernate.ddl-auto", () -> "none");
+        registry.add("app.scrapper.page-size", () -> 10);
+        registry.add("app.scrapper.threads-count", () -> 1);
+        registry.add("app.scrapper.scheduled-time", () -> 100000);
+        registry.add("app.db.access-type", () -> "orm");
+    }
+
     @BeforeEach
     void setUp() {
-        // arrange
         wireMockServer = new WireMockServer(WireMockConfiguration.options().port(8089));
         wireMockServer.start();
-        WireMock.configureFor(8089);
+        WireMock.configureFor("localhost", 8089);
     }
 
     @AfterEach
     void tearDown() {
-        // arrange
         wireMockServer.stop();
     }
 
     @Test
-    void checkUpdates_success() {
-        // arrange
-        String stackOverflowUrl = "https://stackoverflow.com/questions/12345678/test-question";
-        String apiPath = "/questions/12345678?order=desc&sort=activity&site=ru.stackoverflow";
-        long lastActivityDate = 1700000000L;
-        String responseBody = "{\"items\": [{\"last_activity_date\": " + lastActivityDate + "}]}";
+    void checkUpdates_ShouldReturnLatestAnswer_WhenAnswersExist() throws JsonProcessingException {
+        // Given
+        String questionUrl = "https://stackoverflow.com/questions/12345678/some-question";
+        String apiUrl = "/stackoverflow/12345678?order=desc&sort=activity&site=ru.stackoverflow";
 
-        wireMockServer.stubFor(WireMock.get(WireMock.urlEqualTo(apiPath))
-                .willReturn(WireMock.aResponse()
+        String responseJson =
+                """
+            {
+                "items": [
+                    {
+                        "title": "Как настроить Spring Boot?",
+                        "answers": [
+                            {
+                                "creation_date": 1712345678,
+                                "body": "Используйте @SpringBootApplication...",
+                                "owner": { "display_name": "user1" }
+                            }
+                        ],
+                        "comments": [
+                            {
+                                "creation_date": 1712345600,
+                                "body": "Попробуйте добавить зависимость...",
+                                "owner": { "display_name": "user2" }
+                            }
+                        ]
+                    }
+                ]
+            }
+            """;
+
+        stubFor(get(urlEqualTo(apiUrl))
+                .willReturn(aResponse()
                         .withStatus(200)
                         .withHeader("Content-Type", "application/json")
-                        .withBody(responseBody)));
+                        .withBody(responseJson)));
 
-        // act
-        Optional<LocalDateTime> result = stackOverflowClient.checkUpdates(stackOverflowUrl);
+        // When
+        Optional<UpdateInfo> updateInfo = stackOverflowClient.checkUpdates(questionUrl);
 
-        // assert
-        assertTrue(result.isPresent());
-        assertEquals(LocalDateTime.ofEpochSecond(lastActivityDate, 0, ZoneOffset.UTC), result.get());
+        // Then
+        assertThat(updateInfo).isPresent();
+        assertThat(updateInfo.get().type()).isEqualTo("answer");
+        assertThat(updateInfo.get().username()).isEqualTo("user1");
+        assertThat(updateInfo.get().date()).isEqualTo(LocalDateTime.ofEpochSecond(1712345678, 0, ZoneOffset.UTC));
     }
 
     @Test
-    void checkUpdates_clientError() {
-        // arrange
-        String stackOverflowUrl = "https://stackoverflow.com/questions/12345678/test-question";
-        String apiPath = "/questions/12345678?order=desc&sort=activity&site=ru.stackoverflow";
+    void checkUpdates_ShouldReturnLatestComment_WhenNoAnswersButCommentsExist() {
+        // Given
+        String questionUrl = "https://stackoverflow.com/questions/12345678/some-question";
+        String apiUrl = "/stackoverflow/12345678?order=desc&sort=activity&site=ru.stackoverflow";
 
-        wireMockServer.stubFor(WireMock.get(WireMock.urlEqualTo(apiPath))
-                .willReturn(WireMock.aResponse().withStatus(404)));
+        String responseJson =
+                """
+            {
+                "items": [
+                    {
+                        "title": "Как настроить Spring Boot?",
+                        "answers": [],
+                        "comments": [
+                            {
+                                "creation_date": 1712345600,
+                                "body": "Попробуйте добавить зависимость...",
+                                "owner": { "display_name": "user2" }
+                            }
+                        ]
+                    }
+                ]
+            }
+            """;
 
-        // act & assert
-        assertThrows(StackOverflowApiException.class, () -> stackOverflowClient.checkUpdates(stackOverflowUrl));
-    }
-
-    @Test
-    void checkUpdates_serverError() {
-        // arrange
-        String stackOverflowUrl = "https://stackoverflow.com/questions/12345678/test-question";
-        String apiPath = "/questions/12345678?order=desc&sort=activity&site=ru.stackoverflow";
-
-        wireMockServer.stubFor(WireMock.get(WireMock.urlEqualTo(apiPath))
-                .willReturn(WireMock.aResponse().withStatus(500)));
-
-        // act & assert
-        assertThrows(StackOverflowApiException.class, () -> stackOverflowClient.checkUpdates(stackOverflowUrl));
-    }
-
-    @Test
-    void checkUpdates_jsonParsingError() {
-        // arrange
-        String stackOverflowUrl = "https://stackoverflow.com/questions/12345678/test-question";
-        String apiPath = "/questions/12345678?order=desc&sort=activity&site=ru.stackoverflow";
-        String invalidResponseBody = "{\"items\": [{\"last_activity_date\": \"invalid-date\"}]}";
-
-        wireMockServer.stubFor(WireMock.get(WireMock.urlEqualTo(apiPath))
-                .willReturn(WireMock.aResponse()
+        stubFor(get(urlEqualTo(apiUrl))
+                .willReturn(aResponse()
                         .withStatus(200)
                         .withHeader("Content-Type", "application/json")
-                        .withBody(invalidResponseBody)));
+                        .withBody(responseJson)));
 
-        // act & assert
-        assertThrows(StackOverflowApiException.class, () -> stackOverflowClient.checkUpdates(stackOverflowUrl));
+        // When
+        Optional<UpdateInfo> updateInfo = stackOverflowClient.checkUpdates(questionUrl);
+
+        // Then
+        assertThat(updateInfo).isPresent();
+        assertThat(updateInfo.get().type()).isEqualTo("comment");
     }
 
     @Test
-    void checkUpdates_emptyItems() {
-        // arrange
-        String stackOverflowUrl = "https://stackoverflow.com/questions/12345678/test-question";
-        String apiPath = "/questions/12345678?order=desc&sort=activity&site=ru.stackoverflow";
-        String emptyItemsResponseBody = "{\"items\": []}";
+    void checkUpdates_ShouldReturnEmpty_WhenNoUpdates() {
+        // Given
+        String questionUrl = "https://stackoverflow.com/questions/12345678/some-question";
+        String apiUrl = "/stackoverflow/12345678?order=desc&sort=activity&site=ru.stackoverflow";
 
-        wireMockServer.stubFor(WireMock.get(WireMock.urlEqualTo(apiPath))
-                .willReturn(WireMock.aResponse()
+        String responseJson = """
+            { "items": [] }
+            """;
+
+        stubFor(get(urlEqualTo(apiUrl))
+                .willReturn(aResponse()
                         .withStatus(200)
                         .withHeader("Content-Type", "application/json")
-                        .withBody(emptyItemsResponseBody)));
+                        .withBody(responseJson)));
 
-        // act
-        Optional<LocalDateTime> result = stackOverflowClient.checkUpdates(stackOverflowUrl);
+        // When
+        Optional<UpdateInfo> updateInfo = stackOverflowClient.checkUpdates(questionUrl);
 
-        // assert
-        assertFalse(result.isPresent());
+        // Then
+        assertThat(updateInfo).isEmpty();
+    }
+
+    @Test
+    void checkUpdates_ShouldThrow_WhenInvalidJsonResponse() {
+        // Given
+        String questionUrl = "https://stackoverflow.com/questions/12345678/some-question";
+        String apiUrl = "/stackoverflow/12345678?order=desc&sort=activity&site=ru.stackoverflow";
+
+        stubFor(get(urlEqualTo(apiUrl))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("{ invalid json }")));
+
+        // When / Then
+        assertThatThrownBy(() -> stackOverflowClient.checkUpdates(questionUrl))
+                .isInstanceOf(StackOverflowApiException.class)
+                .hasMessageContaining("Ошибка при обработке JSON-ответа");
     }
 }

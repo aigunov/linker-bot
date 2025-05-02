@@ -36,7 +36,7 @@ public class RegisterState extends StateImpl {
         var message = botService.chatRegistration(update);
         if (message instanceof ApiErrorResponse error) {
             log.error(
-                    "Error: description={}, code={}, exceptionName={}, exceptionMessage={}",
+                    "Error: message={}, code={}, exceptionName={}, exceptionMessage={}",
                     error.description(),
                     error.code(),
                     error.exceptionName(),

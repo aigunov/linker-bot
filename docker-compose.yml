@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  db:
+    container_name: db
+    image: postgres:latest
+    ports:
+      - "6432:5432"
+    environment:
+      - POSTGRES_PASSWORD=12345
+      - POSTGRES_DB=scrapper_db
+      - POSTGRES_USER=aigunov
+    networks:
+      - backend
+
+  liquibase:
+    container_name: liquibase
+    image: liquibase/liquibase:4.29
+    depends_on:
+      - db
+    command:
+      - --changeLogFile=db.changelog-master.xml
+      - --url=jdbc:postgresql://db:5432/scrapper_db
+      - --username=aigunov
+      - --password=12345
+      - update
+    volumes:
+      - ./migrations:/migrations
+    working_dir: /migrations
+    networks:
+      - backend
+
+networks:
+  backend:

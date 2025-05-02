@@ -7,8 +7,10 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component
 public class JsonToApiErrorResponse {
 
@@ -20,13 +22,15 @@ public class JsonToApiErrorResponse {
         String message = rootNode.path("message").asText();
         String status = rootNode.path("status").asText();
 
-        return ApiErrorResponse.builder()
-                .code(status)
+        var error = ApiErrorResponse.builder()
+                .code(status.isEmpty() ? rootNode.path("code").asText() : status)
                 .exceptionMessage(message)
                 .exceptionName(extractExceptionName(trace))
-                .description(message)
+                .description(message.isEmpty() ? rootNode.path("description").asText() : message)
                 .stacktrace(convertTraceToList(trace))
                 .build();
+        log.info("Converted Json to error: {}", error);
+        return error;
     }
 
     public String extractExceptionName(String trace) {

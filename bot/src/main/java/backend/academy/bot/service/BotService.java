@@ -8,6 +8,7 @@ import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.request.SendMessage;
 import dto.AddLinkRequest;
 import dto.ApiErrorResponse;
+import dto.GetLinksRequest;
 import dto.LinkUpdate;
 import dto.RegisterChatRequest;
 import dto.RemoveLinkRequest;
@@ -30,6 +31,7 @@ public class BotService {
 
     private final ScrapperClient client;
     private final AddLinkRequestService addLinkRequestService;
+    private final ListRequestService listRequestService;
     private TelegramBot telegramBot;
     private final ExecutorService executorService = Executors.newFixedThreadPool(10);
 
@@ -41,7 +43,9 @@ public class BotService {
     public Object getTrackingLinks(Long chatId) {
         try {
             log.info("Fetching tracked links for chatId: {}", chatId);
-            var responseEntity = client.getAllTrackedLinks(chatId);
+            var requestBody = listRequestService.getListRequest(chatId);
+            var responseEntity = client.getAllTrackedLinks(
+                    chatId, requestBody == null ? GetLinksRequest.builder().build() : requestBody);
 
             if (responseEntity.getStatusCode().is2xxSuccessful()) {
                 log.info("Successfully received tracked links for chatId: {}", chatId);
@@ -50,6 +54,24 @@ public class BotService {
                         "Failed to fetch tracked links for chatId: {}. Status code: {}",
                         chatId,
                         responseEntity.getStatusCode());
+            }
+            return responseEntity.getBody();
+        } catch (Exception ex) {
+            log.error("Unexpected error while fetching tracked links for chatId: {}", chatId, ex);
+            throw new TelegramApiException("Произошла ошибка взаимодействия с сервисом Scrapper. Попробуйте позже.");
+        }
+    }
+
+    public Object getTags(long chatId) {
+        try {
+            log.info("Fetching tags for chatId: {}", chatId);
+            var responseEntity = client.getAllTags(chatId);
+
+            if (responseEntity.getStatusCode().is2xxSuccessful()) {
+                log.info("Successfully received tags for chatId: {}", chatId);
+            } else {
+                log.warn(
+                        "Failed to fetch tags for chatId: {}. Status code: {}", chatId, responseEntity.getStatusCode());
             }
             return responseEntity.getBody();
         } catch (Exception ex) {
@@ -142,7 +164,7 @@ public class BotService {
     }
 
     private String formatUpdateMessage(LinkUpdate update) {
-        return "Link updated:\n" + "URL: " + update.url() + "\n" + "Description: " + update.description();
+        return "Link updated:\n" + "URL: " + update.url() + "\n" + "Description: " + update.message();
     }
 
     private List<String> convertStackTraceToList(StackTraceElement[] stackTrace) {

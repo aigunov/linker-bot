@@ -1,43 +1,32 @@
 package backend.academy.bot.state;
 
 import backend.academy.bot.exception.TelegramApiException;
-import backend.academy.bot.service.AddLinkRequestService;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.model.request.ParseMode;
 import com.pengrad.telegrambot.request.SendMessage;
+import dto.ApiErrorResponse;
+import dto.GetTagsResponse;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+@SuppressWarnings(value = {"POTENTIAL_XML_INJECTION"})
+@SuppressFBWarnings(value = {"POTENTIAL_XML_INJECTION"})
 @Slf4j
 @Component("tags-state")
 public class TagsState extends StateImpl {
-    private final AddLinkRequestService trackLinkService;
-
-    private final Integer returningDeep = 2;
-    private static final String next_button = "Далее";
-    private static final String message =
-            """
-        Добавьте теги к ссылке для кластеризации (опционально):
-
-        🔖 Введите теги через пробел (например: работа учеба проекты)
-        🔍 Это поможет быстрее находить и фильтровать ваши ссылки по темам!
-
-        Если теги не нужны, просто нажмите "Далее".
-        """;
-
-    @Autowired
-    public TagsState(AddLinkRequestService trackLinkService) {
-        super(ChatState.TAGS, message);
-        this.trackLinkService = trackLinkService;
+    public TagsState() {
+        super(ChatState.TAGS, "Список используемых тегов:");
     }
 
     @Override
     public void show(long chatId) {
         log.info("Current state: {}", state);
         try {
+            bot.execute(new SendMessage(chatId, message).parseMode(ParseMode.HTML));
+            var message = handleScrapperResponse(botService.getTags(chatId));
             bot.execute(new SendMessage(chatId, message)
-                    .replyMarkup(keyboardFactory.getNextAndBackButtonKeyboard())
+                    .replyMarkup(keyboardFactory.getBackStateKeyboard())
                     .parseMode(ParseMode.HTML));
         } catch (TelegramApiException e) {
             log.info("Error while sending feedback request message: {}", e.getMessage());
@@ -46,35 +35,42 @@ public class TagsState extends StateImpl {
 
     @Override
     public void handle(Update update) {
-        if (update.message().text() != null) {
-            var message = update.message().text();
-            switch (message) {
-                case next_button -> continueWithoutTags(update);
-                case back_button -> cancelLinkInsertion(update);
-                default -> addTagsToLink(update, message);
-            }
+        if (update.message().text() != null && update.message().text().equals(back_button)) {
+            stateManager.navigate(update, ChatState.MENU);
         } else {
             showUnsupportedActionMessage(update);
         }
     }
 
-    private void addTagsToLink(Update update, String message) {
-        var chatId = update.message().chat().id();
-        log.info("Adding tags {}", message);
-        trackLinkService.updateLinkRequestTags(chatId, message);
-        stateManager.navigate(update, ChatState.FILTERS);
+    public String handleScrapperResponse(Object trackingLinks) {
+        return switch (trackingLinks) {
+            case GetTagsResponse links -> formatTags((GetTagsResponse) links);
+            case ApiErrorResponse error -> formatErrorResponse((ApiErrorResponse) error);
+            default -> throw new TelegramApiException("Неизвестный тип");
+        };
     }
 
-    private void cancelLinkInsertion(Update update) {
-        var chatId = update.message().chat().id();
-        log.info("Cancelling link insertion: {}", chatId);
-        bot.execute(new SendMessage(chatId, "Ранее отправленная ссылка будет удалена").parseMode(ParseMode.HTML));
-        trackLinkService.clearLinkRequest(chatId);
-        stateManager.navigate(update, ChatState.MENU);
+    private String formatTags(GetTagsResponse tags) {
+        if (tags.tags().isEmpty()) {
+            return "🏷 <i>Теги отсутствуют</i>\nВы пока не добавили ни одного тега.";
+        }
+        StringBuilder sb = new StringBuilder();
+        sb.append("<b>Используемы теги:</b>\n\n");
+        for (String tag : tags.tags()) {
+            sb.append("🏷 <i>").append(tag).append("</i>\n");
+        }
+        return sb.toString();
     }
 
-    private void continueWithoutTags(Update update) {
-        log.info("Link will be tracked without tags");
-        stateManager.navigate(update, ChatState.FILTERS);
+    public String formatErrorResponse(ApiErrorResponse error) {
+        return String.format(
+                """
+                ❗ <b>Ошибка при выполнении запроса:</b>%n
+                📝 <b>Описание:</b>  %s%n
+                📋 <b>Код ошибки:</b> %s%n
+                🚨 <b>Тип исключения:</b> %s%n
+                💥 <b>Сообщение исключения:</b> %s
+                """,
+                error.description(), error.code(), error.exceptionName(), error.exceptionMessage());
     }
 }

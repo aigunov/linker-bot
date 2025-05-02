@@ -1,8 +1,8 @@
 package backend.academy.scrapper.client;
 
-import java.time.LocalDateTime;
+import backend.academy.scrapper.data.dto.UpdateInfo;
 import java.util.Optional;
 
 public interface UpdateCheckingClient {
-    Optional<LocalDateTime> checkUpdates(String url);
+    Optional<UpdateInfo> checkUpdates(String url);
 }

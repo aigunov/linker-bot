@@ -1,6 +1,8 @@
 package dto;
 
-import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+import lombok.Builder;
 
-public record LinkUpdate(UUID id, String url, String description, List<Long> tgChatIds) {}
+@Builder
+public record LinkUpdate(UUID id, String url, String message, Set<Long> tgChatIds) {}

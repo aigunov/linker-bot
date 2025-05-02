@@ -22,6 +22,8 @@ public class HelpState extends StateImpl {
         <b><i>/track</i></b> - добавить новую ссылку для отслеживания
 
         <b><i>/untrack</i></b> - снять ссылки отслеживание с уже добавленной ссылки
+
+        <b><i>/tags</i></b> - получить список всех ваших тегов
         """;
 
     public HelpState() {

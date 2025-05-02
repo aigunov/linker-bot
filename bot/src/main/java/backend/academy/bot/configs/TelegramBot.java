@@ -50,7 +50,8 @@ public class TelegramBot {
             new BotCommand("/help", "Получить справку"),
             new BotCommand("/track", "Добавить ссылку для отслеживания"),
             new BotCommand("/untrack", "Удалить ссылку из отслеживания"),
-            new BotCommand("/list", "Получить список отслеживаемых ссылок")
+            new BotCommand("/list", "Получить список отслеживаемых ссылок"),
+            new BotCommand("/tags", "Получить список тегов пользователя")
         };
         bot.execute(new com.pengrad.telegrambot.request.SetMyCommands(commands));
     }

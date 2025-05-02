@@ -4,20 +4,21 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.reactive.function.client.WebClient;
 
 @Configuration
 public class WebConfig {
 
     @Bean
-    @Primary
-    public RestClient restClient(@Value("${bot.api.url}") String botUrl) {
-        return RestClient.builder()
+    public WebClient webClient(@Value("${app.bot.url}") String botUrl) {
+        return WebClient.builder()
                 .baseUrl(botUrl)
-                .requestFactory(clientHttpRequestFactory())
+                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .build();
     }
 

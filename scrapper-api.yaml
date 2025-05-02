@@ -56,28 +56,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/ApiErrorResponse'
   /links:
-    get:
-      summary: Получить все отслеживаемые ссылки
-      parameters:
-        - name: Tg-Chat-Id
-          in: header
-          required: true
-          schema:
-            type: integer
-            format: int64
-      responses:
-        '200':
-          description: Ссылки успешно получены
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ListLinksResponse'
-        '400':
-          description: Некорректные параметры запроса
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiErrorResponse'
     post:
       summary: Добавить отслеживание ссылки
       parameters:
@@ -140,8 +118,73 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiErrorResponse'
+  /links/getLinks:
+    post:
+      summary: Получить все отслеживаемые ссылки
+      parameters:
+        - name: Tg-Chat-Id
+          in: header
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetLinkRequest'
+      responses:
+        '200':
+          description: Ссылки успешно получены
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListLinksResponse'
+        '400':
+          description: Некорректные параметры запроса
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+  /tags:
+    get:
+      summary: Все теги пользователя
+      parameters:
+        - name: Tg-Chat-Id
+          in: header
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Теги успешно получены
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetTagsResponse'
+        '400':
+          description: Некорректные параметры запроса
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
 components:
   schemas:
+    GetLinkRequest:
+      type: object
+      properties:
+        tags:
+          type: array
+          items:
+            type: string
+    GetTagsResponse:
+      type: object
+      properties:
+        tags:
+          type: array
+          items:
+            type: string
     RegisterChatRequest:
       type: object
       properties:

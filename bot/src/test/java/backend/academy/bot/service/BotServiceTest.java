@@ -1,6 +1,7 @@
 package backend.academy.bot.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -8,13 +9,14 @@ import static org.mockito.Mockito.when;
 import backend.academy.bot.clients.JsonToApiErrorResponse;
 import backend.academy.bot.clients.ScrapperClient;
 import backend.academy.bot.configs.TelegramBot;
+import backend.academy.bot.exception.TelegramApiException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pengrad.telegrambot.model.Chat;
 import com.pengrad.telegrambot.model.Message;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.model.User;
+import dto.AddLinkRequest;
 import dto.LinkResponse;
-import dto.ListLinkResponse;
 import dto.RemoveLinkRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -44,33 +46,17 @@ class BotServiceTest {
     private BotService botService;
 
     private AddLinkRequestService addLinkRequestService;
+    private ListRequestService listRequestService;
 
     @BeforeEach
     void setUp() {
-        // arrange
         addLinkRequestService = new AddLinkRequestService();
-        botService = new BotService(client, addLinkRequestService);
+        botService = new BotService(client, addLinkRequestService, listRequestService);
         botService.setTelegramBot(telegramBot);
     }
 
     @Test
-    void getTrackingLinks_shouldCallClientAndReturnBody() {
-        // arrange
-        Long chatId = 123L;
-        ListLinkResponse expectedResponse = ListLinkResponse.builder().build();
-        when(client.getAllTrackedLinks(chatId)).thenReturn(ResponseEntity.ok(expectedResponse));
-
-        // act
-        Object result = botService.getTrackingLinks(chatId);
-
-        // assert
-        assertThat(result).isEqualTo(expectedResponse);
-        verify(client).getAllTrackedLinks(chatId);
-    }
-
-    @Test
     void chatRegistration_shouldCallClientAndReturnBody() {
-        // arrange
         Update update = Mockito.mock(Update.class);
         Message message = Mockito.mock(Message.class);
         User user = Mockito.mock(User.class);
@@ -84,60 +70,43 @@ class BotServiceTest {
 
         when(client.registerChat(any())).thenReturn(ResponseEntity.ok("Registered"));
 
-        // act
         Object result = botService.chatRegistration(update);
 
-        // assert
         assertThat(result).isEqualTo("Registered");
         verify(client).registerChat(any());
     }
 
     @Test
     void commitLinkTracking_shouldThrowExceptionOnClientError() {
-        // arrange
         Long chatId = 123L;
         addLinkRequestService.createLinkRequest(chatId, "https://example.com");
-        ResponseEntity<Object> badRequestResponse = ResponseEntity.badRequest().body("Bad Request");
-        when(client.addTrackedLink(any(), any())).thenReturn(badRequestResponse);
+        AddLinkRequest linkRequest = addLinkRequestService.getLinkRequest(chatId);
 
-        // act
-        var result = botService.commitLinkTracking(chatId);
-
-        // assert
-        assertThat(result).isEqualTo("Bad Request");
+        assertThrows(TelegramApiException.class, () -> botService.commitLinkTracking(chatId));
+        verify(client).addTrackedLink(chatId, linkRequest);
     }
 
     @Test
     void commitLinkUntrack_shouldCallClientAndReturnBody() {
-        // arrange
         Long chatId = 123L;
         String message = "https://example.com";
         RemoveLinkRequest request = new RemoveLinkRequest(message);
         when(client.removeTrackedLink(chatId, request))
                 .thenReturn(ResponseEntity.ok(LinkResponse.builder().build()));
 
-        // act
         Object result = botService.commitLinkUntrack(chatId, message);
 
-        // assert
         assertThat(result).isInstanceOf(LinkResponse.class);
         verify(client).removeTrackedLink(chatId, request);
     }
 
     @Test
-    void commitLinkUntrack_shouldReturnBadRequestOnClientError() {
-        // arrange
+    void commitLinkUntrack_shouldThrowExceptionOnClientError() {
         Long chatId = 123L;
         String message = "https://example.com";
         RemoveLinkRequest request = new RemoveLinkRequest(message);
-        ResponseEntity<Object> badRequestResponse = ResponseEntity.badRequest().body("Bad Request");
-        when(client.removeTrackedLink(chatId, request)).thenReturn(badRequestResponse);
 
-        // act
-        Object result = botService.commitLinkUntrack(chatId, message);
-
-        // assert
-        assertThat(result).isEqualTo("Bad Request");
+        assertThrows(TelegramApiException.class, () -> botService.commitLinkUntrack(chatId, message));
         verify(client).removeTrackedLink(chatId, request);
     }
 }

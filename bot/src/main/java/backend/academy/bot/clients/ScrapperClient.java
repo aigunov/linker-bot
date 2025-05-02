@@ -2,6 +2,9 @@ package backend.academy.bot.clients;
 
 import dto.AddLinkRequest;
 import dto.ApiErrorResponse;
+import dto.GetAllTagsRequest;
+import dto.GetLinksRequest;
+import dto.GetTagsResponse;
 import dto.LinkResponse;
 import dto.ListLinkResponse;
 import dto.RegisterChatRequest;
@@ -30,6 +33,7 @@ import org.springframework.web.client.RestClientResponseException;
 public class ScrapperClient {
     private static final String TG_CHAT = "/tg-chat";
     private static final String LINK = "/links";
+    private static final String TAGS = "/tags";
 
     private final RestClient restClient;
     private final JsonToApiErrorResponse convertJsonToApiErrorResponse;
@@ -46,11 +50,18 @@ public class ScrapperClient {
         return makeAndSendRequest(TG_CHAT + "/{chatId}", HttpMethod.DELETE, headers, null, String.class, chatId);
     }
 
-    public ResponseEntity<Object> getAllTrackedLinks(final Long chatId) {
+    public ResponseEntity<Object> getAllTrackedLinks(final Long chatId, final GetLinksRequest linksRequest) {
         log.info("Request: get all tracked links");
         Map<String, String> headers = new HashMap<>();
         headers.put("Tg-Chat-Id", String.valueOf(chatId));
-        return makeAndSendRequest(LINK, HttpMethod.GET, headers, null, ListLinkResponse.class);
+        return makeAndSendRequest(LINK + "/getLinks", HttpMethod.POST, headers, linksRequest, ListLinkResponse.class);
+    }
+
+    public ResponseEntity<Object> getAllTags(long chatId) {
+        log.info("Request: get all tags from chat: {}", chatId);
+        Map<String, String> headers = new HashMap<>();
+        headers.put("Tg-Chat-Id", String.valueOf(chatId));
+        return makeAndSendRequest(TAGS, HttpMethod.GET, headers, new GetAllTagsRequest(), GetTagsResponse.class);
     }
 
     public ResponseEntity<Object> addTrackedLink(final Long chatId, AddLinkRequest request) {
@@ -65,10 +76,6 @@ public class ScrapperClient {
         Map<String, String> headers = new HashMap<>();
         headers.put("Tg-Chat-Id", String.valueOf(chatId));
         return makeAndSendRequest(LINK, HttpMethod.DELETE, headers, request, LinkResponse.class);
-    }
-
-    public static List<String> convertStackTraceToList(StackTraceElement[] stackTrace) {
-        return Arrays.stream(stackTrace).map(StackTraceElement::toString).collect(Collectors.toList());
     }
 
     private <T, E> ResponseEntity<Object> makeAndSendRequest(
@@ -134,5 +141,9 @@ public class ScrapperClient {
                 .stacktrace(stacktrace)
                 .build();
         return ResponseEntity.status(statusCode).body(errorResponse);
+    }
+
+    public static List<String> convertStackTraceToList(StackTraceElement[] stackTrace) {
+        return Arrays.stream(stackTrace).map(StackTraceElement::toString).collect(Collectors.toList());
     }
 }
