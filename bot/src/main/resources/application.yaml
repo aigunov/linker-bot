@@ -2,7 +2,7 @@ app:
   telegram-token: ${TELEGRAM_TOKEN} # env variable
 
   message:
-    transport: ${MESSAGE_TRANSPORT}
+    transport: HTTP
     kafka:
       topic:
         notification: notification-topic
@@ -20,6 +20,9 @@ spring:
     open-in-view: false
   kafka:
     bootstrap-servers: kafka:9093
+    consumer:
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
   data:
     redis:
       username: aigunov
