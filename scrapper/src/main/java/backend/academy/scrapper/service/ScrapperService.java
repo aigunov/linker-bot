@@ -11,6 +11,8 @@ import backend.academy.scrapper.exception.BotServiceException;
 import backend.academy.scrapper.exception.BotServiceInternalErrorException;
 import backend.academy.scrapper.exception.ScrapperServicesApiException;
 import backend.academy.scrapper.repository.link.LinkRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import dto.ErrorUpdate;
 import dto.LinkUpdate;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import jakarta.annotation.PostConstruct;
@@ -114,8 +116,9 @@ public class ScrapperService {
             } else if (converter.isStackOverflowUrl(link.url())) {
                 latestUpdateInfo = stackOverflowClient.checkUpdates(link.url());
             }
-        } catch (ScrapperServicesApiException e) {
+        } catch (ScrapperServicesApiException | JsonProcessingException e) {
             log.error("Error accessing external API for link: {}", link.url(), e);
+            sendError(link, e);
             return;
         }
 
@@ -146,5 +149,18 @@ public class ScrapperService {
                 .tgChatIds(link.chats().stream().map(Chat::tgId).collect(Collectors.toSet()))
                 .build();
         restNotificationClient.sendLinkUpdate(update);
+    }
+
+    private void sendError(Link link, Exception e) {
+        var message = ErrorUpdate.builder()
+            .id(link.id())
+            .url(link.url())
+            .timestamp(LocalDateTime.now())
+            .error(e.getMessage())
+            .tgChatIds(link.chats().stream().map(Chat::tgId).collect(Collectors.toSet()))
+            .build();
+
+        dlqClient.send(message);
+        log.info("Error link {} sending in dlq_topic", link.url());
     }
 }

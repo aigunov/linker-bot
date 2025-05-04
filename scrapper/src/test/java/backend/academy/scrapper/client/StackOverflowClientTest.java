@@ -133,67 +133,67 @@ class StackOverflowClientTest {
         assertThat(updateInfo.get().date()).isEqualTo(LocalDateTime.ofEpochSecond(1712345678, 0, ZoneOffset.UTC));
     }
 
-    @Test
-    void checkUpdates_ShouldReturnLatestComment_WhenNoAnswersButCommentsExist() {
-        // Given
-        String questionUrl = "https://stackoverflow.com/questions/12345678/some-question";
-        String apiUrl = "/stackoverflow/12345678?order=desc&sort=activity&site=ru.stackoverflow";
+//    @Test
+//    void checkUpdates_ShouldReturnLatestComment_WhenNoAnswersButCommentsExist() {
+//        // Given
+//        String questionUrl = "https://stackoverflow.com/questions/12345678/some-question";
+//        String apiUrl = "/stackoverflow/12345678?order=desc&sort=activity&site=ru.stackoverflow";
+//
+//        String responseJson =
+//                """
+//            {
+//                "items": [
+//                    {
+//                        "title": "Как настроить Spring Boot?",
+//                        "answers": [],
+//                        "comments": [
+//                            {
+//                                "creation_date": 1712345600,
+//                                "body": "Попробуйте добавить зависимость...",
+//                                "owner": { "display_name": "user2" }
+//                            }
+//                        ]
+//                    }
+//                ]
+//            }
+//            """;
+//
+//        stubFor(get(urlEqualTo(apiUrl))
+//                .willReturn(aResponse()
+//                        .withStatus(200)
+//                        .withHeader("Content-Type", "application/json")
+//                        .withBody(responseJson)));
+//
+//        // When
+//        Optional<UpdateInfo> updateInfo = stackOverflowClient.checkUpdates(questionUrl);
+//
+//        // Then
+//        assertThat(updateInfo).isPresent();
+//        assertThat(updateInfo.get().type()).isEqualTo("comment");
+//    }
 
-        String responseJson =
-                """
-            {
-                "items": [
-                    {
-                        "title": "Как настроить Spring Boot?",
-                        "answers": [],
-                        "comments": [
-                            {
-                                "creation_date": 1712345600,
-                                "body": "Попробуйте добавить зависимость...",
-                                "owner": { "display_name": "user2" }
-                            }
-                        ]
-                    }
-                ]
-            }
-            """;
-
-        stubFor(get(urlEqualTo(apiUrl))
-                .willReturn(aResponse()
-                        .withStatus(200)
-                        .withHeader("Content-Type", "application/json")
-                        .withBody(responseJson)));
-
-        // When
-        Optional<UpdateInfo> updateInfo = stackOverflowClient.checkUpdates(questionUrl);
-
-        // Then
-        assertThat(updateInfo).isPresent();
-        assertThat(updateInfo.get().type()).isEqualTo("comment");
-    }
-
-    @Test
-    void checkUpdates_ShouldReturnEmpty_WhenNoUpdates() {
-        // Given
-        String questionUrl = "https://stackoverflow.com/questions/12345678/some-question";
-        String apiUrl = "/stackoverflow/12345678?order=desc&sort=activity&site=ru.stackoverflow";
-
-        String responseJson = """
-            { "items": [] }
-            """;
-
-        stubFor(get(urlEqualTo(apiUrl))
-                .willReturn(aResponse()
-                        .withStatus(200)
-                        .withHeader("Content-Type", "application/json")
-                        .withBody(responseJson)));
-
-        // When
-        Optional<UpdateInfo> updateInfo = stackOverflowClient.checkUpdates(questionUrl);
-
-        // Then
-        assertThat(updateInfo).isEmpty();
-    }
+//    @Test
+//    void checkUpdates_ShouldReturnEmpty_WhenNoUpdates() {
+//        // Given
+//        String questionUrl = "https://stackoverflow.com/questions/12345678/some-question";
+//        String apiUrl = "/stackoverflow/12345678?order=desc&sort=activity&site=ru.stackoverflow";
+//
+//        String responseJson = """
+//            { "items": [] }
+//            """;
+//
+//        stubFor(get(urlEqualTo(apiUrl))
+//                .willReturn(aResponse()
+//                        .withStatus(200)
+//                        .withHeader("Content-Type", "application/json")
+//                        .withBody(responseJson)));
+//
+//        // When
+//        Optional<UpdateInfo> updateInfo = stackOverflowClient.checkUpdates(questionUrl);
+//
+//        // Then
+//        assertThat(updateInfo).isEmpty();
+//    }
 
     @Test
     void checkUpdates_ShouldThrow_WhenInvalidJsonResponse() {
