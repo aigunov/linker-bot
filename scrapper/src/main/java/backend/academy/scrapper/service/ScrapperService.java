@@ -1,6 +1,8 @@
 package backend.academy.scrapper.service;
 
+import backend.academy.scrapper.client.KafkaDLQNotificationClient;
 import backend.academy.scrapper.client.NotificationClient;
+import backend.academy.scrapper.client.RestNotificationClient;
 import backend.academy.scrapper.client.UpdateCheckingClient;
 import backend.academy.scrapper.data.dto.UpdateInfo;
 import backend.academy.scrapper.data.model.Chat;
@@ -48,7 +50,9 @@ public class ScrapperService {
     private final LinkToApiRequestConverter converter;
     private final UpdateCheckingClient stackOverflowClient;
     private final UpdateCheckingClient gitHubClient;
-    private final NotificationClient notificationClient;
+    private final NotificationClient restNotificationClient;
+    private final KafkaDLQNotificationClient dlqClient;
+
 
     private ExecutorService executorService;
 
@@ -141,6 +145,6 @@ public class ScrapperService {
                 .message(message)
                 .tgChatIds(link.chats().stream().map(Chat::tgId).collect(Collectors.toSet()))
                 .build();
-        notificationClient.sendLinkUpdate(update);
+        restNotificationClient.sendLinkUpdate(update);
     }
 }

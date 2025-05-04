@@ -3,7 +3,7 @@ package backend.academy.scrapper.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 
-import backend.academy.scrapper.client.NotificationClient;
+import backend.academy.scrapper.client.RestNotificationClient;
 import backend.academy.scrapper.client.UpdateCheckingClient;
 import backend.academy.scrapper.config.MigrationsRunner;
 import backend.academy.scrapper.data.dto.UpdateInfo;
@@ -62,7 +62,7 @@ public class ScrapperServiceTest {
     private UpdateCheckingClient stackOverflowClient;
 
     @MockitoBean
-    private NotificationClient notificationClient;
+    private RestNotificationClient restNotificationClient;
 
     @Autowired
     private ScrapperService scrapperService;
@@ -125,7 +125,7 @@ public class ScrapperServiceTest {
         assertThat(updatedLinks)
                 .allMatch(link -> link.lastUpdate().isAfter(LocalDateTime.now().minusMinutes(1)));
 
-        Mockito.verify(notificationClient, Mockito.atLeastOnce())
+        Mockito.verify(restNotificationClient, Mockito.atLeastOnce())
                 .sendLinkUpdate(Mockito.argThat(update ->
                         update.url().contains("github.com") || update.url().contains("stackoverflow.com")));
     }

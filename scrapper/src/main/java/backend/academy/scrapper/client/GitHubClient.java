@@ -41,7 +41,7 @@ public class GitHubClient extends AbstractUpdateCheckingClient {
                     .retrieve()
                     .onStatus(HttpStatusCode::is4xxClientError, (request, response) -> {
                         log.error("GitHub API returned client error for Issues: {}", apiUrl);
-                        throw new RestClientException("GitHub API client error");
+                        throw new RestClientException("GitHub API client error: " + response + " ");
                     })
                     .onStatus(HttpStatusCode::is5xxServerError, (request, response) -> {
                         log.error("GitHub API returned server error for Issues: {}", apiUrl);
