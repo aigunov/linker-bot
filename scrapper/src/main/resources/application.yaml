@@ -11,7 +11,7 @@ app:
     access-type: sql
 
   message:
-    transport: HTTP
+    transport: kafka
     kafka:
       topic:
         notification: notification-topic

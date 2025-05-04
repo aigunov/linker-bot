@@ -50,6 +50,7 @@ public class BotService {
         try {
             log.info("Fetching tracked links for chatId: {}", chatId);
             var requestBody = listRequestService.getListRequest(chatId);
+            listRequestService.clearLinkRequest(chatId);
             var responseEntity = client.getAllLinks(
                     chatId, requestBody == null ? GetLinksRequest.builder().build() : requestBody);
 
@@ -113,6 +114,7 @@ public class BotService {
     public Object commitLinkTracking(Long chatId) {
         try {
             AddLinkRequest linkRequest = addLinkRequestService.getLinkRequest(chatId);
+            addLinkRequestService.clearLinkRequest(chatId);
             if (linkRequest == null) {
                 throw new IllegalArgumentException("Link request is null");
             }
@@ -120,7 +122,6 @@ public class BotService {
             var responseEntity = client.addTrackedLink(chatId, linkRequest);
 
             if (responseEntity.getStatusCode().is2xxSuccessful()) {
-                addLinkRequestService.clearLinkRequest(chatId);
                 log.info("Successfully track link for chatId: {}", chatId);
             } else {
                 log.warn(

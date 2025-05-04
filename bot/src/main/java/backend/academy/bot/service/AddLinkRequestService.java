@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class AddLinkRequestService {
-    private final RedisTemplate<String, Object> redisTemplate;
+    private final RedisTemplate<String, AddLinkRequest> redisTemplate;
     private static final String PREFIX = "linkRequests";
 
     public void createLinkRequest(Long chatId, String uri){

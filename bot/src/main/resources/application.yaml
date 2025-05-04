@@ -2,7 +2,7 @@ app:
   telegram-token: ${TELEGRAM_TOKEN} # env variable
 
   message:
-    transport: HTTP
+    transport: kafka
     kafka:
       topic:
         notification: notification-topic
@@ -19,7 +19,7 @@ spring:
       ddl-auto: validate
     open-in-view: false
   kafka:
-    bootstrap-servers: kafka:9093
+    bootstrap-servers: localhost:9092
     consumer:
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer

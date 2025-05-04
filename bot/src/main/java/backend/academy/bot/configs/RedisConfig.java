@@ -2,6 +2,7 @@ package backend.academy.bot.configs;
 
 import dto.AddLinkRequest;
 import java.time.Duration;
+import dto.GetLinksRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
@@ -16,12 +17,31 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 @Configuration
 public class RedisConfig {
 
+//    @Bean
+//    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
+//        var template = new RedisTemplate<String, Object>();
+//        template.setConnectionFactory(redisConnectionFactory);
+//        template.setKeySerializer(new StringRedisSerializer());
+//        template.setValueSerializer(new Jackson2JsonRedisSerializer<>(AddLinkRequest.class));
+//        return template;
+//    }
+
+
     @Bean
-    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
-        var template = new RedisTemplate<String, Object>();
-        template.setConnectionFactory(redisConnectionFactory);
+    public RedisTemplate<String, GetLinksRequest> redisListRequest(RedisConnectionFactory connectionFactory) {
+        RedisTemplate<String, GetLinksRequest> template = new RedisTemplate<>();
+        template.setConnectionFactory(connectionFactory);
         template.setKeySerializer(new StringRedisSerializer());
-        template.setValueSerializer(new Jackson2JsonRedisSerializer<>(AddLinkRequest.class));
+        template.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+        return template;
+    }
+
+    @Bean
+    public RedisTemplate<String, AddLinkRequest> redisCreateRequest(RedisConnectionFactory connectionFactory) {
+        RedisTemplate<String, AddLinkRequest> template = new RedisTemplate<>();
+        template.setConnectionFactory(connectionFactory);
+        template.setKeySerializer(new StringRedisSerializer());
+        template.setValueSerializer(new GenericJackson2JsonRedisSerializer());
         return template;
     }
 

@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class ListRequestService {
-    private final RedisTemplate<String, Object> redisTemplate;
+    private final RedisTemplate<String, GetLinksRequest> redisTemplate;
     private static final String PREFIX = "listRequest";
 
 

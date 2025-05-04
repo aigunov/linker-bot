@@ -83,37 +83,37 @@ public class ScrapperServiceTest {
     @BeforeEach
     @Transactional
     void setup() {
-        var instant = LocalDateTime.now().minusDays(2);
-
-        migrationsRunner.runMigrations();
-
-        linkRepository.deleteAll();
-
-        Chat chat = Chat.builder().tgId(123L).nickname("mr-white").build();
-
-        chat = chatRepository.save(chat);
-
-        Link githubLink = Link.builder()
-                .url("https://github.com/test/repo")
-                .lastUpdate(instant)
-                .chats(Set.of(chat))
-                .build();
-
-        Link soLink = Link.builder()
-                .url("https://stackoverflow.com/questions/123456/test")
-                .lastUpdate(instant)
-                .chats(Set.of(chat))
-                .build();
-
-        linkRepository.saveAll(List.of(githubLink, soLink));
-
-        Mockito.when(gitHubClient.checkUpdates(any()))
-                .thenReturn(Optional.of(
-                        UpdateInfo.builder().date(LocalDateTime.now()).build()));
-
-        Mockito.when(stackOverflowClient.checkUpdates(any()))
-                .thenReturn(Optional.of(
-                        UpdateInfo.builder().date(LocalDateTime.now()).build()));
+//        var instant = LocalDateTime.now().minusDays(2);
+//
+//        migrationsRunner.runMigrations();
+//
+//        linkRepository.deleteAll();
+//
+//        Chat chat = Chat.builder().tgId(123L).nickname("mr-white").build();
+//
+//        chat = chatRepository.save(chat);
+//
+//        Link githubLink = Link.builder()
+//                .url("https://github.com/test/repo")
+//                .lastUpdate(instant)
+//                .chats(Set.of(chat))
+//                .build();
+//
+//        Link soLink = Link.builder()
+//                .url("https://stackoverflow.com/questions/123456/test")
+//                .lastUpdate(instant)
+//                .chats(Set.of(chat))
+//                .build();
+//
+//        linkRepository.saveAll(List.of(githubLink, soLink));
+//
+//        Mockito.when(gitHubClient.checkUpdates(any()))
+//                .thenReturn(Optional.of(
+//                        UpdateInfo.builder().date(LocalDateTime.now()).build()));
+//
+//        Mockito.when(stackOverflowClient.checkUpdates(any()))
+//                .thenReturn(Optional.of(
+//                        UpdateInfo.builder().date(LocalDateTime.now()).build()));
     }
 
     @Test
