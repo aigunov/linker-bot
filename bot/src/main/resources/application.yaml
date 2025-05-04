@@ -6,7 +6,7 @@ app:
     kafka:
       topic:
         notification: notification-topic
-        dead-letter: notifaction-dead-letter-topic
+        dead-letter: notification-dead-letter-topic
 
 
 spring:
