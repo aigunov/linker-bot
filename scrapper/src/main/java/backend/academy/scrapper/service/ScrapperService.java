@@ -2,7 +2,6 @@ package backend.academy.scrapper.service;
 
 import backend.academy.scrapper.client.KafkaDLQNotificationClient;
 import backend.academy.scrapper.client.NotificationClient;
-import backend.academy.scrapper.client.RestNotificationClient;
 import backend.academy.scrapper.client.UpdateCheckingClient;
 import backend.academy.scrapper.data.dto.UpdateInfo;
 import backend.academy.scrapper.data.model.Chat;
@@ -130,6 +129,17 @@ public class ScrapperService {
                 log.info("Link {} updated at {}", link.url(), latestUpdateDate);
                 link.lastUpdate(latestUpdateDate);
                 linkRepository.save(link);
+
+                var filteredChats = link.chats().stream()
+                    .filter(chat -> chat.filters().stream()
+                        .noneMatch(filter ->
+                            "user".equalsIgnoreCase(filter.parameter()) &&
+                                updateInfo.username().equalsIgnoreCase(filter.value())
+                        )
+                    )
+                    .collect(Collectors.toSet());
+                link.chats(filteredChats);
+
                 try {
                     sendNotification(link, updateInfo.getFormattedMessage());
                 } catch (BotServiceInternalErrorException e) {
@@ -163,4 +173,6 @@ public class ScrapperService {
         dlqClient.send(message);
         log.info("Error link {} sending in dlq_topic", link.url());
     }
+
+//    private Set<Long> procec
 }

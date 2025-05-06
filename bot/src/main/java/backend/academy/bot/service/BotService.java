@@ -12,11 +12,14 @@ import dto.GetLinksRequest;
 import dto.LinkUpdate;
 import dto.RegisterChatRequest;
 import dto.RemoveLinkRequest;
+import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,6 +46,7 @@ public class BotService {
     }
 
     //todo: имя кэша конфигурируемое
+    @NotNull
     @Cacheable(value = "trackedLinks", key = "#chatId",
         unless = "#result instanceof T(dto.ApiErrorResponse)"
     )
@@ -69,6 +73,7 @@ public class BotService {
         }
     }
 
+    @NotNull
     public Object getTags(long chatId) {
         try {
             log.info("Fetching tags for chatId: {}", chatId);
@@ -87,6 +92,7 @@ public class BotService {
         }
     }
 
+    @NotNull
     public Object chatRegistration(Update update) {
         var message = update.message();
         var tgUser = message.from();
@@ -110,6 +116,7 @@ public class BotService {
         }
     }
 
+    @NotNull
     @CacheEvict(value="trackedLinks", key = "#chatId")
     public Object commitLinkTracking(Long chatId) {
         try {
@@ -134,6 +141,12 @@ public class BotService {
         }
     }
 
+    @NotNull
+    public Object changeDigestTime(LocalTime time){
+        return null;
+    }
+
+    @NotNull
     @CacheEvict(value="trackedLinks", key = "#chatId")
     public Object commitLinkUntrack(Long chatId, String message) {
         try {

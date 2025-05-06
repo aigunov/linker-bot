@@ -18,8 +18,9 @@ public class MenuState extends StateImpl {
     private static final String list_button = "/list";
     private static final String help_button = "/help";
     private static final String tag_button = "/tags";
+    private static final String notification_button = "/notifications";
     private static final List<String> buttons =
-            List.of(track_button, untrack_button, list_button, help_button, tag_button);
+            List.of(track_button, untrack_button, list_button, help_button, tag_button, notification_button);
     private final ListRequestService listRequestService;
 
     @Autowired
@@ -54,6 +55,7 @@ public class MenuState extends StateImpl {
                 }
                 case help_button -> stateManager.navigate(update, ChatState.HELP);
                 case tag_button -> stateManager.navigate(update, ChatState.TAGS);
+                case notification_button -> stateManager.navigate(update, ChatState.NOTIFICATION);
                 default -> {
                     log.warn("Unknown button pressed: {}", button);
                     showUnsupportedActionMessage(update);

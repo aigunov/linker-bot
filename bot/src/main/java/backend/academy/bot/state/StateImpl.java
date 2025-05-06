@@ -87,6 +87,6 @@ public abstract class StateImpl implements State {
     }
 
     protected void validatorChecker(final String message, final Long chatId) {
-        bot.execute(new SendMessage(chatId, "Опечатка. " + message).parseMode(ParseMode.HTML));
+        bot.execute(new SendMessage(chatId, "Опечатка. \n " + message).parseMode(ParseMode.HTML));
     }
 }
