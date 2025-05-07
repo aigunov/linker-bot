@@ -1,6 +1,8 @@
 package backend.academy.scrapper.repository.chat;
 
 import backend.academy.scrapper.data.model.Chat;
+import dto.NotificationTimeRequest;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -21,4 +23,6 @@ public interface ChatRepository {
     Optional<Chat> findByTgId(Long tgId);
 
     Iterable<Chat> findAll();
+
+    void setDigestTime(Long chatId, LocalTime time);
 }

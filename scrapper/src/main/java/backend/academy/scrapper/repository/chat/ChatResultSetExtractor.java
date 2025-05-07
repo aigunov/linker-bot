@@ -4,6 +4,7 @@ import backend.academy.scrapper.data.model.Chat;
 import jakarta.validation.constraints.NotNull;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalTime;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
@@ -23,6 +24,7 @@ public class ChatResultSetExtractor implements ResultSetExtractor<List<Chat>> {
                     .id(UUID.fromString(rs.getString("id")))
                     .tgId(rs.getLong("tg_id"))
                     .nickname(rs.getString("nickname"))
+                    .digestTime(LocalTime.parse(rs.getString("digest_time")))
                     .build());
         }
         log.debug("Result set converted into List<Chat>: {}", chats);

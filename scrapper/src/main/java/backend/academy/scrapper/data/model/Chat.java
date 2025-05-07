@@ -10,6 +10,7 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
+import java.time.LocalTime;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -39,6 +40,9 @@ public class Chat {
     @NotNull
     @Column(name = "nickname")
     private String nickname;
+
+    @Column(name = "digest_time")
+    private LocalTime digestTime;
 
     @OneToMany(
             mappedBy = "chat",

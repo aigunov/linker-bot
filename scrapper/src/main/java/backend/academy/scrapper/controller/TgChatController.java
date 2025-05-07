@@ -1,6 +1,7 @@
 package backend.academy.scrapper.controller;
 
 import backend.academy.scrapper.service.TgChatService;
+import dto.NotificationTimeRequest;
 import dto.RegisterChatRequest;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import jakarta.validation.Valid;
@@ -26,10 +27,10 @@ public class TgChatController {
 
     private final TgChatService tgChatService;
 
-    @PostMapping("/{id}")
-    public ResponseEntity<String> registerChat(@PathVariable Long id, @Valid @RequestBody RegisterChatRequest request) {
-        log.info("Registering chat with ID: {}. Name: {}", id, request.name());
-        var responseString = tgChatService.registerChat(id, request);
+    @PostMapping("/{chatId}")
+    public ResponseEntity<String> registerChat(@PathVariable Long chatId, @Valid @RequestBody RegisterChatRequest request) {
+        log.info("Registering chat with ID: {}. Name: {}", chatId, request.name());
+        var responseString = tgChatService.registerChat(chatId, request);
         return ResponseEntity.ok().body(responseString);
     }
 
@@ -37,6 +38,14 @@ public class TgChatController {
     public ResponseEntity<?> deleteChat(@PathVariable Long id) {
         log.info("Deleting chat with ID: {}", id);
         var responseString = tgChatService.deleteChat(id);
+        return ResponseEntity.ok().body(responseString);
+    }
+
+    @PostMapping("/time/{chatId}")
+    public ResponseEntity<String> changeDigestTime(@PathVariable Long chatId,
+                                                   @Valid @RequestBody NotificationTimeRequest request){
+        log.info("Set new digest time {} for chat with tgId: {}", request.time(), chatId);
+        var responseString = tgChatService.setDigestTime(chatId, request);
         return ResponseEntity.ok().body(responseString);
     }
 }

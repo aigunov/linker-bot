@@ -1,6 +1,7 @@
 package backend.academy.scrapper.repository.chat;
 
 import backend.academy.scrapper.data.model.Chat;
+import java.time.LocalTime;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -13,4 +14,7 @@ public interface OrmChatRepository extends ChatRepository, JpaRepository<Chat, U
     Optional<Chat> findByTgId(Long tgId);
 
     void deleteByTgId(Long tgId);
+
+    @Override
+    void setDigestTime(Long chatId, LocalTime time);
 }
