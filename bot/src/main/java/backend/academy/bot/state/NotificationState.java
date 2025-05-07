@@ -82,7 +82,7 @@ public class NotificationState extends StateImpl {
         }
         var time = parsedTimeOpt.get();
         log.info("TgChat: {} change digest time", chatId);
-        var response = botService.changeDigestTime(time);
+        var response = botService.changeDigestTime(chatId, time);
         if (response instanceof ApiErrorResponse error) {
             String failChangeTimeMessage = String.format("""
                 К сожалению у нас не получилось поменять время дайджеста.

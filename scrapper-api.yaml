@@ -6,6 +6,38 @@ info:
     name: Alexander Biryukov
     url: https://github.com
 paths:
+  /tg-chat/time/{id}:
+    post:
+      summary: Установить время получения уведомлений
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NotificationTimeRequest'
+      responses:
+        '200':
+          description: Время уведомлений успешно обновлено
+        '400':
+          description: Некорректные параметры запроса
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+        '404':
+          description: Чат не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+
   /tg-chat/{id}:
     post:
       summary: Зарегистрировать чат
@@ -258,3 +290,11 @@ components:
         link:
           type: string
           format: uri
+    NotificationTimeRequest:
+      type: object
+      properties:
+        time:
+          type: string
+          format: time
+      required:
+        - time

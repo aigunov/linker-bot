@@ -7,6 +7,7 @@ import dto.GetLinksRequest;
 import dto.GetTagsResponse;
 import dto.LinkResponse;
 import dto.ListLinkResponse;
+import dto.NotificationTimeRequest;
 import dto.RegisterChatRequest;
 import dto.RemoveLinkRequest;
 import java.io.IOException;
@@ -48,6 +49,13 @@ public class ScrapperClient {
         log.info("Request: delete chat {}", chatId);
         Map<String, String> headers = new HashMap<>();
         return makeAndSendRequest(TG_CHAT + "/{chatId}", HttpMethod.DELETE, headers, null, String.class, chatId);
+    }
+
+    public ResponseEntity<Object> setNotificationTime(Long chatId, NotificationTimeRequest notificationTimeRequest) {
+        log.info("Request: change time on [{}] for chat: {}", notificationTimeRequest.time(), chatId);
+        Map<String, String> headers = new HashMap<>();
+        headers.put("Tg-Chat-Id", String.valueOf(chatId));
+        return makeAndSendRequest(TG_CHAT + "/{chatId}", HttpMethod.PUT, headers, notificationTimeRequest, String.class);
     }
 
     public ResponseEntity<Object> getAllLinks(final Long chatId, final GetLinksRequest linksRequest) {

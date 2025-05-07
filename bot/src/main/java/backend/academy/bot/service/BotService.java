@@ -10,12 +10,12 @@ import dto.AddLinkRequest;
 import dto.ApiErrorResponse;
 import dto.GetLinksRequest;
 import dto.LinkUpdate;
+import dto.NotificationTimeRequest;
 import dto.RegisterChatRequest;
 import dto.RemoveLinkRequest;
 import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
@@ -142,8 +142,24 @@ public class BotService {
     }
 
     @NotNull
-    public Object changeDigestTime(LocalTime time){
-        return null;
+    public Object changeDigestTime(Long chatId, LocalTime time){
+        try {
+            var responseEntity = client.setNotificationTime(chatId, new NotificationTimeRequest(time));
+
+            if (responseEntity.getStatusCode().is2xxSuccessful()) {
+                log.info("Successfully changed time for chatId: {}", chatId);
+            } else {
+                log.warn(
+                    "Failed to change time for chatId: {}. Status code: {}",
+                    chatId,
+                    responseEntity.getStatusCode());
+            }
+            return responseEntity.getBody();
+        } catch (Exception ex) {
+            log.error("Unexpected error while fetching tracked links for chatId: {}", chatId, ex);
+            throw new TelegramApiException("Произошла ошибка взаимодействия с сервисом Scrapper. Попробуйте позже.");
+        }
+
     }
 
     @NotNull
