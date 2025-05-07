@@ -18,7 +18,9 @@ import jakarta.annotation.PostConstruct;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.Spliterator;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -53,7 +55,7 @@ public class ScrapperService {
     private final UpdateCheckingClient gitHubClient;
     private final NotificationClient restNotificationClient;
     private final KafkaDLQNotificationClient dlqClient;
-
+    private final RedisService redisService;
 
     private ExecutorService executorService;
 
@@ -108,48 +110,72 @@ public class ScrapperService {
     }
 
     private void processLink(Link link) {
-        Optional<UpdateInfo> latestUpdateInfo = Optional.empty();
+        Optional<UpdateInfo> updateInfoOpt = fetchUpdateInfo(link);
+        if (updateInfoOpt.isEmpty()) {
+            return;
+        }
+
+        UpdateInfo updateInfo = updateInfoOpt.get();
+        if (link.lastUpdate() != null && !updateInfo.date().isAfter(link.lastUpdate())) {
+            return;
+        }
+
+        log.info("Link {} updated at {}", link.url(), updateInfo.date());
+        link.lastUpdate(updateInfo.date());
+        linkRepository.save(link);
+
+        Map<Boolean, Set<Chat>> partitionedChats = partitionChats(link, updateInfo);
+        Set<Chat> immediateChats = partitionedChats.get(true);
+        Set<Chat> deferredChats = partitionedChats.get(false);
+
+        if (!immediateChats.isEmpty()) {
+            sendToBotService(link, updateInfo, immediateChats);
+        }
+
+        if (!deferredChats.isEmpty()) {
+            redisService.storeUpdate(deferredChats, link, updateInfo);
+        }
+    }
+
+    private Optional<UpdateInfo> fetchUpdateInfo(Link link) {
         try {
             if (converter.isGithubUrl(link.url())) {
-                latestUpdateInfo = gitHubClient.checkUpdates(link.url());
+                return gitHubClient.checkUpdates(link.url());
             } else if (converter.isStackOverflowUrl(link.url())) {
-                latestUpdateInfo = stackOverflowClient.checkUpdates(link.url());
+                return stackOverflowClient.checkUpdates(link.url());
             }
         } catch (ScrapperServicesApiException | JsonProcessingException e) {
             log.error("Error accessing external API for link: {}", link.url(), e);
             sendError(link, e);
-            return;
         }
+        return Optional.empty();
+    }
 
-        if (latestUpdateInfo.isPresent()) {
-            UpdateInfo updateInfo = latestUpdateInfo.get();
-            LocalDateTime latestUpdateDate = updateInfo.date();
+    private Map<Boolean, Set<Chat>> partitionChats(Link link, UpdateInfo updateInfo) {
+        return link.chats().stream()
+            .filter(chat -> chat.filters().stream()
+                .noneMatch(filter ->
+                    "user".equalsIgnoreCase(filter.parameter()) &&
+                        updateInfo.username().equalsIgnoreCase(filter.value())
+                )
+            )
+            .collect(Collectors.partitioningBy(
+                chat -> chat.digestTime() == null,
+                Collectors.toSet()
+            ));
+    }
 
-            if (link.lastUpdate() == null || latestUpdateDate.isAfter(link.lastUpdate())) {
-                log.info("Link {} updated at {}", link.url(), latestUpdateDate);
-                link.lastUpdate(latestUpdateDate);
-                linkRepository.save(link);
-
-                var filteredChats = link.chats().stream()
-                    .filter(chat -> chat.filters().stream()
-                        .noneMatch(filter ->
-                            "user".equalsIgnoreCase(filter.parameter()) &&
-                                updateInfo.username().equalsIgnoreCase(filter.value())
-                        )
-                    )
-                    .collect(Collectors.toSet());
-                link.chats(filteredChats);
-
-                try {
-                    sendNotification(link, updateInfo.getFormattedMessage());
-                } catch (BotServiceInternalErrorException e) {
-                    log.error("Bot service returned INTERNAL_SERVER_ERROR for link: {}", link.url(), e);
-                } catch (BotServiceException e) {
-                    log.error("Failed to send notification for link: {}", link.url(), e);
-                }
-            }
+    private void sendToBotService(Link link, UpdateInfo updateInfo, Set<Chat> chats) {
+        link.chats(chats); // override with only those chats
+        try {
+            sendNotification(link, updateInfo.getFormattedMessage());
+        } catch (BotServiceInternalErrorException e) {
+            log.error("Bot service returned INTERNAL_SERVER_ERROR for link: {}", link.url(), e);
+        } catch (BotServiceException e) {
+            log.error("Failed to send notification for link: {}", link.url(), e);
         }
     }
+
 
     private void sendNotification(Link link, String message) {
         var update = LinkUpdate.builder()
@@ -174,5 +200,4 @@ public class ScrapperService {
         log.info("Error link {} sending in dlq_topic", link.url());
     }
 
-//    private Set<Long> procec
 }
