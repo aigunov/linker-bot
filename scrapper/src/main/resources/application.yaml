@@ -23,6 +23,9 @@ app:
     threads-count: ${THREADS_COUNT}
     scheduled-time: ${SCHEDULED_TIME}
     page-size: ${PAGE_SIZE}
+  digest:
+    scheduler-time: 60000
+    threads-count: 4
 
 
 spring:

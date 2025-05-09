@@ -35,6 +35,7 @@ public class RedisService {
             DigestRecord record = DigestRecord.builder()
                 .url(link.url())
                 .chatId(chat.tgId())
+                .linkId(link.id())
                 .message(updateInfo.getFormattedMessage())
                 .build();
 

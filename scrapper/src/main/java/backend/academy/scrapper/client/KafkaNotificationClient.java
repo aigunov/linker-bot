@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -23,5 +24,10 @@ public class KafkaNotificationClient implements NotificationClient {
     public void sendLinkUpdate(LinkUpdate linkUpdate) {
         log.info("Sending link update to topic {}", notificationTopic);
         kafkaTemplate.send(notificationTopic, linkUpdate);
+    }
+
+    @Override
+    public void sendDigest(List<LinkUpdate> linkUpdates) {
+
     }
 }

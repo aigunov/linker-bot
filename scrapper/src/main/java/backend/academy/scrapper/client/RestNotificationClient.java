@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Mono;
+import java.util.List;
 
 @Service
 @Slf4j
@@ -57,5 +58,10 @@ public class RestNotificationClient implements NotificationClient{
                     return Mono.error(new BotServiceException("Failed to send notification", e));
                 })
                 .subscribe();
+    }
+
+    @Override
+    public void sendDigest(List<LinkUpdate> linkUpdates) {
+
     }
 }
