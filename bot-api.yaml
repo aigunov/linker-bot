@@ -24,6 +24,36 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiErrorResponse'
+  /updates/digest/{tgId}:
+    post:
+      summary: Отправить дайджест обновлений для пользователя
+      parameters:
+        - name: tgId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        description: Список обновлений для конкретного пользователя
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/LinkUpdate'
+        required: true
+      responses:
+        '200':
+          description: Дайджест обновлений обработан
+        '400':
+          description: Некорректные параметры запроса
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorResponse'
+
+
 components:
   schemas:
     ApiErrorResponse:
