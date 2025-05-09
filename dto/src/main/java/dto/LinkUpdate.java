@@ -2,6 +2,7 @@ package dto;
 
 import java.util.Set;
 import java.util.UUID;
+import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 
 @Builder

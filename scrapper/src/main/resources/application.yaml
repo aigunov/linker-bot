@@ -15,6 +15,7 @@ app:
     kafka:
       topic:
         notification: notification-topic
+        digest: digest-topic
         dead-letter: notification-dead-letter-topic
 
   bot:

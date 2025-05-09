@@ -15,9 +15,20 @@ public class KafkaTopicConfig {
     @Value("${app.message.kafka.topic.dead-letter}")
     private String deadLetterTopic;
 
+    @Value("${app.message.kafka.topic.digest}")
+    private String digestTopic;
+
     @Bean
     public NewTopic notificationTopic(){
         return TopicBuilder.name(notificationTopic)
+            .partitions(3)
+            .replicas(1)
+            .build();
+    }
+
+    @Bean
+    public NewTopic digestTopic(){
+        return TopicBuilder.name(digestTopic)
             .partitions(3)
             .replicas(1)
             .build();

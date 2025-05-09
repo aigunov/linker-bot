@@ -20,6 +20,9 @@ public class KafkaNotificationClient implements NotificationClient {
     @Value("${app.message.kafka.topic.notification}")
     private String notificationTopic;
 
+    @Value("${app.message.kafka.topic.digest}")
+    private String digestTopic;
+
     @Override
     public void sendLinkUpdate(LinkUpdate linkUpdate) {
         log.info("Sending link update to topic {}", notificationTopic);
@@ -28,6 +31,7 @@ public class KafkaNotificationClient implements NotificationClient {
 
     @Override
     public void sendDigest(List<LinkUpdate> linkUpdates) {
-
+        log.info("Sending digest to topic {}", digestTopic);
+        kafkaTemplate.send(digestTopic, linkUpdates);
     }
 }

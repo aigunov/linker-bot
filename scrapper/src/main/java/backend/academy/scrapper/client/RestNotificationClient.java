@@ -17,51 +17,50 @@ import java.util.List;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-@ConditionalOnProperty(value="app.message.transport", havingValue="HTTP")
-public class RestNotificationClient implements NotificationClient{
+@ConditionalOnProperty(value = "app.message.transport", havingValue = "HTTP")
+public class RestNotificationClient implements NotificationClient {
 
     private final WebClient webClient;
 
     @Override
     public void sendLinkUpdate(LinkUpdate linkUpdate) {
-        log.info("Sending notification for link update: {}", linkUpdate);
-        webClient
-                .post()
-                .uri("/updates")
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(Mono.just(linkUpdate), LinkUpdate.class)
-                .exchangeToMono(clientResponse -> {
-                    if (clientResponse.statusCode().equals(HttpStatus.OK)) {
-                        log.info("Notification sent successfully: {}", linkUpdate);
-                        return Mono.empty();
-                    } else if (clientResponse.statusCode().equals(HttpStatus.INTERNAL_SERVER_ERROR)) {
-                        log.error("Bot service returned INTERNAL_SERVER_ERROR for update: {}", linkUpdate);
-                        return Mono.error(
-                                new BotServiceInternalErrorException("Bot service returned INTERNAL_SERVER_ERROR"));
-                    } else {
-                        log.error("Failed to send notification: {}", linkUpdate);
-                        return Mono.error(new BotServiceInternalErrorException("Failed to send notification"));
-                    }
-                })
-                .onErrorResume(WebClientResponseException.class, e -> {
-                    if (e.getStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR) {
-                        log.error("Bot service returned INTERNAL_SERVER_ERROR for update: {}", linkUpdate);
-                        return Mono.error(
-                                new BotServiceInternalErrorException("Bot service returned INTERNAL_SERVER_ERROR", e));
-                    } else {
-                        log.error("Failed to send notification: {}", linkUpdate, e);
-                        return Mono.error(new BotServiceException("Failed to send notification", e));
-                    }
-                })
-                .onErrorResume(Exception.class, e -> {
-                    log.error("Failed to send notification: {}", linkUpdate, e);
-                    return Mono.error(new BotServiceException("Failed to send notification", e));
-                })
-                .subscribe();
+        log.info("Sending single update: {}", linkUpdate);
+        sendRequest("/updates", linkUpdate);
     }
 
     @Override
     public void sendDigest(List<LinkUpdate> linkUpdates) {
+        Long tgId = linkUpdates.getFirst().tgChatIds().stream().findFirst().orElse(null);
 
+
+        String uri = "/updates/digest/" + tgId;
+        log.info("Sending digest with {} updates for chatId={}", linkUpdates.size(), tgId);
+
+        sendRequest(uri, linkUpdates);
+    }
+
+    private <T> void sendRequest(String uri, T body) {
+        webClient
+            .post()
+            .uri(uri)
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(body)
+            .retrieve()
+            .toBodilessEntity()
+            .doOnSuccess(res -> log.info("Successfully sent request to {}", uri))
+            .doOnError(WebClientResponseException.class, e -> {
+                if (e.getStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR) {
+                    log.error("Bot service returned 500 for request to {}: {}", uri, e.getMessage());
+                    throw new BotServiceInternalErrorException("Internal error from bot service", e);
+                } else {
+                    log.error("Failed to send request to {}: {}", uri, e.getMessage());
+                    throw new BotServiceException("Failed to send request", e);
+                }
+            })
+            .doOnError(Exception.class, e -> {
+                log.error("Error during request to {}: {}", uri, e.getMessage());
+                throw new BotServiceException("Failed to send request", e);
+            })
+            .subscribe();
     }
 }
