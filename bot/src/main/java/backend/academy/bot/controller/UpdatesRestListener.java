@@ -1,6 +1,7 @@
 package backend.academy.bot.controller;
 
 import backend.academy.bot.service.BotService;
+import dto.Digest;
 import dto.LinkUpdate;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +28,13 @@ public class UpdatesRestListener {
     public ResponseEntity<Void> receiveUpdate(@RequestBody LinkUpdate update) {
         log.info("Incoming updates: [{}]", update.toString());
         service.processUpdate(update);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/digest")
+    public ResponseEntity<Void> receiveDigest(@RequestBody Digest digest) {
+        log.info("Incoming digest: [{}]", digest);
+        service.processDigests(digest);
         return ResponseEntity.ok().build();
     }
 }

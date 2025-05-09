@@ -24,24 +24,17 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiErrorResponse'
-  /updates/digest/{tgId}:
+  /updates/digest:
     post:
       summary: Отправить дайджест обновлений для пользователя
-      parameters:
-        - name: tgId
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int64
+
       requestBody:
         description: Список обновлений для конкретного пользователя
         content:
-          application/json:
-            schema:
-              type: array
-              items:
-                $ref: '#/components/schemas/LinkUpdate'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Digest'
         required: true
       responses:
         '200':
@@ -87,3 +80,13 @@ components:
           items:
             type: integer
             format: int64
+    Digest:
+      type: object
+      properties:
+        tgId:
+          type: integer
+          format: int64
+        updates:
+          type: array
+          items:
+            $ref: '#/components/schemas/LinkUpdate'

@@ -1,5 +1,6 @@
 package backend.academy.scrapper.client;
 
+import dto.Digest;
 import dto.LinkUpdate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,8 +31,8 @@ public class KafkaNotificationClient implements NotificationClient {
     }
 
     @Override
-    public void sendDigest(List<LinkUpdate> linkUpdates) {
+    public void sendDigest(Digest digest) {
         log.info("Sending digest to topic {}", digestTopic);
-        kafkaTemplate.send(digestTopic, linkUpdates);
+        kafkaTemplate.send(digestTopic, digest);
     }
 }

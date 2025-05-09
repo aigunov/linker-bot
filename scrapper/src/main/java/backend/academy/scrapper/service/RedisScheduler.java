@@ -1,6 +1,7 @@
 package backend.academy.scrapper.service;
 
 import backend.academy.scrapper.client.NotificationClient;
+import dto.Digest;
 import dto.DigestRecord;
 import dto.LinkUpdate;
 import jakarta.annotation.PostConstruct;
@@ -13,7 +14,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -74,17 +74,16 @@ public class RedisScheduler {
 
     private void sendDigest(List<Map.Entry<Long, List<DigestRecord>>> entries) {
         for (var entry : entries) {
-            Long chatId = entry.getKey();
-
             var updates = entry.getValue().stream()
                 .map(this::convertDigesttoLinkUpdate)
                 .toList();
+            var digest = Digest.builder().tgId(entry.getKey()).updates(updates).build();
 
             try {
-                notificationClient.sendDigest(updates);
-                log.info("Sent digest to chat {} with {} entries", chatId, updates.size());
+                notificationClient.sendDigest(digest);
+                log.info("Sent digest to chat {} ", digest);
             } catch (Exception e) {
-                log.error("Failed to send digest to chat {}: {}", chatId, e.getMessage(), e);
+                log.error("Failed to send digest to chat {}: {}", entry.getKey(), e.getMessage(), e);
             }
         }
     }

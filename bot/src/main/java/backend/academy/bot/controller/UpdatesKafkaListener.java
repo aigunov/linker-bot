@@ -1,7 +1,7 @@
 package backend.academy.bot.controller;
 
 import backend.academy.bot.service.BotService;
-import dto.ErrorUpdate;
+import dto.Digest;
 import dto.LinkUpdate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,11 +19,20 @@ public class UpdatesKafkaListener {
 
     @KafkaListener(topics = "${app.message.kafka.topic.notification}", groupId = "bot-consumer",
         containerFactory = "kafkaListenerContainerFactory")
-    public void listen(LinkUpdate update) {
+    public void listenNotifications(LinkUpdate update) {
         log.info("Incoming link update: [{}]", update);
         service.processUpdate(update);
     }
 
+
+    @KafkaListener(
+        topics = "${app.message.kafka.topic.digest}",
+        groupId = "digest-group",
+        containerFactory = "digestKafkaListenerContainerFactory")
+    public void listenDigests(Digest digest) {
+        log.info("Incoming digests: [{}]", digest);
+        service.processDigests(digest);
+    }
 
 
 }

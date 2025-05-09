@@ -5,21 +5,23 @@ import backend.academy.bot.configs.TelegramBot;
 import backend.academy.bot.exception.FailedIncomingUpdatesHandleException;
 import backend.academy.bot.exception.TelegramApiException;
 import com.pengrad.telegrambot.model.Update;
+import com.pengrad.telegrambot.model.request.ParseMode;
 import com.pengrad.telegrambot.request.SendMessage;
 import dto.AddLinkRequest;
 import dto.ApiErrorResponse;
+import dto.Digest;
 import dto.GetLinksRequest;
 import dto.LinkUpdate;
 import dto.NotificationTimeRequest;
 import dto.RegisterChatRequest;
 import dto.RemoveLinkRequest;
+import jakarta.validation.constraints.NotNull;
 import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -207,5 +209,32 @@ public class BotService {
 
     private List<String> convertStackTraceToList(StackTraceElement[] stackTrace) {
         return Arrays.stream(stackTrace).map(StackTraceElement::toString).collect(Collectors.toList());
+    }
+
+    public void processDigests(Digest digest) {
+        try {
+            telegramBot.execute(new SendMessage(digest.tgId(), formatDigestMessage(digest)).parseMode(ParseMode.HTML));
+            log.info("Update sent to chat {}", digest.tgId());
+        } catch (TelegramApiException e) {
+            throw new FailedIncomingUpdatesHandleException("Failed to send update to chat " + digest.tgId(), e);
+        }
+    }
+
+    private String formatDigestMessage(Digest digest) {
+        if (digest.updates() == null || digest.updates().isEmpty()) {
+            return "Сегодня не было обновлений по вашим отслеживаемым ссылкам.";
+        }
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("📰 Обновления за сегодня:\n\n");
+
+        int count = 1;
+        for (LinkUpdate update : digest.updates()) {
+            sb.append(count++)
+                .append(". 🔗 <b>").append(update.url()).append("</b>\n")
+                .append(update.message()).append("\n\n");
+        }
+
+        return sb.toString().trim();
     }
 }

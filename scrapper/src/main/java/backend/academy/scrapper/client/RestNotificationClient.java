@@ -2,6 +2,7 @@ package backend.academy.scrapper.client;
 
 import backend.academy.scrapper.exception.BotServiceException;
 import backend.academy.scrapper.exception.BotServiceInternalErrorException;
+import dto.Digest;
 import dto.LinkUpdate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,14 +30,9 @@ public class RestNotificationClient implements NotificationClient {
     }
 
     @Override
-    public void sendDigest(List<LinkUpdate> linkUpdates) {
-        Long tgId = linkUpdates.getFirst().tgChatIds().stream().findFirst().orElse(null);
-
-
-        String uri = "/updates/digest/" + tgId;
-        log.info("Sending digest with {} updates for chatId={}", linkUpdates.size(), tgId);
-
-        sendRequest(uri, linkUpdates);
+    public void sendDigest(Digest digest) {
+        log.info("Sending digest with {} updates for chatId={}", digest, digest.tgId());
+        sendRequest("/updates/digest/", digest);
     }
 
     private <T> void sendRequest(String uri, T body) {
