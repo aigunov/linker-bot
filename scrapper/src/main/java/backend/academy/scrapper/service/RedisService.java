@@ -3,16 +3,70 @@ package backend.academy.scrapper.service;
 import backend.academy.scrapper.data.dto.UpdateInfo;
 import backend.academy.scrapper.data.model.Chat;
 import backend.academy.scrapper.data.model.Link;
+import dto.DigestRecord;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class RedisService {
-    public void storeUpdate(Set<Chat> deferredChats, Link link, UpdateInfo updateInfo) {
+    private static final String REDIS_KEY_PREFIX = "digest:";
+    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
 
+    private final RedisTemplate<String, Object> redisTemplate;
+
+    /**
+     * Сохраняет уведомление для всех указанных чатов в Redis в их время дайджеста.
+     */
+    public void storeUpdate(Set<Chat> chats, Link link, UpdateInfo updateInfo) {
+        for (Chat chat : chats) {
+            LocalTime digestTime = chat.digestTime();
+            String key = getRedisKey(digestTime);
+            DigestRecord record = DigestRecord.builder()
+                .url(link.url())
+                .chatId(chat.tgId())
+                .message(updateInfo.getFormattedMessage())
+                .build();
+
+            redisTemplate.opsForList().rightPush(key, record);
+            log.debug("Stored digest for time {} in key {}: {}", digestTime, key, record);
+        }
+    }
+
+    /**
+     * Извлекает все уведомления для текущего времени (hh:mm) и группирует их по chatId.
+     */
+    public Map<Long, List<DigestRecord>> consumeForTime(LocalTime now) {
+        String key = getRedisKey(now);
+        List<Object> rawRecords = redisTemplate.opsForList().range(key, 0, -1);
+
+        if (rawRecords.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        return rawRecords.stream()
+            .filter(DigestRecord.class::isInstance)
+            .map(DigestRecord.class::cast)
+            .collect(Collectors.groupingBy(DigestRecord::chatId));
+    }
+
+    public void clearDigestTimeKey(LocalTime now) {
+        String key = getRedisKey(now);
+        redisTemplate.delete(key);
+        log.info("Cleared digest key for time {}: {}", now, key);
+    }
+
+    private String getRedisKey(LocalTime time) {
+        return REDIS_KEY_PREFIX + time.format(TIME_FORMATTER);
     }
 }
