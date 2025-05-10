@@ -21,6 +21,9 @@ public class NotificationState extends StateImpl {
         Пользователь решил не изменять настройки нового времени дайджеста.
         Предыдущее значение останется в силе.
         """;
+    private static final String byDefaultText = """
+        Вы выбрали режим моментального оповещения об обновлениях
+        """;
     private static final String message = """
         Введите время в которое вы бы хотели получать ежедневный дайджест
         По умолчанию обновления отображаются сразу как только о них станет известно.
@@ -59,6 +62,7 @@ public class NotificationState extends StateImpl {
         var text = update.message().text();
 
         if (back_button.equals(text)) {
+            bot.execute(new SendMessage(chatId, cancelText).parseMode(ParseMode.HTML));
             stateManager.navigate(update, ChatState.MENU);
             return;
         }
@@ -70,7 +74,8 @@ public class NotificationState extends StateImpl {
     private void changeTime(String message, Long chatId) {
         message = message.trim().toLowerCase();
         if (byDefault.equals(message)) {
-            bot.execute(new SendMessage(chatId, cancelText).parseMode(ParseMode.HTML));
+            bot.execute(new SendMessage(chatId, byDefaultText).parseMode(ParseMode.HTML));
+            botService.changeDigestTime(chatId, null);
             log.info("TgChat: {} cancel digest time changing", chatId);
             return;
         }

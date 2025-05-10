@@ -30,7 +30,7 @@ public class RedisScheduler {
 
     private ExecutorService executor;
 
-    @Value("${app.digest.threads-count")
+    @Value("${app.digest.threads-count}")
     private int threadsCount;
 
     @PostConstruct

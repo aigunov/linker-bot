@@ -45,7 +45,6 @@ public class TgChatService {
 
         chatRepository.setDigestTime(chatId, request.time());
         log.info("Set time for chat: {}", chatToSetTime);
-        //invalid time cache
         return "Time successfully set";
     }
 }

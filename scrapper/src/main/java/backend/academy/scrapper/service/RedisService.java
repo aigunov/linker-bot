@@ -4,17 +4,18 @@ import backend.academy.scrapper.data.dto.UpdateInfo;
 import backend.academy.scrapper.data.model.Chat;
 import backend.academy.scrapper.data.model.Link;
 import dto.DigestRecord;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.stereotype.Service;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
@@ -23,7 +24,7 @@ public class RedisService {
     private static final String REDIS_KEY_PREFIX = "digest:";
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
 
-    private final RedisTemplate<String, Object> redisTemplate;
+    private final RedisTemplate<String, DigestRecord> redisTemplate;
 
     /**
      * Сохраняет уведомление для всех указанных чатов в Redis в их время дайджеста.
@@ -49,14 +50,14 @@ public class RedisService {
      */
     public Map<Long, List<DigestRecord>> consumeForTime(LocalTime now) {
         String key = getRedisKey(now);
-        List<Object> rawRecords = redisTemplate.opsForList().range(key, 0, -1);
+        List<DigestRecord> rawRecords = redisTemplate.opsForList().range(key, 0, -1);
 
         if (rawRecords.isEmpty()) {
             return Collections.emptyMap();
         }
 
         return rawRecords.stream()
-            .filter(DigestRecord.class::isInstance)
+            .filter(Objects::nonNull)
             .map(DigestRecord.class::cast)
             .collect(Collectors.groupingBy(DigestRecord::chatId));
     }

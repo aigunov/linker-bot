@@ -25,8 +25,8 @@ app:
     scheduled-time: ${SCHEDULED_TIME}
     page-size: ${PAGE_SIZE}
   digest:
-    scheduler-time: 60000
-    threads-count: 4
+    scheduler-time: ${REDIS_SCHEDULED_TIME}
+    threads-count: ${REDIS_THREADS_COUNT}
 
 
 spring:

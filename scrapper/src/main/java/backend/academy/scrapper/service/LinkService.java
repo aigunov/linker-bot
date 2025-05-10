@@ -88,7 +88,7 @@ public class LinkService {
         }
 
         var linkToSave = Mapper.linkRequestToLink(request.uri(), chat, tags, filters);
-        log.info("Link t o save: {}", linkToSave);
+        log.info("Link to save: {}", linkToSave);
         var link = linkRepository.save(linkToSave);
         return Mapper.linkToLinkResponse(link);
     }
