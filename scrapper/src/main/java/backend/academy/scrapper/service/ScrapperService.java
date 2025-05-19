@@ -166,7 +166,7 @@ public class ScrapperService {
     }
 
     private void sendToBotService(Link link, UpdateInfo updateInfo, Set<Chat> chats) {
-        link.chats(chats); // override with only those chats
+        link.chats(chats);
         try {
             sendNotification(link, updateInfo.getFormattedMessage());
         } catch (BotServiceInternalErrorException e) {

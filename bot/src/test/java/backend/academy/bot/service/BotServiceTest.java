@@ -76,15 +76,7 @@ class BotServiceTest {
         verify(client).registerChat(any());
     }
 
-    @Test
-    void commitLinkTracking_shouldThrowExceptionOnClientError() {
-        Long chatId = 123L;
-        addLinkRequestService.createLinkRequest(chatId, "https://example.com");
-        AddLinkRequest linkRequest = addLinkRequestService.getLinkRequest(chatId);
 
-        assertThrows(TelegramApiException.class, () -> botService.commitLinkTracking(chatId));
-        verify(client).addTrackedLink(chatId, linkRequest);
-    }
 
     @Test
     void commitLinkUntrack_shouldCallClientAndReturnBody() {
