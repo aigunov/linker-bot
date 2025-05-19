@@ -61,11 +61,11 @@ public class LinkService {
         Set<Tag> tags = new HashSet<>();
 
         if (!request.tags().isEmpty()) {
-            var res =  tagRepository.saveAll(request.tags().stream()
+            var res = tagRepository.saveAll(request.tags().stream()
                     .map(tag -> Mapper.tagDtoToTag(tag, chat))
                     .toList());
 
-            for (var tag: res){
+            for (var tag : res) {
                 tags.add(tag);
             }
         }
@@ -82,7 +82,7 @@ public class LinkService {
                     })
                     .toList());
 
-            for (var filter: res){
+            for (var filter : res) {
                 filters.add(filter);
             }
         }

@@ -17,7 +17,7 @@ public final class KafkaDLQNotificationClient {
     @Value("${app.message.kafka.topic.dead-letter}")
     private String dlqTopic;
 
-    public void send(final ErrorUpdate error){
+    public void send(final ErrorUpdate error) {
         log.info("Sending error update {} to dead-letter topic", error);
         kafka.send(dlqTopic, error);
     }

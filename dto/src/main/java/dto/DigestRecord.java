@@ -1,8 +1,7 @@
 package dto;
 
-import lombok.Builder;
 import java.util.UUID;
+import lombok.Builder;
 
 @Builder
-public record DigestRecord(Long chatId, String url, String message, UUID linkId) {
-}
+public record DigestRecord(Long chatId, String url, String message, UUID linkId) {}

@@ -55,8 +55,8 @@ public class ScrapperClient {
         log.info("Request: change time on [{}] for chat: {}", notificationTimeRequest.time(), chatId);
         Map<String, String> headers = new HashMap<>();
         headers.put("Tg-Chat-Id", String.valueOf(chatId));
-        return makeAndSendRequest(TG_CHAT + "/time/{chatId}", HttpMethod.POST, headers,
-            notificationTimeRequest, String.class, chatId);
+        return makeAndSendRequest(
+                TG_CHAT + "/time/{chatId}", HttpMethod.POST, headers, notificationTimeRequest, String.class, chatId);
     }
 
     public ResponseEntity<Object> getAllLinks(final Long chatId, final GetLinksRequest linksRequest) {

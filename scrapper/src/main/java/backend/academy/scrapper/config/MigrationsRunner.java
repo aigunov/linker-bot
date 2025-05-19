@@ -25,7 +25,6 @@ import org.springframework.stereotype.Component;
 public class MigrationsRunner {
     private final DataSourceConfig dataSourceConfig;
 
-    //    @PostConstruct
     public void runMigrations() {
         Path migrationsPath =
                 new File(".").toPath().toAbsolutePath().getParent().getParent().resolve("migrations");

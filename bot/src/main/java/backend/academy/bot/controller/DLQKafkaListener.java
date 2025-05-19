@@ -14,10 +14,12 @@ public class DLQKafkaListener {
 
     private final BotService service;
 
-    @KafkaListener(topics = "${app.message.kafka.topic.dead-letter}", groupId = "bot-consumer",
-        containerFactory = "errorMessageContainerFactory")
+    @KafkaListener(
+            topics = "${app.message.kafka.topic.dead-letter}",
+            groupId = "bot-consumer",
+            containerFactory = "errorMessageContainerFactory")
     public void handleError(ErrorUpdate errorMessage) {
         log.warn("Kafka DLQ: received error message: {}", errorMessage);
-        //todo: добавить обработку исключений
+        // todo: добавить обработку исключений
     }
 }

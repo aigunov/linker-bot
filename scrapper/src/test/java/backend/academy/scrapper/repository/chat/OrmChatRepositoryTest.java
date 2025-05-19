@@ -109,4 +109,3 @@ public class OrmChatRepositoryTest {
         assertThat(found.get().nickname()).isEqualTo("user1");
     }
 }
-

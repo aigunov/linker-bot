@@ -3,7 +3,6 @@ package backend.academy.scrapper.client;
 import backend.academy.scrapper.data.dto.GitHubIssue;
 import backend.academy.scrapper.data.dto.GitHubPullRequest;
 import backend.academy.scrapper.data.dto.UpdateInfo;
-import backend.academy.scrapper.exception.ScrapperServicesApiException;
 import backend.academy.scrapper.service.LinkToApiRequestConverter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -36,65 +35,70 @@ public class GitHubClient extends AbstractUpdateCheckingClient {
         try {
             // Получаем список issues
             ResponseEntity<String> issuesResponse = restClient
-                .get()
-                .uri(apiUrl + "/issues?state=all")
-                .retrieve()
-                .onStatus(HttpStatusCode::isError, (request, response) -> {
-                    log.error("GitHub API returned error for Issues [{}]: status={}", apiUrl, response.getStatusCode());
-                    throw new RestClientException("GitHub API error for issues");
-                })
-                .toEntity(String.class);
+                    .get()
+                    .uri(apiUrl + "/issues?state=all")
+                    .retrieve()
+                    .onStatus(HttpStatusCode::isError, (request, response) -> {
+                        log.error(
+                                "GitHub API returned error for Issues [{}]: status={}",
+                                apiUrl,
+                                response.getStatusCode());
+                        throw new RestClientException("GitHub API error for issues");
+                    })
+                    .toEntity(String.class);
 
             List<GitHubIssue> issues = objectMapper.readValue(
-                issuesResponse.getBody(),
-                objectMapper.getTypeFactory().constructCollectionType(List.class, GitHubIssue.class));
+                    issuesResponse.getBody(),
+                    objectMapper.getTypeFactory().constructCollectionType(List.class, GitHubIssue.class));
 
             // Получаем список pull requests
             ResponseEntity<String> prsResponse = restClient
-                .get()
-                .uri(apiUrl + "/pulls?state=all")
-                .retrieve()
-                .onStatus(HttpStatusCode::isError, (request, response) -> {
-                    log.error("GitHub API returned error for Pull Requests [{}]: status={}", apiUrl, response.getStatusCode());
-                    throw new RestClientException("GitHub API error for pull requests");
-                })
-                .toEntity(String.class);
+                    .get()
+                    .uri(apiUrl + "/pulls?state=all")
+                    .retrieve()
+                    .onStatus(HttpStatusCode::isError, (request, response) -> {
+                        log.error(
+                                "GitHub API returned error for Pull Requests [{}]: status={}",
+                                apiUrl,
+                                response.getStatusCode());
+                        throw new RestClientException("GitHub API error for pull requests");
+                    })
+                    .toEntity(String.class);
 
             List<GitHubPullRequest> pullRequests = objectMapper.readValue(
-                prsResponse.getBody(),
-                objectMapper.getTypeFactory().constructCollectionType(List.class, GitHubPullRequest.class));
+                    prsResponse.getBody(),
+                    objectMapper.getTypeFactory().constructCollectionType(List.class, GitHubPullRequest.class));
 
             // Находим последнее обновление
             Optional<UpdateInfo> latestIssue = issues.stream()
-                .max(Comparator.comparing(GitHubIssue::createdAt))
-                .map(issue -> UpdateInfo.builder()
-                    .date(issue.createdAt())
-                    .username(issue.user().login())
-                    .title(issue.title())
-                    .type("issue")
-                    .preview(issue.body() != null ? StringUtils.substring(issue.body(), 0, 200) : "")
-                    .build());
+                    .max(Comparator.comparing(GitHubIssue::createdAt))
+                    .map(issue -> UpdateInfo.builder()
+                            .date(issue.createdAt())
+                            .username(issue.user().login())
+                            .title(issue.title())
+                            .type("issue")
+                            .preview(issue.body() != null ? StringUtils.substring(issue.body(), 0, 200) : "")
+                            .build());
 
             Optional<UpdateInfo> latestPullRequest = pullRequests.stream()
-                .max(Comparator.comparing(GitHubPullRequest::createdAt))
-                .map(pr -> UpdateInfo.builder()
-                    .date(pr.createdAt())
-                    .username(pr.user().login())
-                    .title(pr.title())
-                    .type("pull-request")
-                    .preview(pr.body() != null ? StringUtils.substring(pr.body(), 0, 200) : "")
-                    .build());
+                    .max(Comparator.comparing(GitHubPullRequest::createdAt))
+                    .map(pr -> UpdateInfo.builder()
+                            .date(pr.createdAt())
+                            .username(pr.user().login())
+                            .title(pr.title())
+                            .type("pull-request")
+                            .preview(pr.body() != null ? StringUtils.substring(pr.body(), 0, 200) : "")
+                            .build());
 
             return Stream.of(latestIssue, latestPullRequest)
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .max(Comparator.comparing(UpdateInfo::date));
+                    .filter(Optional::isPresent)
+                    .map(Optional::get)
+                    .max(Comparator.comparing(UpdateInfo::date));
 
         } catch (RestClientException e) {
             log.error("RestClientException occurred while checking updates for link {}: {}", link, e.getMessage());
-//            throw new ScrapperServicesApiException("GitHub API error", e);
+            //            throw new ScrapperServicesApiException("GitHub API error", e);
             return Optional.empty();
         }
     }
-
 }

@@ -19,26 +19,17 @@ public class KafkaTopicConfig {
     private String digestTopic;
 
     @Bean
-    public NewTopic notificationTopic(){
-        return TopicBuilder.name(notificationTopic)
-            .partitions(3)
-            .replicas(1)
-            .build();
+    public NewTopic notificationTopic() {
+        return TopicBuilder.name(notificationTopic).partitions(3).replicas(1).build();
     }
 
     @Bean
-    public NewTopic digestTopic(){
-        return TopicBuilder.name(digestTopic)
-            .partitions(3)
-            .replicas(1)
-            .build();
+    public NewTopic digestTopic() {
+        return TopicBuilder.name(digestTopic).partitions(3).replicas(1).build();
     }
 
     @Bean
     public NewTopic deadLetterTopic() {
-        return TopicBuilder.name(deadLetterTopic)
-            .partitions(3)
-            .replicas(1)
-            .build();
+        return TopicBuilder.name(deadLetterTopic).partitions(3).replicas(1).build();
     }
 }

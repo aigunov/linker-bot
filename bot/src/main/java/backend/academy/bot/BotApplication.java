@@ -6,7 +6,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cache.annotation.EnableCaching;
 
-
 @EnableCaching
 @SpringBootApplication
 @EnableConfigurationProperties({BotConfig.class})
@@ -15,5 +14,3 @@ public class BotApplication {
         SpringApplication.run(BotApplication.class, args);
     }
 }
-
-

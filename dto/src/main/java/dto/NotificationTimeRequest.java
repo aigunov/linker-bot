@@ -1,8 +1,7 @@
 package dto;
 
-import lombok.Builder;
 import java.time.LocalTime;
+import lombok.Builder;
 
 @Builder
-public record NotificationTimeRequest(LocalTime time) {
-}
+public record NotificationTimeRequest(LocalTime time) {}

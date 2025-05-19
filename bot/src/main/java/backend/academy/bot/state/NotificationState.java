@@ -13,18 +13,22 @@ import org.springframework.stereotype.Component;
 @Component
 public class NotificationState extends StateImpl {
     private static final String byDefault = "сразу";
-    private static final String wrongTimeFormatMessage = """
+    private static final String wrongTimeFormatMessage =
+            """
         Неверный формат времени.
         Должен быть hh:mm.
         Попробуйте снова или вернитесь назад""";
-    private static final String cancelText = """
+    private static final String cancelText =
+            """
         Пользователь решил не изменять настройки нового времени дайджеста.
         Предыдущее значение останется в силе.
         """;
-    private static final String byDefaultText = """
+    private static final String byDefaultText =
+            """
         Вы выбрали режим моментального оповещения об обновлениях
         """;
-    private static final String message = """
+    private static final String message =
+            """
         Введите время в которое вы бы хотели получать ежедневный дайджест
         По умолчанию обновления отображаются сразу как только о них станет известно.
         Вы можете задать время для ежедневного отображения всех обновлений по вашим ссылкам сразу.
@@ -33,7 +37,6 @@ public class NotificationState extends StateImpl {
         Введите или нажмите кнопку "сразу", чтобы выбрать вариант с моментальным отображением обновлений.
         Нажмите "Назад" если не хотите изменить текущий формат времени.
         """;
-
 
     public NotificationState() {
         super(ChatState.NOTIFICATION, message);
@@ -44,8 +47,8 @@ public class NotificationState extends StateImpl {
         log.info("Current state: NotificationState");
         try {
             bot.execute(new SendMessage(chatId, message)
-                .replyMarkup(keyboardFactory.getNotificationTimeSetKeyboard())
-                .parseMode(ParseMode.HTML));
+                    .replyMarkup(keyboardFactory.getNotificationTimeSetKeyboard())
+                    .parseMode(ParseMode.HTML));
         } catch (TelegramApiException e) {
             log.info("Error while sending feedback request message: {}", e.getMessage());
         }
@@ -85,25 +88,25 @@ public class NotificationState extends StateImpl {
             validatorChecker(wrongTimeFormatMessage, chatId);
             return;
         }
-        var time = parsedTimeOpt.get();
+        var time = parsedTimeOpt.orElseThrow();
         log.info("TgChat: {} change digest time", chatId);
         var response = botService.changeDigestTime(chatId, time);
         if (response instanceof ApiErrorResponse error) {
-            String failChangeTimeMessage = String.format("""
+            String failChangeTimeMessage = String.format(
+                    """
                 К сожалению у нас не получилось поменять время дайджеста.
                 Попробуйте позже.
-                Причина: %s""", error.description());
-            bot.execute(new SendMessage(
-                chatId,
-                failChangeTimeMessage)
-                .parseMode(ParseMode.HTML));
+                Причина: %s""",
+                    error.description());
+            bot.execute(new SendMessage(chatId, failChangeTimeMessage).parseMode(ParseMode.HTML));
         } else {
-            String successfulChangeTimeMessage = String.format("""
+            String successfulChangeTimeMessage = String.format(
+                    """
                 Время для дайджеста теперь обновлено.
                 Теперь список обновлений будет отображаться вам каждый день в %s
-                """, time);
+                """,
+                    time);
             bot.execute(new SendMessage(chatId, successfulChangeTimeMessage).parseMode(ParseMode.HTML));
         }
     }
-
 }

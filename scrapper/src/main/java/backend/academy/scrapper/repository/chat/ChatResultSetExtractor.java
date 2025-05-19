@@ -24,11 +24,11 @@ public class ChatResultSetExtractor implements ResultSetExtractor<List<Chat>> {
             LocalTime digestTime = (timeString != null) ? LocalTime.parse(timeString) : null;
 
             chats.add(Chat.builder()
-                .id(UUID.fromString(rs.getString("id")))
-                .tgId(rs.getLong("tg_id"))
-                .nickname(rs.getString("nickname"))
-                .digestTime(digestTime)
-                .build());
+                    .id(UUID.fromString(rs.getString("id")))
+                    .tgId(rs.getLong("tg_id"))
+                    .nickname(rs.getString("nickname"))
+                    .digestTime(digestTime)
+                    .build());
         }
         log.debug("Result set converted into List<Chat>: {}", chats);
         return chats;

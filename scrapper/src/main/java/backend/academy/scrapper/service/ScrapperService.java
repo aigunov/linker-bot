@@ -153,16 +153,10 @@ public class ScrapperService {
 
     private Map<Boolean, Set<Chat>> partitionChats(Link link, UpdateInfo updateInfo) {
         return link.chats().stream()
-            .filter(chat -> chat.filters().stream()
-                .noneMatch(filter ->
-                    "user".equalsIgnoreCase(filter.parameter()) &&
-                        updateInfo.username().equalsIgnoreCase(filter.value())
-                )
-            )
-            .collect(Collectors.partitioningBy(
-                chat -> chat.digestTime() == null,
-                Collectors.toSet()
-            ));
+                .filter(chat -> chat.filters().stream()
+                        .noneMatch(filter -> "user".equalsIgnoreCase(filter.parameter())
+                                && updateInfo.username().equalsIgnoreCase(filter.value())))
+                .collect(Collectors.partitioningBy(chat -> chat.digestTime() == null, Collectors.toSet()));
     }
 
     private void sendToBotService(Link link, UpdateInfo updateInfo, Set<Chat> chats) {
@@ -176,7 +170,6 @@ public class ScrapperService {
         }
     }
 
-
     private void sendNotification(Link link, String message) {
         var update = LinkUpdate.builder()
                 .id(link.id())
@@ -189,15 +182,14 @@ public class ScrapperService {
 
     private void sendError(Link link, Exception e) {
         var message = ErrorUpdate.builder()
-            .id(link.id())
-            .url(link.url())
-            .timestamp(LocalDateTime.now())
-            .error(e.getMessage())
-            .tgChatIds(link.chats().stream().map(Chat::tgId).collect(Collectors.toSet()))
-            .build();
+                .id(link.id())
+                .url(link.url())
+                .timestamp(LocalDateTime.now())
+                .error(e.getMessage())
+                .tgChatIds(link.chats().stream().map(Chat::tgId).collect(Collectors.toSet()))
+                .build();
 
         dlqClient.send(message);
         log.info("Error link {} sending in dlq_topic", link.url());
     }
-
 }

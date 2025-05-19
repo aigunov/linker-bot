@@ -14,12 +14,11 @@ public class ListRequestService {
     private final RedisTemplate<String, GetLinksRequest> redisTemplate;
     private static final String PREFIX = "listRequest";
 
-
     public void createListRequest(final Long chatId) {
         var request = GetLinksRequest.builder()
-            .tags(new ArrayList<>())
-            .filters(new ArrayList<>())
-            .build();
+                .tags(new ArrayList<>())
+                .filters(new ArrayList<>())
+                .build();
         redisTemplate.opsForValue().set(PREFIX + chatId, request);
     }
 

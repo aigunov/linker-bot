@@ -1,7 +1,6 @@
 package backend.academy.scrapper.repository.chat;
 
 import backend.academy.scrapper.data.model.Chat;
-import dto.NotificationTimeRequest;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;

@@ -30,16 +30,13 @@ public class KafkaConsumerConfig {
         props.put(JsonDeserializer.TRUSTED_PACKAGES, "*");
 
         return new DefaultKafkaConsumerFactory<>(
-            props,
-            new StringDeserializer(),
-            new JsonDeserializer<>(LinkUpdate.class)
-        );
+                props, new StringDeserializer(), new JsonDeserializer<>(LinkUpdate.class));
     }
 
     @Bean
     public ConcurrentKafkaListenerContainerFactory<String, LinkUpdate> kafkaListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<String, LinkUpdate> factory =
-            new ConcurrentKafkaListenerContainerFactory<>();
+                new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory());
 
         return factory;
@@ -53,15 +50,13 @@ public class KafkaConsumerConfig {
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
         props.put(JsonDeserializer.TRUSTED_PACKAGES, "*");
 
-        return new DefaultKafkaConsumerFactory<>(
-            props,
-            new StringDeserializer(),
-            new JsonDeserializer<>(Digest.class));
+        return new DefaultKafkaConsumerFactory<>(props, new StringDeserializer(), new JsonDeserializer<>(Digest.class));
     }
 
     @Bean
     public ConcurrentKafkaListenerContainerFactory<String, Digest> digestKafkaListenerContainerFactory() {
-        ConcurrentKafkaListenerContainerFactory<String, Digest> factory = new ConcurrentKafkaListenerContainerFactory<>();
+        ConcurrentKafkaListenerContainerFactory<String, Digest> factory =
+                new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(digestConsumerFactory());
         return factory;
     }
@@ -75,10 +70,7 @@ public class KafkaConsumerConfig {
         props.put(JsonDeserializer.TRUSTED_PACKAGES, "*");
 
         return new DefaultKafkaConsumerFactory<>(
-            props,
-            new StringDeserializer(),
-            new JsonDeserializer<>(ErrorUpdate.class)
-        );
+                props, new StringDeserializer(), new JsonDeserializer<>(ErrorUpdate.class));
     }
 
     @Bean

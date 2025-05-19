@@ -28,7 +28,8 @@ public class TgChatController {
     private final TgChatService tgChatService;
 
     @PostMapping("/{chatId}")
-    public ResponseEntity<String> registerChat(@PathVariable Long chatId, @Valid @RequestBody RegisterChatRequest request) {
+    public ResponseEntity<String> registerChat(
+            @PathVariable Long chatId, @Valid @RequestBody RegisterChatRequest request) {
         log.info("Registering chat with ID: {}. Name: {}", chatId, request.name());
         var responseString = tgChatService.registerChat(chatId, request);
         return ResponseEntity.ok().body(responseString);
@@ -42,8 +43,8 @@ public class TgChatController {
     }
 
     @PostMapping("/time/{chatId}")
-    public ResponseEntity<String> changeDigestTime(@PathVariable Long chatId,
-                                                   @Valid @RequestBody NotificationTimeRequest request){
+    public ResponseEntity<String> changeDigestTime(
+            @PathVariable Long chatId, @Valid @RequestBody NotificationTimeRequest request) {
         log.info("Set new digest time {} for chat with tgId: {}", request.time(), chatId);
         var responseString = tgChatService.setDigestTime(chatId, request);
         return ResponseEntity.ok().body(responseString);

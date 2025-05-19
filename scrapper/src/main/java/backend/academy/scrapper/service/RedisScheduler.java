@@ -63,7 +63,7 @@ public class RedisScheduler {
             futures.add(executor.submit(() -> sendDigest(subList)));
         }
 
-        for (var future: futures){
+        for (var future : futures) {
             try {
                 future.get();
             } catch (ExecutionException | InterruptedException e) {
@@ -75,8 +75,8 @@ public class RedisScheduler {
     private void sendDigest(List<Map.Entry<Long, List<DigestRecord>>> entries) {
         for (var entry : entries) {
             var updates = entry.getValue().stream()
-                .map(this::convertDigesttoLinkUpdate)
-                .toList();
+                    .map(this::convertDigesttoLinkUpdate)
+                    .toList();
             var digest = Digest.builder().tgId(entry.getKey()).updates(updates).build();
 
             try {
@@ -90,11 +90,10 @@ public class RedisScheduler {
 
     private LinkUpdate convertDigesttoLinkUpdate(DigestRecord digest) {
         return LinkUpdate.builder()
-            .id(digest.linkId())
-            .tgChatIds(Set.of(digest.chatId()))
-            .url(digest.url())
-            .message(digest.message())
-            .build();
+                .id(digest.linkId())
+                .tgChatIds(Set.of(digest.chatId()))
+                .url(digest.url())
+                .message(digest.message())
+                .build();
     }
 }
-

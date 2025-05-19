@@ -26,28 +26,24 @@ public class RedisService {
 
     private final RedisTemplate<String, DigestRecord> redisTemplate;
 
-    /**
-     * Сохраняет уведомление для всех указанных чатов в Redis в их время дайджеста.
-     */
+    /** Сохраняет уведомление для всех указанных чатов в Redis в их время дайджеста. */
     public void storeUpdate(Set<Chat> chats, Link link, UpdateInfo updateInfo) {
         for (Chat chat : chats) {
             LocalTime digestTime = chat.digestTime();
             String key = getRedisKey(digestTime);
             DigestRecord record = DigestRecord.builder()
-                .url(link.url())
-                .chatId(chat.tgId())
-                .linkId(link.id())
-                .message(updateInfo.getFormattedMessage())
-                .build();
+                    .url(link.url())
+                    .chatId(chat.tgId())
+                    .linkId(link.id())
+                    .message(updateInfo.getFormattedMessage())
+                    .build();
 
             redisTemplate.opsForList().rightPush(key, record);
             log.debug("Stored digest for time {} in key {}: {}", digestTime, key, record);
         }
     }
 
-    /**
-     * Извлекает все уведомления для текущего времени (hh:mm) и группирует их по chatId.
-     */
+    /** Извлекает все уведомления для текущего времени (hh:mm) и группирует их по chatId. */
     public Map<Long, List<DigestRecord>> consumeForTime(LocalTime now) {
         String key = getRedisKey(now);
         List<DigestRecord> rawRecords = redisTemplate.opsForList().range(key, 0, -1);
@@ -57,9 +53,9 @@ public class RedisService {
         }
 
         return rawRecords.stream()
-            .filter(Objects::nonNull)
-            .map(DigestRecord.class::cast)
-            .collect(Collectors.groupingBy(DigestRecord::chatId));
+                .filter(Objects::nonNull)
+                .map(DigestRecord.class::cast)
+                .collect(Collectors.groupingBy(DigestRecord::chatId));
     }
 
     public void clearDigestTimeKey(LocalTime now) {

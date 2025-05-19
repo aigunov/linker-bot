@@ -1,8 +1,7 @@
 package dto;
 
-import lombok.Builder;
 import java.util.List;
+import lombok.Builder;
 
 @Builder
-public record Digest(long tgId, List<LinkUpdate> updates) {
-}
+public record Digest(long tgId, List<LinkUpdate> updates) {}

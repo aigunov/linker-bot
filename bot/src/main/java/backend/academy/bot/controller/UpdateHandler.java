@@ -26,15 +26,14 @@ public class UpdateHandler {
     }
 
     /**
-     * Ошибка: если пользователь не зарегистрирован и введет что-то кроме /start
-     *         бот НЕРЕГИСТРИРУЯ пользователя закинет его в menu
-     * Идея: сюда закинуть обращение к бд "userRegistered(chatId)" и значение кэшировать
-     *       чтобы при повторном запросе из кэша, но нужно поправить Register.state, TgChatService
+     * Ошибка: если пользователь не зарегистрирован и введет что-то кроме /start бот НЕРЕГИСТРИРУЯ пользователя закинет
+     * его в menu Идея: сюда закинуть обращение к бд "userRegistered(chatId)" и значение кэшировать чтобы при повторном
+     * запросе из кэша, но нужно поправить Register.state, TgChatService
      */
     public void handleUpdate(Update update) {
         if (update.message() != null && update.message().text() != null) {
 
-            //todo: переработать по комментарию
+            // todo: переработать по комментарию
             var chatId = update.message().chat().id();
             if (update.message().text().equals("/start")) {
                 stateManager.navigate(update, ChatState.REGISTER);

@@ -47,11 +47,9 @@ public class BotService {
         this.telegramBot = telegramBot;
     }
 
-    //todo: имя кэша конфигурируемое
+    // todo: имя кэша конфигурируемое
     @NotNull
-    @Cacheable(value = "trackedLinks", key = "#chatId",
-        unless = "#result instanceof T(dto.ApiErrorResponse)"
-    )
+    @Cacheable(value = "trackedLinks", key = "#chatId", unless = "#result instanceof T(dto.ApiErrorResponse)")
     public Object getAllLinks(Long chatId) {
         try {
             log.info("Fetching tracked links for chatId: {}", chatId);
@@ -119,7 +117,7 @@ public class BotService {
     }
 
     @NotNull
-    @CacheEvict(value="trackedLinks", key = "#chatId")
+    @CacheEvict(value = "trackedLinks", key = "#chatId")
     public Object commitLinkTracking(Long chatId) {
         try {
             AddLinkRequest linkRequest = addLinkRequestService.getLinkRequest(chatId);
@@ -144,7 +142,7 @@ public class BotService {
     }
 
     @NotNull
-    public Object changeDigestTime(Long chatId, LocalTime time){
+    public Object changeDigestTime(Long chatId, LocalTime time) {
         try {
             var responseEntity = client.setNotificationTime(chatId, new NotificationTimeRequest(time));
 
@@ -152,20 +150,19 @@ public class BotService {
                 log.info("Successfully changed time for chatId: {}", chatId);
             } else {
                 log.warn(
-                    "Failed to change time for chatId: {}. Status code: {}",
-                    chatId,
-                    responseEntity.getStatusCode());
+                        "Failed to change time for chatId: {}. Status code: {}",
+                        chatId,
+                        responseEntity.getStatusCode());
             }
             return responseEntity.getBody();
         } catch (Exception ex) {
             log.error("Unexpected error while fetching tracked links for chatId: {}", chatId, ex);
             throw new TelegramApiException("Произошла ошибка взаимодействия с сервисом Scrapper. Попробуйте позже.");
         }
-
     }
 
     @NotNull
-    @CacheEvict(value="trackedLinks", key = "#chatId")
+    @CacheEvict(value = "trackedLinks", key = "#chatId")
     public Object commitLinkUntrack(Long chatId, String message) {
         try {
             var responseEntity = client.removeTrackedLink(chatId, new RemoveLinkRequest(message));
@@ -231,8 +228,11 @@ public class BotService {
         int count = 1;
         for (LinkUpdate update : digest.updates()) {
             sb.append(count++)
-                .append(". 🔗 <b>").append(update.url()).append("</b>\n")
-                .append(update.message()).append("\n\n");
+                    .append(". 🔗 <b>")
+                    .append(update.url())
+                    .append("</b>\n")
+                    .append(update.message())
+                    .append("\n\n");
         }
 
         return sb.toString().trim();

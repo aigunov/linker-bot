@@ -41,7 +41,7 @@ public class TgChatService {
     @Transactional
     public String setDigestTime(Long chatId, NotificationTimeRequest request) {
         var chatToSetTime =
-            chatRepository.findByTgId(chatId).orElseThrow(() -> new ChatException("chat %d not found", chatId));
+                chatRepository.findByTgId(chatId).orElseThrow(() -> new ChatException("chat %d not found", chatId));
 
         chatRepository.setDigestTime(chatId, request.time());
         log.info("Set time for chat: {}", chatToSetTime);

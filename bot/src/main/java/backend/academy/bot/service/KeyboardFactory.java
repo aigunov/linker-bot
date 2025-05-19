@@ -34,16 +34,15 @@ public class KeyboardFactory {
                 .selective(true);
     }
 
-
     public ReplyKeyboardMarkup getNotificationTimeSetKeyboard() {
         List<KeyboardButton[]> rows = new ArrayList<>();
 
-        rows.add(new KeyboardButton[]{new KeyboardButton("Назад"), new KeyboardButton("Сразу")});
+        rows.add(new KeyboardButton[] {new KeyboardButton("Назад"), new KeyboardButton("Сразу")});
 
         return new ReplyKeyboardMarkup(rows.toArray(new KeyboardButton[0][]))
-            .resizeKeyboard(true)
-            .oneTimeKeyboard(true)
-            .selective(true);
+                .resizeKeyboard(true)
+                .oneTimeKeyboard(true)
+                .selective(true);
     }
 
     public ReplyKeyboardMarkup getNextAndBackButtonKeyboard() {

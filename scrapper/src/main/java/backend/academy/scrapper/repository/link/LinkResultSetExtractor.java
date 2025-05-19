@@ -38,13 +38,13 @@ public class LinkResultSetExtractor implements ResultSetExtractor<List<Link>> {
             Link link = linkMap.computeIfAbsent(linkId, id -> {
                 try {
                     return Link.builder()
-                        .id(id)
-                        .url(rs.getString("url"))
-                        .lastUpdate(rs.getTimestamp("last_update").toLocalDateTime())
-                        .chats(new HashSet<>())
-                        .tags(new HashSet<>())
-                        .filters(new HashSet<>())
-                        .build();
+                            .id(id)
+                            .url(rs.getString("url"))
+                            .lastUpdate(rs.getTimestamp("last_update").toLocalDateTime())
+                            .chats(new HashSet<>())
+                            .tags(new HashSet<>())
+                            .filters(new HashSet<>())
+                            .build();
                 } catch (SQLException e) {
                     log.error("Error processing ResultSet row", e);
                     throw new DataAccessException("Error processing ResultSet row", e) {};
@@ -54,32 +54,35 @@ public class LinkResultSetExtractor implements ResultSetExtractor<List<Link>> {
             if (columnNames.contains("chat_id")) {
                 String chatIdStr = rs.getString("chat_id");
                 if (chatIdStr != null) {
-                    link.chats().add(Chat.builder()
-                        .id(UUID.fromString(chatIdStr))
-                        .tgId(rs.getLong("tg_id"))
-                        .nickname(rs.getString("nickname"))
-                        .build());
+                    link.chats()
+                            .add(Chat.builder()
+                                    .id(UUID.fromString(chatIdStr))
+                                    .tgId(rs.getLong("tg_id"))
+                                    .nickname(rs.getString("nickname"))
+                                    .build());
                 }
             }
 
             if (columnNames.contains("tag_id")) {
                 String tagIdStr = rs.getString("tag_id");
                 if (tagIdStr != null) {
-                    link.tags().add(Tag.builder()
-                        .id(UUID.fromString(tagIdStr))
-                        .tag(rs.getString("tag"))
-                        .build());
+                    link.tags()
+                            .add(Tag.builder()
+                                    .id(UUID.fromString(tagIdStr))
+                                    .tag(rs.getString("tag"))
+                                    .build());
                 }
             }
 
             if (columnNames.contains("filter_id")) {
                 String filterIdStr = rs.getString("filter_id");
                 if (filterIdStr != null) {
-                    link.filters().add(Filter.builder()
-                        .id(UUID.fromString(filterIdStr))
-                        .parameter(rs.getString("parameter"))
-                        .value(rs.getString("value"))
-                        .build());
+                    link.filters()
+                            .add(Filter.builder()
+                                    .id(UUID.fromString(filterIdStr))
+                                    .parameter(rs.getString("parameter"))
+                                    .value(rs.getString("value"))
+                                    .build());
                 }
             }
         }

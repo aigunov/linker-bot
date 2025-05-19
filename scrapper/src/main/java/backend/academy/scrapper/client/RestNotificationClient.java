@@ -12,8 +12,6 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
-import reactor.core.publisher.Mono;
-import java.util.List;
 
 @Service
 @Slf4j
@@ -37,26 +35,26 @@ public class RestNotificationClient implements NotificationClient {
 
     private <T> void sendRequest(String uri, T body) {
         webClient
-            .post()
-            .uri(uri)
-            .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(body)
-            .retrieve()
-            .toBodilessEntity()
-            .doOnSuccess(res -> log.info("Successfully sent request to {}", uri))
-            .doOnError(WebClientResponseException.class, e -> {
-                if (e.getStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR) {
-                    log.error("Bot service returned 500 for request to {}: {}", uri, e.getMessage());
-                    throw new BotServiceInternalErrorException("Internal error from bot service", e);
-                } else {
-                    log.error("Failed to send request to {}: {}", uri, e.getMessage());
+                .post()
+                .uri(uri)
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(body)
+                .retrieve()
+                .toBodilessEntity()
+                .doOnSuccess(res -> log.info("Successfully sent request to {}", uri))
+                .doOnError(WebClientResponseException.class, e -> {
+                    if (e.getStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR) {
+                        log.error("Bot service returned 500 for request to {}: {}", uri, e.getMessage());
+                        throw new BotServiceInternalErrorException("Internal error from bot service", e);
+                    } else {
+                        log.error("Failed to send request to {}: {}", uri, e.getMessage());
+                        throw new BotServiceException("Failed to send request", e);
+                    }
+                })
+                .doOnError(Exception.class, e -> {
+                    log.error("Error during request to {}: {}", uri, e.getMessage());
                     throw new BotServiceException("Failed to send request", e);
-                }
-            })
-            .doOnError(Exception.class, e -> {
-                log.error("Error during request to {}: {}", uri, e.getMessage());
-                throw new BotServiceException("Failed to send request", e);
-            })
-            .subscribe();
+                })
+                .subscribe();
     }
 }

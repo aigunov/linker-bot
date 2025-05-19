@@ -42,15 +42,14 @@ public class SqlChatRepository implements ChatRepository {
 
     @Override
     public void setDigestTime(Long chatId, LocalTime time) {
-        var sql = """
+        var sql =
+                """
                 UPDATE chat
                 SET digest_time = :time
                 WHERE tg_id = :tgId
             """;
 
-        var params = new MapSqlParameterSource()
-            .addValue("tgId", chatId)
-            .addValue("time", time);
+        var params = new MapSqlParameterSource().addValue("tgId", chatId).addValue("time", time);
 
         jdbc.update(sql, params);
     }

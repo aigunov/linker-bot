@@ -1,5 +1,7 @@
 package backend.academy.scrapper.kafka;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+
 import dto.ErrorUpdate;
 import dto.LinkUpdate;
 import java.time.Duration;
@@ -27,32 +29,30 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.kafka.ConfluentKafkaContainer;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 @SpringBootTest
 @Testcontainers
 @TestPropertySource(
-    properties = {
-        "app.db.access-type=orm",
-        "spring.jpa.hibernate.ddl-auto=validate",
-        "spring.jpa.hibernate.ddl-auto=create",
-        "app.scrapper.page-size=10",
-        "app.scrapper.threads-count=1",
-        "app.scrapper.scheduled-time=100000",
-        "app.digest.threads-count=4",
-        "app.digest.scheduler-time=60000"
-    })
+        properties = {
+            "app.db.access-type=orm",
+            "spring.jpa.hibernate.ddl-auto=validate",
+            "spring.jpa.hibernate.ddl-auto=create",
+            "app.scrapper.page-size=10",
+            "app.scrapper.threads-count=1",
+            "app.scrapper.scheduled-time=100000",
+            "app.digest.threads-count=4",
+            "app.digest.scheduler-time=60000"
+        })
 public class KafkaIntegrationTest {
 
     @Container
     static final ConfluentKafkaContainer kafka = new ConfluentKafkaContainer("confluentinc/cp-kafka:7.4.0");
 
     @Container
-    static final PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>
-        ("postgres:17.4")
-        .withDatabaseName("scrapper_db")
-        .withUsername("aigunov")
-        .withPassword("12345");
+    static final PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres:17.4")
+            .withDatabaseName("scrapper_db")
+            .withUsername("aigunov")
+            .withPassword("12345");
 
     @Autowired
     private KafkaTemplate<String, Object> kafkaTemplate;
@@ -78,64 +78,64 @@ public class KafkaIntegrationTest {
     @Test
     void shouldSendLinkUpdateSuccessfullyToNotificationTopic() {
         LinkUpdate update = LinkUpdate.builder()
-            .id(UUID.randomUUID())
-            .url("https://github.com/test/repo")
-            .message("Issue opened")
-            .tgChatIds(Set.of(123L, 456L))
-            .build();
+                .id(UUID.randomUUID())
+                .url("https://github.com/test/repo")
+                .message("Issue opened")
+                .tgChatIds(Set.of(123L, 456L))
+                .build();
 
         kafkaTemplate.send(notificationTopic, update);
 
-        Map<String, Object> consumerProps = KafkaTestUtils.consumerProps(
-            kafka.getBootstrapServers(), "test-group-1", "true"
-        );
+        Map<String, Object> consumerProps =
+                KafkaTestUtils.consumerProps(kafka.getBootstrapServers(), "test-group-1", "true");
         consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
         consumerProps.put(JsonDeserializer.VALUE_DEFAULT_TYPE, LinkUpdate.class.getName());
         consumerProps.put(JsonDeserializer.TRUSTED_PACKAGES, "*");
 
         try (Consumer<String, LinkUpdate> consumer =
-                 new DefaultKafkaConsumerFactory<String, LinkUpdate>(consumerProps).createConsumer()) {
+                new DefaultKafkaConsumerFactory<String, LinkUpdate>(consumerProps).createConsumer()) {
             consumer.subscribe(Collections.singleton(notificationTopic));
 
-            ConsumerRecord<String, LinkUpdate> record = KafkaTestUtils.getSingleRecord(consumer, notificationTopic, Duration.ofSeconds(10));
+            ConsumerRecord<String, LinkUpdate> record =
+                    KafkaTestUtils.getSingleRecord(consumer, notificationTopic, Duration.ofSeconds(10));
 
             assertThat(record.value()).isNotNull();
             assertThat(record.value().url()).isEqualTo("https://github.com/test/repo");
             assertThat(record.value().message()).contains("Issue");
-//            assertThat(record.value().tgChatIds()).contains(123L, 456L);
+            //            assertThat(record.value().tgChatIds()).contains(123L, 456L);
         }
     }
 
     @Test
     void shouldSendErrorUpdateSuccessfullyToDLQ() {
         ErrorUpdate errorUpdate = ErrorUpdate.builder()
-            .id(UUID.randomUUID())
-            .url("https://stackoverflow.com/q/123")
-            .timestamp(LocalDateTime.now())
-            .error("Failed to parse response")
-            .tgChatIds(Set.of(321L))
-            .build();
+                .id(UUID.randomUUID())
+                .url("https://stackoverflow.com/q/123")
+                .timestamp(LocalDateTime.now())
+                .error("Failed to parse response")
+                .tgChatIds(Set.of(321L))
+                .build();
 
         kafkaTemplate.send(deadLetterTopic, errorUpdate);
 
-        Map<String, Object> consumerProps = KafkaTestUtils.consumerProps(
-            kafka.getBootstrapServers(), "test-group-2", "true"
-        );
+        Map<String, Object> consumerProps =
+                KafkaTestUtils.consumerProps(kafka.getBootstrapServers(), "test-group-2", "true");
         consumerProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         consumerProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
         consumerProps.put(JsonDeserializer.VALUE_DEFAULT_TYPE, ErrorUpdate.class.getName());
         consumerProps.put(JsonDeserializer.TRUSTED_PACKAGES, "*");
 
         try (Consumer<String, ErrorUpdate> consumer =
-                 new DefaultKafkaConsumerFactory<String, ErrorUpdate>(consumerProps).createConsumer()) {
+                new DefaultKafkaConsumerFactory<String, ErrorUpdate>(consumerProps).createConsumer()) {
             consumer.subscribe(Collections.singleton(deadLetterTopic));
 
-            ConsumerRecord<String, ErrorUpdate> record = KafkaTestUtils.getSingleRecord(consumer, deadLetterTopic, Duration.ofSeconds(10));
+            ConsumerRecord<String, ErrorUpdate> record =
+                    KafkaTestUtils.getSingleRecord(consumer, deadLetterTopic, Duration.ofSeconds(10));
 
             assertThat(record.value()).isNotNull();
             assertThat(record.value().error()).contains("Failed to parse");
-//            assertThat(record.value().tgChatIds()).contains(321L);
+            //            assertThat(record.value().tgChatIds()).contains(321L);
         }
     }
 }

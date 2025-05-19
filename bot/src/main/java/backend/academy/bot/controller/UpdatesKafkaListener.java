@@ -17,22 +17,21 @@ public class UpdatesKafkaListener {
 
     private final BotService service;
 
-    @KafkaListener(topics = "${app.message.kafka.topic.notification}", groupId = "bot-consumer",
-        containerFactory = "kafkaListenerContainerFactory")
+    @KafkaListener(
+            topics = "${app.message.kafka.topic.notification}",
+            groupId = "bot-consumer",
+            containerFactory = "kafkaListenerContainerFactory")
     public void listenNotifications(LinkUpdate update) {
         log.info("Incoming link update: [{}]", update);
         service.processUpdate(update);
     }
 
-
     @KafkaListener(
-        topics = "${app.message.kafka.topic.digest}",
-        groupId = "digest-group",
-        containerFactory = "digestKafkaListenerContainerFactory")
+            topics = "${app.message.kafka.topic.digest}",
+            groupId = "digest-group",
+            containerFactory = "digestKafkaListenerContainerFactory")
     public void listenDigests(Digest digest) {
         log.info("Incoming digests: [{}]", digest);
         service.processDigests(digest);
     }
-
-
 }
