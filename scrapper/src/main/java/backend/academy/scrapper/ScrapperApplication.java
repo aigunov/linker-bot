@@ -2,6 +2,7 @@ package backend.academy.scrapper;
 
 import backend.academy.scrapper.config.DataSourceConfig;
 import backend.academy.scrapper.config.GitHubConfig;
+import backend.academy.scrapper.config.RateLimitingProperties;
 import backend.academy.scrapper.config.StackOverflowConfig;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -14,7 +15,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableScheduling
 @EnableCaching
 @SpringBootApplication
-@EnableConfigurationProperties({GitHubConfig.class, StackOverflowConfig.class, DataSourceConfig.class})
+@EnableConfigurationProperties({GitHubConfig.class, StackOverflowConfig.class,
+                                DataSourceConfig.class, RateLimitingProperties.class})
 public class ScrapperApplication {
     public static void main(String[] args) {
         SpringApplication.run(ScrapperApplication.class, args);

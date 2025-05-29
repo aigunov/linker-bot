@@ -1,12 +1,13 @@
 package backend.academy.scrapper.config;
-import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
-import io.github.resilience4j.ratelimiter.*;
-import io.github.resilience4j.retry.*;
-import io.github.resilience4j.timelimiter.*;
-import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.*;
 
-import java.time.Duration;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
+import io.github.resilience4j.retry.RetryConfig;
+import io.github.resilience4j.retry.RetryRegistry;
+import io.github.resilience4j.timelimiter.TimeLimiterConfig;
+import io.github.resilience4j.timelimiter.TimeLimiterRegistry;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @RequiredArgsConstructor

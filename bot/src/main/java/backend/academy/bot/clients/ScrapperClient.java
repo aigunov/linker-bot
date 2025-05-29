@@ -10,6 +10,9 @@ import dto.ListLinkResponse;
 import dto.NotificationTimeRequest;
 import dto.RegisterChatRequest;
 import dto.RemoveLinkRequest;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.retry.annotation.Retry;
+import io.github.resilience4j.timelimiter.annotation.TimeLimiter;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -39,18 +42,27 @@ public class ScrapperClient {
     private final RestClient restClient;
     private final JsonToApiErrorResponse convertJsonToApiErrorResponse;
 
+    @Retry(name = "scrapperClient", fallbackMethod = "fallback")
+    @TimeLimiter(name = "scrapperClient")
+    @CircuitBreaker(name = "scrapperClient", fallbackMethod = "fallback")
     public ResponseEntity<Object> registerChat(final RegisterChatRequest chat) {
         log.info("Request: register chat {}", chat);
         Map<String, String> headers = new HashMap<>();
         return makeAndSendRequest(TG_CHAT + "/{chatId}", HttpMethod.POST, headers, chat, String.class, chat.chatId());
     }
 
+    @Retry(name = "scrapperClient", fallbackMethod = "fallback")
+    @TimeLimiter(name = "scrapperClient")
+    @CircuitBreaker(name = "scrapperClient", fallbackMethod = "fallback")
     public ResponseEntity<Object> deleteChat(final Long chatId) {
         log.info("Request: delete chat {}", chatId);
         Map<String, String> headers = new HashMap<>();
         return makeAndSendRequest(TG_CHAT + "/{chatId}", HttpMethod.DELETE, headers, null, String.class, chatId);
     }
 
+    @Retry(name = "scrapperClient", fallbackMethod = "fallback")
+    @TimeLimiter(name = "scrapperClient")
+    @CircuitBreaker(name = "scrapperClient", fallbackMethod = "fallback")
     public ResponseEntity<Object> setNotificationTime(Long chatId, NotificationTimeRequest notificationTimeRequest) {
         log.info("Request: change time on [{}] for chat: {}", notificationTimeRequest.time(), chatId);
         Map<String, String> headers = new HashMap<>();
@@ -59,6 +71,9 @@ public class ScrapperClient {
                 TG_CHAT + "/time/{chatId}", HttpMethod.POST, headers, notificationTimeRequest, String.class, chatId);
     }
 
+    @Retry(name = "scrapperClient", fallbackMethod = "fallback")
+    @TimeLimiter(name = "scrapperClient")
+    @CircuitBreaker(name = "scrapperClient", fallbackMethod = "fallback")
     public ResponseEntity<Object> getAllLinks(final Long chatId, final GetLinksRequest linksRequest) {
         log.info("Request: get all tracked links");
         Map<String, String> headers = new HashMap<>();
@@ -66,6 +81,9 @@ public class ScrapperClient {
         return makeAndSendRequest(LINK + "/getLinks", HttpMethod.POST, headers, linksRequest, ListLinkResponse.class);
     }
 
+    @Retry(name = "scrapperClient", fallbackMethod = "fallback")
+    @TimeLimiter(name = "scrapperClient")
+    @CircuitBreaker(name = "scrapperClient", fallbackMethod = "fallback")
     public ResponseEntity<Object> getAllTags(long chatId) {
         log.info("Request: get all tags from chat: {}", chatId);
         Map<String, String> headers = new HashMap<>();
@@ -73,6 +91,9 @@ public class ScrapperClient {
         return makeAndSendRequest(TAGS, HttpMethod.GET, headers, new GetAllTagsRequest(), GetTagsResponse.class);
     }
 
+    @Retry(name = "scrapperClient", fallbackMethod = "fallback")
+    @TimeLimiter(name = "scrapperClient")
+    @CircuitBreaker(name = "scrapperClient", fallbackMethod = "fallback")
     public ResponseEntity<Object> addTrackedLink(final Long chatId, AddLinkRequest request) {
         log.info("Request: add tracking link {}", request);
         Map<String, String> headers = new HashMap<>();
@@ -80,6 +101,9 @@ public class ScrapperClient {
         return makeAndSendRequest(LINK, HttpMethod.POST, headers, request, LinkResponse.class);
     }
 
+    @Retry(name = "scrapperClient", fallbackMethod = "fallback")
+    @TimeLimiter(name = "scrapperClient")
+    @CircuitBreaker(name = "scrapperClient", fallbackMethod = "fallback")
     public ResponseEntity<Object> removeTrackedLink(Long chatId, RemoveLinkRequest request) {
         log.info("Request: remove tracking link {}", request);
         Map<String, String> headers = new HashMap<>();
@@ -115,6 +139,7 @@ public class ScrapperClient {
             return handleRestClientException(ex);
         }
     }
+
 
     private ResponseEntity<Object> handleRestClientResponseException(RestClientResponseException ex) {
         try {
@@ -154,5 +179,14 @@ public class ScrapperClient {
 
     public static List<String> convertStackTraceToList(StackTraceElement[] stackTrace) {
         return Arrays.stream(stackTrace).map(StackTraceElement::toString).collect(Collectors.toList());
+    }
+
+    private ResponseEntity<Object> fallback(Throwable t, Object... args) {
+        log.warn("Fallback executed due to: {}", t.toString());
+        return createDefaultErrorResponse(
+            HttpStatus.SERVICE_UNAVAILABLE.value(),
+            t.getMessage(),
+            t.getClass().getSimpleName(),
+            convertStackTraceToList(t.getStackTrace()));
     }
 }

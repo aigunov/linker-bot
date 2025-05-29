@@ -55,6 +55,10 @@ spring:
 server:
   port: 8081
 
+rate-limiting:
+  capacity: 100
+  duration: 1m
+
 springdoc:
   swagger-ui:
     enabled: true
