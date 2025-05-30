@@ -1,6 +1,6 @@
 package backend.academy.bot.state;
 
-import backend.academy.bot.configs.TelegramBot;
+import backend.academy.bot.config.TelegramBot;
 import backend.academy.bot.exception.TelegramApiException;
 import backend.academy.bot.service.BotService;
 import backend.academy.bot.service.ChatStateService;

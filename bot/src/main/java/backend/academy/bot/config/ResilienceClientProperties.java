@@ -1,4 +1,4 @@
-package backend.academy.bot.configs;
+package backend.academy.bot.config;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;

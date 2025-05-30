@@ -1,7 +1,7 @@
 package backend.academy.bot.service;
 
 import backend.academy.bot.clients.ScrapperClient;
-import backend.academy.bot.configs.TelegramBot;
+import backend.academy.bot.config.TelegramBot;
 import backend.academy.bot.exception.FailedIncomingUpdatesHandleException;
 import backend.academy.bot.exception.TelegramApiException;
 import com.pengrad.telegrambot.model.Update;

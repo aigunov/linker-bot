@@ -1,4 +1,4 @@
-package backend.academy.bot.configs;
+package backend.academy.bot.config;
 
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;

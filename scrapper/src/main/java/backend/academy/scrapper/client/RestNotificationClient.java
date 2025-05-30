@@ -3,13 +3,16 @@ package backend.academy.scrapper.client;
 import backend.academy.scrapper.exception.BotServiceException;
 import dto.Digest;
 import dto.LinkUpdate;
+import io.github.resilience4j.decorators.Decorators;
 import io.github.resilience4j.retry.Retry;
 import io.github.resilience4j.retry.RetryRegistry;
 import io.github.resilience4j.timelimiter.TimeLimiter;
 import io.github.resilience4j.timelimiter.TimeLimiterRegistry;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -36,7 +39,7 @@ public class RestNotificationClient implements NotificationClient {
 
     @Override
     public void sendDigest(Digest digest) {
-        log.info("Sending digest with {} updates for chatId={}", digest, digest.tgId());
+        log.info("Sending digest with {} updates for chatId={}", digest.updates().size(), digest.tgId());
         sendRequest("/updates/digest/", digest);
     }
 
@@ -44,7 +47,7 @@ public class RestNotificationClient implements NotificationClient {
         Retry retry = retryRegistry.retry("botClient");
         TimeLimiter timeLimiter = timeLimiterRegistry.timeLimiter("botClient");
 
-        Callable<Void> callable = () -> webClient
+        Supplier<CompletableFuture<Void>> supplier = () -> webClient
             .post()
             .uri(uri)
             .contentType(MediaType.APPLICATION_JSON)
@@ -61,25 +64,31 @@ public class RestNotificationClient implements NotificationClient {
                 throw new BotServiceException("Failed to send request", e);
             })
             .then()
-            .toFuture()
-            .get(); // block and wait for result
+            .toFuture();
 
-        Callable<Void> decorated =
-            TimeLimiter.decorateFutureSupplier(timeLimiter, () -> CompletableFuture.supplyAsync(() -> {
+        Supplier<Void> decorated = Decorators.ofSupplier(() -> {
                 try {
-                    return callable.call();
+                    return timeLimiter.executeFutureSupplier(supplier);
                 } catch (Exception e) {
                     throw new CompletionException(e);
                 }
-            }));
-
-        Callable<Void> withRetry = Retry.decorateCallable(retry, decorated);
+            })
+            .withRetry(retry)
+            .withFallback(List.of(Throwable.class), t -> {
+                log.error("Failed to send notification after retries: {}", t.getMessage());
+                throw new BotServiceException("All retries failed", t);
+            })
+            .decorate();
 
         try {
-            withRetry.call();
+            decorated.get();
         } catch (Exception e) {
-            log.error("Failed to send notification after retries: {}", e.getMessage(), e);
-            throw new BotServiceException("All retries failed", e);
+            // fallback уже сработал внутри, повторный throw из decorated.get()
+            if (e instanceof BotServiceException bse) {
+                throw bse;
+            } else {
+                throw new BotServiceException("Unexpected exception during sending", e);
+            }
         }
     }
 }

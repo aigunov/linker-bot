@@ -8,7 +8,7 @@ import static org.mockito.Mockito.when;
 
 import backend.academy.bot.clients.JsonToApiErrorResponse;
 import backend.academy.bot.clients.ScrapperClient;
-import backend.academy.bot.configs.TelegramBot;
+import backend.academy.bot.config.TelegramBot;
 import backend.academy.bot.exception.TelegramApiException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.pengrad.telegrambot.model.Chat;

@@ -36,7 +36,6 @@ public class GitHubClient extends AbstractUpdateCheckingClient {
     private final CircuitBreaker circuitBreaker;
     private final Retry retry;
     private final TimeLimiter timeLimiter;
-    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
     public GitHubClient(
         RestClient restClient,
