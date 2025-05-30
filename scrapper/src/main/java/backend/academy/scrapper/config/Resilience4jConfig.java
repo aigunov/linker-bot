@@ -8,6 +8,7 @@ import io.github.resilience4j.timelimiter.TimeLimiterRegistry;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 @Configuration
 @RequiredArgsConstructor
@@ -43,6 +44,19 @@ public class Resilience4jConfig {
             .retryExceptions(Exception.class)
             .build());
 
+        registry.retry("botClient", RetryConfig.custom()
+            .maxAttempts(properties.botClient().maxAttempts())
+            .waitDuration(properties.botClient().waitDuration())
+            .retryOnException(throwable -> {
+                if (throwable instanceof WebClientResponseException e) {
+                    int statusCode = e.getStatusCode().value();
+                    return properties.botClient().retryStatuses().contains(statusCode);
+                }
+                return false;
+            })
+            .build());
+
+
         return registry;
     }
 
@@ -56,6 +70,10 @@ public class Resilience4jConfig {
 
         registry.timeLimiter("stackoverflowClient", TimeLimiterConfig.custom()
             .timeoutDuration(properties.stackoverflowClient().timeout())
+            .build());
+
+        registry.timeLimiter("botClient", TimeLimiterConfig.custom()
+            .timeoutDuration(properties.botClient().timeout())
             .build());
 
         return registry;

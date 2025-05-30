@@ -4,50 +4,86 @@ import backend.academy.scrapper.data.dto.StackOverflowResponse;
 import backend.academy.scrapper.data.dto.UpdateInfo;
 import backend.academy.scrapper.service.LinkToApiRequestConverter;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import io.github.resilience4j.circuitbreaker.CircuitBreaker;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
+import io.github.resilience4j.decorators.Decorators;
+import io.github.resilience4j.retry.Retry;
+import io.github.resilience4j.retry.RetryRegistry;
+import io.github.resilience4j.timelimiter.TimeLimiter;
+import io.github.resilience4j.timelimiter.TimeLimiterRegistry;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
-import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
-import io.github.resilience4j.retry.annotation.Retry;
-import io.github.resilience4j.timelimiter.annotation.TimeLimiter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatusCode;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 
-@Component
 @Slf4j
+@Component
 public class StackOverflowClient extends AbstractUpdateCheckingClient {
 
-    public StackOverflowClient(RestClient restClient, LinkToApiRequestConverter converterApi) {
+    private final CircuitBreaker circuitBreaker;
+    private final Retry retry;
+    private final TimeLimiter timeLimiter;
+    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+
+    public StackOverflowClient(
+        RestClient restClient,
+        LinkToApiRequestConverter converterApi,
+        CircuitBreakerRegistry circuitBreakerRegistry,
+        RetryRegistry retryRegistry,
+        TimeLimiterRegistry timeLimiterRegistry
+    ) {
         super(restClient, converterApi);
+        objectMapper.registerModule(new JavaTimeModule());
+
+        this.circuitBreaker = circuitBreakerRegistry.circuitBreaker("stackOverflowClient");
+        this.retry = retryRegistry.retry("stackOverflowClient");
+        this.timeLimiter = timeLimiterRegistry.timeLimiter("stackOverflowClient");
     }
 
     @Override
-    @Retry(name = "stackOverflowClient", fallbackMethod = "fallback")
-    @TimeLimiter(name = "stackOverflowClient")
-    @CircuitBreaker(name = "stackOverflowClient", fallbackMethod = "fallback")
     public Optional<UpdateInfo> checkUpdates(String link) throws JsonProcessingException {
         String apiUrl = converterApi.convertStackOverflowUrlToApi(link);
         log.info("Checking for StackOverflow updates... {}", apiUrl);
 
-        try {
-            StackOverflowResponse response = fetchResponse(apiUrl);
-            return determineLatestUpdate(response);
-        } catch (RestClientException e) {
-            log.error("RestClientException while accessing StackOverflow API for link {}: {}", link, e.getMessage());
-            throw e;
-        }
-    }
+        Supplier<CompletableFuture<Optional<UpdateInfo>>> supplier = () -> CompletableFuture.supplyAsync(() -> {
+            try {
+                StackOverflowResponse response = fetchResponse(apiUrl);
+                return determineLatestUpdate(response);
+            } catch (Exception e) {
+                throw new CompletionException(e);
+            }
+        });
 
-    public Optional<UpdateInfo> fallback(String link, Throwable t) {
-        log.warn("StackOverflowClient fallback executed for {} due to: {}", link, t.toString());
-        return Optional.empty();
+        Supplier<Optional<UpdateInfo>> decoratedSupplier = Decorators.ofSupplier(() -> {
+                try {
+                    return timeLimiter.executeFutureSupplier(supplier);
+                } catch (Exception e) {
+                    throw new CompletionException(e);
+                }
+            })
+            .withRetry(retry)
+            .withCircuitBreaker(circuitBreaker)
+            .withFallback(List.of(Throwable.class), t -> {
+                log.warn("Fallback executed for StackOverflowClient due to: {}", t.getMessage());
+                return Optional.empty();
+            })
+            .decorate();
+
+        return decoratedSupplier.get();
     }
 
     private StackOverflowResponse fetchResponse(String apiUrl) throws JsonProcessingException {

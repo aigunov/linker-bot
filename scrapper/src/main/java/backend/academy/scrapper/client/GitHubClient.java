@@ -6,52 +6,84 @@ import backend.academy.scrapper.data.dto.UpdateInfo;
 import backend.academy.scrapper.service.LinkToApiRequestConverter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import io.github.resilience4j.circuitbreaker.CircuitBreaker;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
+import io.github.resilience4j.decorators.Decorators;
+import io.github.resilience4j.retry.Retry;
+import io.github.resilience4j.retry.RetryRegistry;
+import io.github.resilience4j.timelimiter.TimeLimiter;
+import io.github.resilience4j.timelimiter.TimeLimiterRegistry;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
-import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
-import io.github.resilience4j.retry.annotation.Retry;
-import io.github.resilience4j.timelimiter.annotation.TimeLimiter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatusCode;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 
-@Component
 @Slf4j
+@Component
 public class GitHubClient extends AbstractUpdateCheckingClient {
 
-    public GitHubClient(RestClient restClient, LinkToApiRequestConverter converterApi) {
+    private final CircuitBreaker circuitBreaker;
+    private final Retry retry;
+    private final TimeLimiter timeLimiter;
+    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+
+    public GitHubClient(
+        RestClient restClient,
+        LinkToApiRequestConverter converterApi,
+        CircuitBreakerRegistry circuitBreakerRegistry,
+        RetryRegistry retryRegistry,
+        TimeLimiterRegistry timeLimiterRegistry
+    ) {
         super(restClient, converterApi);
         objectMapper.registerModule(new JavaTimeModule());
+
+        this.circuitBreaker = circuitBreakerRegistry.circuitBreaker("gitHubClient");
+        this.retry = retryRegistry.retry("gitHubClient");
+        this.timeLimiter = timeLimiterRegistry.timeLimiter("gitHubClient");
     }
 
-
     @Override
-    @Retry(name = "gitHubClient", fallbackMethod = "fallback")
-    @TimeLimiter(name = "gitHubClient")
-    @CircuitBreaker(name = "gitHubClient", fallbackMethod = "fallback")
     public Optional<UpdateInfo> checkUpdates(String link) throws JsonProcessingException {
         String apiUrl = converterApi.convertGithubUrlToApi(link);
         log.info("Checking for updates... {}", apiUrl);
 
-        try {
-            List<GitHubIssue> issues = fetchIssues(apiUrl);
-            List<GitHubPullRequest> pullRequests = fetchPullRequests(apiUrl);
-            return determineLatestUpdate(issues, pullRequests);
-        } catch (RestClientException e) {
-            log.error("RestClientException occurred while checking updates for link {}: {}", link, e.getMessage());
-            throw e;
-        }
-    }
+        Supplier<CompletableFuture<Optional<UpdateInfo>>> supplier = () -> CompletableFuture.supplyAsync(() -> {
+            try {
+                List<GitHubIssue> issues = fetchIssues(apiUrl);
+                List<GitHubPullRequest> pullRequests = fetchPullRequests(apiUrl);
+                return determineLatestUpdate(issues, pullRequests);
+            } catch (Exception e) {
+                throw new CompletionException(e);
+            }
+        });
 
-    public Optional<UpdateInfo> fallback(String link, Throwable t) {
-        log.warn("GitHubClient fallback executed for {} due to: {}", link, t.toString());
-        return Optional.empty();
+        Supplier<Optional<UpdateInfo>> decoratedSupplier = Decorators.ofSupplier(() -> {
+                try {
+                    return timeLimiter.executeFutureSupplier(supplier);
+                } catch (Exception e) {
+                    throw new CompletionException(e);
+                }
+            })
+            .withRetry(retry)
+            .withCircuitBreaker(circuitBreaker)
+            .withFallback(List.of(Throwable.class), t -> {
+                log.warn("Fallback executed for GitHubClient due to: {}", t.getMessage());
+                return Optional.empty();
+            })
+            .decorate();
+
+        return decoratedSupplier.get();
     }
 
     private List<GitHubIssue> fetchIssues(String apiUrl) throws JsonProcessingException {
