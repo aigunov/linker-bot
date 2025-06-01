@@ -20,14 +20,14 @@ import java.util.function.Predicate;
 @RequiredArgsConstructor
 public class Resilience4jConfig {
 
-    private ResilienceBotClientProperties properties;
+    private final ScrapperClientProperties properties;
 
     @Bean
     public RetryRegistry retryRegistry() {
         Predicate<Throwable> shouldRetryException = throwable -> {
             if (throwable instanceof HttpServerErrorException e) {
                 int statusCode = e.getStatusCode().value();
-                boolean shouldRetry = properties.scrapperClient().retryStatuses().contains(statusCode);
+                boolean shouldRetry = properties.retryStatuses().contains(statusCode);
                 if (shouldRetry) {
                     log.warn("Retrying due to server error: {}", statusCode);
                 }
@@ -37,11 +37,11 @@ public class Resilience4jConfig {
         };
 
         RetryConfig config = RetryConfig.custom()
-            .maxAttempts(properties.scrapperClient().maxAttempts())
-            .waitDuration(properties.scrapperClient().waitDuration())
+            .maxAttempts(properties.maxAttempts())
+            .waitDuration(properties.waitDuration())
             .retryOnResult(response -> {
                 if (response instanceof ResponseEntity<?> r) {
-                    boolean match = properties.scrapperClient().retryStatuses()
+                    boolean match = properties.retryStatuses()
                         .contains(r.getStatusCode().value());
                     if (match) {
                         log.warn("Retrying due to response status: {}", r.getStatusCode());
@@ -82,7 +82,7 @@ public class Resilience4jConfig {
     @Bean
     public TimeLimiterRegistry timeLimiterRegistry() {
         TimeLimiterConfig config = TimeLimiterConfig.custom()
-            .timeoutDuration(properties.scrapperClient().timeout())
+            .timeoutDuration(properties.timeout())
             .build();
 
         TimeLimiterRegistry registry = TimeLimiterRegistry.ofDefaults();

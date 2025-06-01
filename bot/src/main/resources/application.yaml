@@ -51,5 +51,10 @@ client:
       timeout: 2s
       max-attempts: 3
       wait-duration: 1s
-      retry-statuses: [500, 502, 503, 504, 429]
+      retry-statuses:
+        - 500
+        - 502
+        - 503
+        - 504
+        - 429
 
