@@ -14,9 +14,10 @@ import java.util.concurrent.CompletionException;
 import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.http.MediaType;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
@@ -24,14 +25,23 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 @Service
 @Slf4j
 @RequiredArgsConstructor
-@ConditionalOnProperty(value = "app.message.transport", havingValue = "HTTP")
+@ConditionalOnProperty(value = "app.message.transport", havingValue = "HTTP", matchIfMissing = true)
 public class RestNotificationClient implements NotificationClient {
 
     private final WebClient webClient;
     private final RetryRegistry retryRegistry;
     private final TimeLimiterRegistry timeLimiterRegistry;
-    @Lazy
-    private final KafkaNotificationClient kafkaFallbackClient;
+
+    // Для создания KafkaNotificationClient в fallback
+    private final KafkaTemplate<String, Object> kafkaTemplate;
+
+    @Value("${app.message.kafka.topic.notification}")
+    private String notificationTopic;
+
+    @Value("${app.message.kafka.topic.digest}")
+    private String digestTopic;
+
+    private KafkaNotificationClient fallbackClient = null;
 
     @Override
     public void sendLinkUpdate(LinkUpdate linkUpdate) {
@@ -40,7 +50,9 @@ public class RestNotificationClient implements NotificationClient {
             sendRequest("/updates", linkUpdate);
         } catch (Exception e) {
             log.warn("HTTP channel failed, switching to Kafka fallback: {}", e.getMessage());
-            kafkaFallbackClient.sendLinkUpdate(linkUpdate);
+            fallbackClient = new KafkaNotificationClient(kafkaTemplate, webClient, retryRegistry, timeLimiterRegistry);
+            fallbackClient.sendLinkUpdate(linkUpdate);
+            fallbackClient = null;
         }
     }
 
@@ -51,7 +63,9 @@ public class RestNotificationClient implements NotificationClient {
             sendRequest("/updates/digest/", digest);
         } catch (Exception e) {
             log.warn("HTTP channel failed, switching to Kafka fallback: {}", e.getMessage());
-            kafkaFallbackClient.sendDigest(digest);
+            fallbackClient = new KafkaNotificationClient(kafkaTemplate, webClient, retryRegistry, timeLimiterRegistry);
+            fallbackClient.sendDigest(digest);
+            fallbackClient = null;
         }
     }
 
