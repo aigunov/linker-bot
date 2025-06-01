@@ -20,7 +20,7 @@ import java.util.function.Predicate;
 @RequiredArgsConstructor
 public class Resilience4jConfig {
 
-    private ResilienceClientProperties properties;
+    private ResilienceBotClientProperties properties;
 
     @Bean
     public RetryRegistry retryRegistry() {

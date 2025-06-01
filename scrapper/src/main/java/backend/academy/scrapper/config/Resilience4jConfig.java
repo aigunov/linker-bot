@@ -6,56 +6,50 @@ import io.github.resilience4j.retry.RetryRegistry;
 import io.github.resilience4j.timelimiter.TimeLimiterConfig;
 import io.github.resilience4j.timelimiter.TimeLimiterRegistry;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 @Configuration
 @RequiredArgsConstructor
 public class Resilience4jConfig {
 
-    private final ResilienceClientProperties properties;
+    private final GithubClientProperties github;
+
+    private final StackoverflowClientProperties stackoverflow;
+
+    private final BotClientProperties bot;
 
     @Bean
     public RetryRegistry retryRegistry() {
         RetryRegistry registry = RetryRegistry.ofDefaults();
 
         registry.retry("githubClient", RetryConfig.custom()
-            .maxAttempts(properties.githubClient().maxAttempts())
-            .waitDuration(properties.githubClient().waitDuration())
-            .retryOnResult(response -> {
-                if (response instanceof org.springframework.http.ResponseEntity<?> r) {
-                    return properties.githubClient().retryStatuses().contains(r.getStatusCode().value());
-                }
-                return false;
-            })
+            .maxAttempts(github.maxAttempts())
+            .waitDuration(github.waitDuration())
+            .retryOnResult(response -> response instanceof ResponseEntity<?> r &&
+                github.retryStatuses().contains(r.getStatusCode().value()))
             .retryExceptions(Exception.class)
             .build());
 
         registry.retry("stackoverflowClient", RetryConfig.custom()
-            .maxAttempts(properties.stackoverflowClient().maxAttempts())
-            .waitDuration(properties.stackoverflowClient().waitDuration())
-            .retryOnResult(response -> {
-                if (response instanceof org.springframework.http.ResponseEntity<?> r) {
-                    return properties.stackoverflowClient().retryStatuses().contains(r.getStatusCode().value());
-                }
-                return false;
-            })
+            .maxAttempts(stackoverflow.maxAttempts())
+            .waitDuration(stackoverflow.waitDuration())
+            .retryOnResult(response -> response instanceof ResponseEntity<?> r &&
+                stackoverflow.retryStatuses().contains(r.getStatusCode().value()))
             .retryExceptions(Exception.class)
             .build());
 
         registry.retry("botClient", RetryConfig.custom()
-            .maxAttempts(properties.botClient().maxAttempts())
-            .waitDuration(properties.botClient().waitDuration())
-            .retryOnException(throwable -> {
-                if (throwable instanceof WebClientResponseException e) {
-                    int statusCode = e.getStatusCode().value();
-                    return properties.botClient().retryStatuses().contains(statusCode);
-                }
-                return false;
-            })
+            .maxAttempts(bot.maxAttempts())
+            .waitDuration(bot.waitDuration())
+            .retryOnException(e ->
+                e instanceof WebClientResponseException ex &&
+                    bot.retryStatuses().contains(ex.getStatusCode().value()))
             .build());
-
 
         return registry;
     }
@@ -65,15 +59,15 @@ public class Resilience4jConfig {
         TimeLimiterRegistry registry = TimeLimiterRegistry.ofDefaults();
 
         registry.timeLimiter("githubClient", TimeLimiterConfig.custom()
-            .timeoutDuration(properties.githubClient().timeout())
+            .timeoutDuration(github.timeout())
             .build());
 
         registry.timeLimiter("stackoverflowClient", TimeLimiterConfig.custom()
-            .timeoutDuration(properties.stackoverflowClient().timeout())
+            .timeoutDuration(stackoverflow.timeout())
             .build());
 
         registry.timeLimiter("botClient", TimeLimiterConfig.custom()
-            .timeoutDuration(properties.botClient().timeout())
+            .timeoutDuration(bot.timeout())
             .build());
 
         return registry;

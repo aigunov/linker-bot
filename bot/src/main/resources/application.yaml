@@ -46,7 +46,7 @@ scrapper:
 
 
 client:
-  resilience:
+  resilience-bot:
     scrapper-client:
       timeout: 2s
       max-attempts: 3

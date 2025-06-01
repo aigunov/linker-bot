@@ -1,18 +1,21 @@
 package backend.academy.bot.config;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 import java.time.Duration;
 import java.util.List;
 
-@Data
+@Getter
+@RequiredArgsConstructor
 @Component
-@ConfigurationProperties(prefix = "client.resilience")
-public class ResilienceClientProperties {
+@ConfigurationProperties(prefix = "client.resilience-bot")
+public class ResilienceBotClientProperties {
     private ClientConfig scrapperClient;
 
-    @Data
+    @Getter
+    @RequiredArgsConstructor
     public static class ClientConfig {
         private Duration timeout;
         private int maxAttempts;
