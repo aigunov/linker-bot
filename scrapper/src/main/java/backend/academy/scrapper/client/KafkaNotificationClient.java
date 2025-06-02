@@ -2,10 +2,13 @@ package backend.academy.scrapper.client;
 
 import dto.Digest;
 import dto.LinkUpdate;
+import io.github.resilience4j.retry.Retry;
 import io.github.resilience4j.retry.RetryRegistry;
+import io.github.resilience4j.timelimiter.TimeLimiter;
 import io.github.resilience4j.timelimiter.TimeLimiterRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Lazy;
@@ -22,8 +25,8 @@ public class KafkaNotificationClient implements NotificationClient {
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
     private final WebClient webClient;
-    private final RetryRegistry retryRegistry;
-    private final TimeLimiterRegistry timeLimiterRegistry;
+    @Qualifier("botRetry") private final Retry retry;
+    @Qualifier("botTimeLimiter") private final TimeLimiter timeLimiter;
 
     @Value("${app.message.kafka.topic.notification}")
     private String notificationTopic;
@@ -40,7 +43,7 @@ public class KafkaNotificationClient implements NotificationClient {
             kafkaTemplate.send(notificationTopic, linkUpdate);
         } catch (Exception e) {
             log.warn("Kafka send failed, switching to HTTP fallback: {}", e.getMessage());
-            fallbackClient = new RestNotificationClient(webClient, retryRegistry, timeLimiterRegistry, kafkaTemplate);
+            fallbackClient = new RestNotificationClient(webClient, retry, timeLimiter, kafkaTemplate);
             fallbackClient.sendLinkUpdate(linkUpdate);
             fallbackClient = null;
         }
@@ -53,7 +56,7 @@ public class KafkaNotificationClient implements NotificationClient {
             kafkaTemplate.send(digestTopic, digest);
         } catch (Exception e) {
             log.warn("Kafka send failed, switching to HTTP fallback: {}", e.getMessage());
-            fallbackClient = new RestNotificationClient(webClient, retryRegistry, timeLimiterRegistry, kafkaTemplate);
+            fallbackClient = new RestNotificationClient(webClient, retry, timeLimiter, kafkaTemplate);
             fallbackClient.sendDigest(digest);
             fallbackClient = null;
         }

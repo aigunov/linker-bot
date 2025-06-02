@@ -5,15 +5,13 @@ import dto.Digest;
 import dto.LinkUpdate;
 import io.github.resilience4j.decorators.Decorators;
 import io.github.resilience4j.retry.Retry;
-import io.github.resilience4j.retry.RetryRegistry;
 import io.github.resilience4j.timelimiter.TimeLimiter;
-import io.github.resilience4j.timelimiter.TimeLimiterRegistry;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.MediaType;
@@ -29,10 +27,8 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 public class RestNotificationClient implements NotificationClient {
 
     private final WebClient webClient;
-    private final RetryRegistry retryRegistry;
-    private final TimeLimiterRegistry timeLimiterRegistry;
-
-    // Для создания KafkaNotificationClient в fallback
+    @Qualifier("botRetry") private final Retry botRetry;
+    @Qualifier("botTimeLimiter") private final TimeLimiter botTimeLimiter;
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
     @Value("${app.message.kafka.topic.notification}")
@@ -45,75 +41,63 @@ public class RestNotificationClient implements NotificationClient {
 
     @Override
     public void sendLinkUpdate(LinkUpdate linkUpdate) {
-        log.info("Sending single update: {}", linkUpdate);
+        log.info("Sending update: {}", linkUpdate);
         try {
             sendRequest("/updates", linkUpdate);
         } catch (Exception e) {
-            log.warn("HTTP channel failed, switching to Kafka fallback: {}", e.getMessage());
-            fallbackClient = new KafkaNotificationClient(kafkaTemplate, webClient, retryRegistry, timeLimiterRegistry);
-            fallbackClient.sendLinkUpdate(linkUpdate);
-            fallbackClient = null;
+            fallback(linkUpdate);
         }
     }
 
     @Override
     public void sendDigest(Digest digest) {
-        log.info("Sending digest with {} updates for chatId={}", digest.updates().size(), digest.tgId());
+        log.info("Sending digest: chatId={} size={}", digest.tgId(), digest.updates().size());
         try {
-            sendRequest("/updates/digest/", digest);
+            sendRequest("/updates/digest", digest);
         } catch (Exception e) {
-            log.warn("HTTP channel failed, switching to Kafka fallback: {}", e.getMessage());
-            fallbackClient = new KafkaNotificationClient(kafkaTemplate, webClient, retryRegistry, timeLimiterRegistry);
-            fallbackClient.sendDigest(digest);
-            fallbackClient = null;
+            fallback(digest);
         }
     }
 
     private <T> void sendRequest(String uri, T body) {
-        Retry retry = retryRegistry.retry("botClient");
-        TimeLimiter timeLimiter = timeLimiterRegistry.timeLimiter("botClient");
-
-        Supplier<CompletableFuture<Void>> supplier = () -> webClient
-            .post()
-            .uri(uri)
-            .contentType(MediaType.APPLICATION_JSON)
-            .bodyValue(body)
-            .retrieve()
-            .toBodilessEntity()
-            .doOnSuccess(res -> log.info("Successfully sent request to {}", uri))
-            .doOnError(WebClientResponseException.class, e -> {
-                log.error("Bot service returned {} for request to {}: {}", e.getStatusCode(), uri, e.getMessage());
-                throw new BotServiceException("Failed to send request", e);
-            })
-            .doOnError(Exception.class, e -> {
-                log.error("Error during request to {}: {}", uri, e.getMessage());
-                throw new BotServiceException("Failed to send request", e);
-            })
-            .then()
-            .toFuture();
-
         Supplier<Void> decorated = Decorators.ofSupplier(() -> {
                 try {
-                    return timeLimiter.executeFutureSupplier(supplier);
+                    return botTimeLimiter.executeFutureSupplier(() ->
+                        webClient.post()
+                            .uri(uri)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .bodyValue(body)
+                            .retrieve()
+                            .toBodilessEntity()
+                            .doOnSuccess(res -> log.info("Success: {}", uri))
+                            .doOnError(WebClientResponseException.class, e -> throwError(uri, e))
+                            .then()
+                            .toFuture()
+                    );
                 } catch (Exception e) {
                     throw new CompletionException(e);
                 }
             })
-            .withRetry(retry)
+            .withRetry(botRetry)
             .withFallback(List.of(Throwable.class), t -> {
-                log.error("Failed to send notification after retries: {}", t.getMessage());
-                throw new BotServiceException("All retries failed", t);
+                log.error("HTTP fallback for {}: {}", uri, t.getMessage());
+                throw new BotServiceException("Failed after retries", t);
             })
             .decorate();
 
-        try {
-            decorated.get();
-        } catch (Exception e) {
-            if (e instanceof BotServiceException bse) {
-                throw bse;
-            } else {
-                throw new BotServiceException("Unexpected exception during sending", e);
-            }
-        }
+        decorated.get();
+    }
+
+    private void throwError(String uri, WebClientResponseException e) {
+        log.error("HTTP error {} for {}: {}", e.getStatusCode(), uri, e.getMessage());
+        throw new BotServiceException("Failed to send request", e);
+    }
+
+    private void fallback(Object message) {
+        log.warn("Falling back to Kafka...");
+        fallbackClient = new KafkaNotificationClient(kafkaTemplate, webClient, botRetry, botTimeLimiter);
+        if (message instanceof LinkUpdate lu) fallbackClient.sendLinkUpdate(lu);
+        if (message instanceof Digest d) fallbackClient.sendDigest(d);
+        fallbackClient = null;
     }
 }

@@ -64,6 +64,7 @@ springdoc:
     enabled: true
     path: /swagger-ui
 
+
 resilience4j:
   circuitbreaker:
     instances:
@@ -85,13 +86,12 @@ resilience4j:
         permittedNumberOfCallsInHalfOpenState: 1
         waitDurationInOpenState: 1s
 
-
 client:
   resilience:
     github-client:
-      timeout: 2s
+      timeout: 10s
       max-attempts: 3
-      wait-duration: 1s
+      wait-duration: 21s
       retry-statuses:
         - 502
         - 503
@@ -100,9 +100,9 @@ client:
       rate-limit-refresh-period: 10s
 
     stackoverflow-client:
-      timeout: 2s
+      timeout: 10s
       max-attempts: 3
-      wait-duration: 1s
+      wait-duration: 2s
       retry-statuses:
         - 502
         - 503
@@ -123,7 +123,63 @@ client:
       rate-limit-for-period: 20
       rate-limit-refresh-period: 10s
 
-
-logging:
-  level:
-    org.springframework.boot.context.properties.bind: TRACE
+#
+#resilience4j:
+#  retry:
+#    instances:
+#      gitHubClient:
+#        maxAttempts: 3
+#        waitDuration: 1s
+#        retryExceptions:
+#          - java.io.IOException
+#          - org.springframework.web.client.HttpServerErrorException
+#      stackOverflowClient:
+#        maxAttempts: 3
+#        waitDuration: 30s
+#        retryExceptions:
+#          - java.io.IOException
+#          - org.springframework.web.client.HttpServerErrorException
+#      botClient:
+#        maxAttempts: 3
+#        waitDuration: 1s
+#        retryExceptions:
+#          - org.springframework.web.reactive.function.client.WebClientResponseException
+#
+#  timelimiter:
+#    instances:
+#      gitHubClient:
+#        timeoutDuration: 2s
+#      stackOverflowClient:
+#        timeoutDuration: 100s
+#      botClient:
+#        timeoutDuration: 2s
+#
+#  circuitbreaker:
+#    instances:
+#      gitHubClient:
+#        registerHealthIndicator: true
+#        slidingWindowType: COUNT_BASED
+#        slidingWindowSize: 1
+#        minimumNumberOfCalls: 1
+#        failureRateThreshold: 100
+#        permittedNumberOfCallsInHalfOpenState: 1
+#        waitDurationInOpenState: 1s
+#
+#      stackOverflowClient:
+#        registerHealthIndicator: true
+#        slidingWindowType: COUNT_BASED
+#        slidingWindowSize: 1
+#        minimumNumberOfCalls: 1
+#        failureRateThreshold: 100
+#        permittedNumberOfCallsInHalfOpenState: 1
+#        waitDurationInOpenState: 1s
+#
+#      botClient:
+#        registerHealthIndicator: true
+#        slidingWindowType: COUNT_BASED
+#        slidingWindowSize: 1
+#        minimumNumberOfCalls: 1
+#        failureRateThreshold: 100
+#        permittedNumberOfCallsInHalfOpenState: 1
+#        waitDurationInOpenState: 1s
+#

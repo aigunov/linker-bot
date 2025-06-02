@@ -23,6 +23,7 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
@@ -39,16 +40,16 @@ public class StackOverflowClient extends AbstractUpdateCheckingClient {
     public StackOverflowClient(
         RestClient restClient,
         LinkToApiRequestConverter converterApi,
-        CircuitBreakerRegistry circuitBreakerRegistry,
-        RetryRegistry retryRegistry,
-        TimeLimiterRegistry timeLimiterRegistry
+        @Qualifier("stackoverflowCircuitBreaker") CircuitBreaker stackoverflowCircuitBreaker,
+        @Qualifier("stackoverflowRetry") Retry stackoverflowRetry,
+        @Qualifier("stackoverflowTimeLimiter") TimeLimiter stackoverflowTimeLimiter
     ) {
         super(restClient, converterApi);
         objectMapper.registerModule(new JavaTimeModule());
 
-        this.circuitBreaker = circuitBreakerRegistry.circuitBreaker("stackOverflowClient");
-        this.retry = retryRegistry.retry("stackOverflowClient");
-        this.timeLimiter = timeLimiterRegistry.timeLimiter("stackOverflowClient");
+        this.circuitBreaker = stackoverflowCircuitBreaker;
+        this.retry = stackoverflowRetry;
+        this.timeLimiter = stackoverflowTimeLimiter;
     }
 
     @Override
@@ -56,18 +57,9 @@ public class StackOverflowClient extends AbstractUpdateCheckingClient {
         String apiUrl = converterApi.convertStackOverflowUrlToApi(link);
         log.info("Checking for StackOverflow updates... {}", apiUrl);
 
-        Supplier<CompletableFuture<Optional<UpdateInfo>>> supplier = () -> CompletableFuture.supplyAsync(() -> {
-            try {
-                StackOverflowResponse response = fetchResponse(apiUrl);
-                return determineLatestUpdate(response);
-            } catch (Exception e) {
-                throw new CompletionException(e);
-            }
-        });
-
         Supplier<Optional<UpdateInfo>> decoratedSupplier = Decorators.ofSupplier(() -> {
                 try {
-                    return timeLimiter.executeFutureSupplier(supplier);
+                    return fetchResponseWithTimeLimiter(apiUrl); // Таймаут применяется к fetch
                 } catch (Exception e) {
                     throw new CompletionException(e);
                 }
@@ -81,6 +73,17 @@ public class StackOverflowClient extends AbstractUpdateCheckingClient {
             .decorate();
 
         return decoratedSupplier.get();
+    }
+
+    private Optional<UpdateInfo> fetchResponseWithTimeLimiter(String apiUrl) throws Exception {
+        return timeLimiter.executeFutureSupplier(() -> CompletableFuture.supplyAsync(() -> {
+            try {
+                StackOverflowResponse response = fetchResponse(apiUrl);
+                return determineLatestUpdate(response);
+            } catch (Exception e) {
+                throw new CompletionException(e);
+            }
+        }));
     }
 
     private StackOverflowResponse fetchResponse(String apiUrl) throws JsonProcessingException {
