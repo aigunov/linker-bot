@@ -110,6 +110,7 @@ client:
       rate-limit-for-period: 20
       rate-limit-refresh-period: 10s
 
+
     bot-client:
       timeout: 2s
       max-attempts: 3
@@ -123,63 +124,11 @@ client:
       rate-limit-for-period: 20
       rate-limit-refresh-period: 10s
 
-#
-#resilience4j:
-#  retry:
-#    instances:
-#      gitHubClient:
-#        maxAttempts: 3
-#        waitDuration: 1s
-#        retryExceptions:
-#          - java.io.IOException
-#          - org.springframework.web.client.HttpServerErrorException
-#      stackOverflowClient:
-#        maxAttempts: 3
-#        waitDuration: 30s
-#        retryExceptions:
-#          - java.io.IOException
-#          - org.springframework.web.client.HttpServerErrorException
-#      botClient:
-#        maxAttempts: 3
-#        waitDuration: 1s
-#        retryExceptions:
-#          - org.springframework.web.reactive.function.client.WebClientResponseException
-#
-#  timelimiter:
-#    instances:
-#      gitHubClient:
-#        timeoutDuration: 2s
-#      stackOverflowClient:
-#        timeoutDuration: 100s
-#      botClient:
-#        timeoutDuration: 2s
-#
-#  circuitbreaker:
-#    instances:
-#      gitHubClient:
-#        registerHealthIndicator: true
-#        slidingWindowType: COUNT_BASED
-#        slidingWindowSize: 1
-#        minimumNumberOfCalls: 1
-#        failureRateThreshold: 100
-#        permittedNumberOfCallsInHalfOpenState: 1
-#        waitDurationInOpenState: 1s
-#
-#      stackOverflowClient:
-#        registerHealthIndicator: true
-#        slidingWindowType: COUNT_BASED
-#        slidingWindowSize: 1
-#        minimumNumberOfCalls: 1
-#        failureRateThreshold: 100
-#        permittedNumberOfCallsInHalfOpenState: 1
-#        waitDurationInOpenState: 1s
-#
-#      botClient:
-#        registerHealthIndicator: true
-#        slidingWindowType: COUNT_BASED
-#        slidingWindowSize: 1
-#        minimumNumberOfCalls: 1
-#        failureRateThreshold: 100
-#        permittedNumberOfCallsInHalfOpenState: 1
-#        waitDurationInOpenState: 1s
-#
+logging:
+  level:
+    org.springframework.web.client: DEBUG
+    com.github.tomakehurst.wiremock: DEBUG
+    wiremock.org.eclipse.jetty: DEBUG
+    wiremock.org.eclipse.jetty.server: DEBUG
+    wiremock.org.eclipse.jetty.util: DEBUG
+    com.github.tomakehurst.wiremock.common.Slf4jNotifier: DEBUG

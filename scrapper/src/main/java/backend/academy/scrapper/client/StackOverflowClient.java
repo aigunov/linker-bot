@@ -59,7 +59,7 @@ public class StackOverflowClient extends AbstractUpdateCheckingClient {
 
         Supplier<Optional<UpdateInfo>> decoratedSupplier = Decorators.ofSupplier(() -> {
                 try {
-                    return fetchResponseWithTimeLimiter(apiUrl); // Таймаут применяется к fetch
+                    return fetchResponseWithTimeLimiter(apiUrl);
                 } catch (Exception e) {
                     throw new CompletionException(e);
                 }

@@ -4,10 +4,16 @@ import backend.academy.scrapper.ScrapperApplication;
 import backend.academy.scrapper.client.GitHubClient;
 import backend.academy.scrapper.client.RestNotificationClient;
 import backend.academy.scrapper.client.StackOverflowClient;
+import backend.academy.scrapper.data.dto.UpdateInfo;
+import backend.academy.scrapper.service.LinkToApiRequestConverter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.common.Slf4jNotifier;
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
+import java.util.List;
 import java.util.Optional;
+import com.github.tomakehurst.wiremock.stubbing.ServeEvent;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -16,17 +22,24 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.kafka.ConfluentKafkaContainer;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
 import static org.assertj.core.api.Assertions.assertThat;
-import static wiremock.org.eclipse.jetty.util.component.AbstractLifeCycle.STARTED;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest(classes = ScrapperApplication.class)
 @Testcontainers
@@ -79,7 +92,6 @@ public class RetryIntegrationTest {
                 }
               ]
             }
-            // Здесь могут быть и другие элементы, если API возвращает их несколько
           ]
         }
         """;
@@ -95,6 +107,9 @@ public class RetryIntegrationTest {
         .withPassword("12345");
 
     static WireMockServer wireMockServer;
+
+    @MockitoBean
+    private LinkToApiRequestConverter converterApi;
 
     @Autowired
     private StackOverflowClient stackOverflowClient;
@@ -124,7 +139,9 @@ public class RetryIntegrationTest {
 
     @BeforeAll
     static void setupWireMock() {
-        wireMockServer = new WireMockServer(9090);
+        wireMockServer = new WireMockServer(WireMockConfiguration.options()
+            .port(9090)
+            .notifier(new Slf4jNotifier(true)));
         wireMockServer.start();
         WireMock.configureFor("localhost", 9090);
     }
@@ -136,28 +153,43 @@ public class RetryIntegrationTest {
 
     @Test
     void stackOverflowClient_shouldRetryOnServerError() throws JsonProcessingException {
-        stubFor(get(urlPathMatching("/2.3/questions/60200966.*"))
+        String expectedStackOverflowApiUrl = "http://localhost:9090/2.3/questions/60200966?order=desc&sort=activity&site=ru.stackoverflow";
+
+        when(converterApi.convertStackOverflowUrlToApi(stackoverflowURL)).thenReturn(expectedStackOverflowApiUrl);
+        when(converterApi.isStackOverflowUrl(anyString())).thenReturn(true);
+
+
+        wireMockServer.resetAll();
+
+        stubFor(get(urlEqualTo("/2.3/questions/60200966?order=desc&sort=activity&site=ru.stackoverflow"))
             .inScenario("Retry Scenario")
             .whenScenarioStateIs(STARTED)
-            .willReturn(aResponse().withStatus(503)
-                .withBody(stackoverflowBody)
-            )
+            .willReturn(aResponse().withStatus(503))
             .willSetStateTo("Second Attempt"));
 
-        stubFor(get(urlPathMatching("/2.3/questions/60200966.*"))
+        stubFor(get(urlEqualTo("/2.3/questions/60200966?order=desc&sort=activity&site=ru.stackoverflow"))
             .inScenario("Retry Scenario")
             .whenScenarioStateIs("Second Attempt")
-            .willReturn(aResponse()
-                .withStatus(200)
-                .withBody(stackoverflowBody)
-            ));
+            .willReturn(aResponse().withStatus(200).withBody(stackoverflowBody)));
 
-        var result = stackOverflowClient.checkUpdates(stackoverflowURL);
+
+
+        Optional<UpdateInfo> result = stackOverflowClient.checkUpdates(stackoverflowURL);
+
         assertThat(result).isNotEmpty();
+
+        verify(2, getRequestedFor(urlPathEqualTo("/2.3/questions/60200966"))
+            .withQueryParam("order", equalTo("desc"))
+            .withQueryParam("sort", equalTo("activity"))
+            .withQueryParam("site", equalTo("ru.stackoverflow")));
     }
+
 
     @Test
     void gitHubClient_shouldRetryOnServerError() throws JsonProcessingException {
+        when(converterApi.convertGithubUrlToApi(githubURL)).thenReturn("http://localhost:9090/repos/central-university-dev/java-aigunov");
+        when(converterApi.isGithubUrl(anyString())).thenReturn(true);
+
         stubFor(get(urlMatching("/repos/central-university-dev/java-aigunov/issues\\?state=all"))
             .inScenario("GitHub Retry")
             .whenScenarioStateIs(STARTED)
@@ -175,5 +207,5 @@ public class RetryIntegrationTest {
         Optional<?> result = gitHubClient.checkUpdates(githubURL);
         assertThat(result).isNotNull();
     }
-
 }
+

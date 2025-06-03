@@ -8,13 +8,13 @@ import io.github.resilience4j.retry.RetryRegistry;
 import io.github.resilience4j.timelimiter.TimeLimiter;
 import io.github.resilience4j.timelimiter.TimeLimiterConfig;
 import io.github.resilience4j.timelimiter.TimeLimiterRegistry;
-import java.util.Map;
+import java.util.concurrent.TimeoutException;
+import java.util.function.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
+import org.springframework.web.client.RestClientException;
 
 
 @Configuration
@@ -29,19 +29,28 @@ public class Resilience4jConfig {
     public RetryRegistry retryRegistry() {
         RetryRegistry registry = RetryRegistry.ofDefaults();
 
+        Predicate<Object> predicate = result -> {
+            if (result instanceof ResponseEntity<?> response) {
+                return stackoverflow.retryStatuses().contains(response.getStatusCode().value());
+            }
+            if (result instanceof RestClientException || result instanceof TimeoutException) {
+                return true;
+            }
+            return false;
+        };
+
+
         registry.addConfiguration("githubRetryConfig", RetryConfig.custom()
             .maxAttempts(github.maxAttempts())
             .waitDuration(github.waitDuration())
-            .retryOnResult(response -> response instanceof org.springframework.http.ResponseEntity<?> r &&
-                github.retryStatuses().contains(r.getStatusCode().value()))
+            .retryOnResult(predicate)
             .retryExceptions(Exception.class)
             .build());
 
         registry.addConfiguration("stackoverflowRetryConfig", RetryConfig.custom()
             .maxAttempts(stackoverflow.maxAttempts())
             .waitDuration(stackoverflow.waitDuration())
-            .retryOnResult(response -> response instanceof org.springframework.http.ResponseEntity<?> r &&
-                stackoverflow.retryStatuses().contains(r.getStatusCode().value()))
+            .retryOnResult(predicate)
             .retryExceptions(Exception.class)
             .build());
 
