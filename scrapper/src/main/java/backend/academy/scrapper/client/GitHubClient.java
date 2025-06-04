@@ -97,7 +97,6 @@ public class GitHubClient extends AbstractUpdateCheckingClient {
 
         } catch (RestClientException e) {
             log.error("RestClientException occurred while checking updates for link {}: {}", link, e.getMessage());
-            //            throw new ScrapperServicesApiException("GitHub API error", e);
             return Optional.empty();
         }
     }

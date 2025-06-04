@@ -29,7 +29,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.TestPropertySource;
 
 @SpringBootTest
-@TestPropertySource(properties = {"scrapper.api.url=http://localhost:8089"})
+@TestPropertySource(
+        properties = {
+            "scrapper.api.url=http://localhost:8089",
+            "spring.data.redis.host=localhost",
+            "spring.data.redis.port=6379",
+            "spring.data.redis.username=aigunov",
+            "spring.data.redis.password=12345"
+        })
 class ScrapperClientTest {
 
     @Autowired

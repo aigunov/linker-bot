@@ -1,13 +1,19 @@
 package backend.academy.scrapper.client;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
+
 import backend.academy.scrapper.config.GitHubConfig;
-import backend.academy.scrapper.config.StackOverflowConfig;
 import backend.academy.scrapper.data.dto.UpdateInfo;
 import backend.academy.scrapper.service.LinkToApiRequestConverter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
+import java.time.LocalDateTime;
+import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,20 +27,9 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 
-import java.time.LocalDateTime;
-import java.util.Optional;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
-
 @SpringBootTest
 @EnableConfigurationProperties({GitHubConfig.class})
-@TestPropertySource(properties = {
-        "app.github.url=http://localhost:8089/repos",
-        "app.github.token=test-token"
-})
+@TestPropertySource(properties = {"app.github.url=http://localhost:8089/repos", "app.github.token=test-token"})
 class GitHubClientTest {
 
     @Container
@@ -63,6 +58,10 @@ class GitHubClientTest {
         registry.add("app.scrapper.threads-count", () -> 1);
         registry.add("app.scrapper.scheduled-time", () -> 100000);
         registry.add("app.db.access-type", () -> "orm");
+        registry.add("spring.data.redis.host", () -> "localhost");
+        registry.add("spring.data.redis.port", () -> "6379");
+        registry.add("spring.data.redis.username", () -> "aigunov");
+        registry.add("spring.data.redis.password", () -> "12345");
     }
 
     @BeforeEach
@@ -86,7 +85,8 @@ class GitHubClientTest {
         when(converterApi.convertGithubUrlToApi(fullUrl)).thenReturn(apiUrl);
         when(converterApi.isGithubUrl(anyString())).thenReturn(true);
 
-        String issuesJson = """
+        String issuesJson =
+                """
             [
               {
                 "title": "Issue #1",
@@ -97,7 +97,8 @@ class GitHubClientTest {
             ]
         """;
 
-        String prsJson = """
+        String prsJson =
+                """
             [
               {
                 "title": "PR #1",

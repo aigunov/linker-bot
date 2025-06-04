@@ -1,15 +1,21 @@
 package backend.academy.scrapper.client;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
+
 import backend.academy.scrapper.config.GitHubConfig;
 import backend.academy.scrapper.config.StackOverflowConfig;
 import backend.academy.scrapper.data.dto.UpdateInfo;
-import backend.academy.scrapper.exception.StackOverflowApiException;
 import backend.academy.scrapper.service.LinkToApiRequestConverter;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.Optional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,27 +29,16 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.util.Optional;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
-
 @SpringBootTest
 @EnableConfigurationProperties({GitHubConfig.class, StackOverflowConfig.class})
 @TestPropertySource(
         properties = {
-                "app.github.url=http://localhost:8089/repos",
-                "app.github.token=test-token",
-                "app.stackoverflow.key=test-key",
-                "app.stackoverflow.access_token=test-access",
-                "app.stackoverflow.url=http://localhost:8089/stackoverflow"
-        }
-)
+            "app.github.url=http://localhost:8089/repos",
+            "app.github.token=test-token",
+            "app.stackoverflow.key=test-key",
+            "app.stackoverflow.access_token=test-access",
+            "app.stackoverflow.url=http://localhost:8089/stackoverflow"
+        })
 class StackOverflowClientTest {
 
     @Container
@@ -72,6 +67,10 @@ class StackOverflowClientTest {
         registry.add("app.scrapper.threads-count", () -> 1);
         registry.add("app.scrapper.scheduled-time", () -> 100000);
         registry.add("app.db.access-type", () -> "orm");
+        registry.add("spring.data.redis.host", () -> "localhost");
+        registry.add("spring.data.redis.port", () -> "6379");
+        registry.add("spring.data.redis.username", () -> "aigunov");
+        registry.add("spring.data.redis.password", () -> "12345");
     }
 
     @BeforeEach
@@ -95,7 +94,8 @@ class StackOverflowClientTest {
         when(converterApi.convertStackOverflowUrlToApi(questionUrl)).thenReturn(apiUrl);
         when(converterApi.isGithubUrl(anyString())).thenReturn(true);
 
-        String responseJson = """
+        String responseJson =
+                """
             {
                 "items": [
                     {
