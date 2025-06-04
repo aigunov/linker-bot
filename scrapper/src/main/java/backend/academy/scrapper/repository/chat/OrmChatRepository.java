@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.UUID;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
@@ -16,6 +17,7 @@ public interface OrmChatRepository extends ChatRepository, JpaRepository<Chat, U
 
     void deleteByTgId(Long tgId);
 
+    @Modifying
     @Override
     @Query("UPDATE Chat c SET c.digestTime = :time WHERE c.tgId = :tgId")
     void setDigestTime(Long chatId, LocalTime time);

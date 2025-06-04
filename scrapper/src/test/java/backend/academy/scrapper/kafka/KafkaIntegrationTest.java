@@ -72,6 +72,11 @@ public class KafkaIntegrationTest {
 
         registry.add("spring.kafka.bootstrap-servers", kafka::getBootstrapServers);
 
+        registry.add("spring.data.redis.host", () -> "localhost");
+        registry.add("spring.data.redis.port", () -> "6379");
+        registry.add("spring.data.redis.username", () -> "aigunov");
+        registry.add("spring.data.redis.password", () -> "12345");
+
         registry.add("app.message.transport", () -> "kafka");
     }
 

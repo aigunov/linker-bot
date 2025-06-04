@@ -88,16 +88,19 @@ public class RedisCacheIntegrationTest {
 
     @Test
     void shouldStoreDigestRecord() {
+        // Arrange
         DigestRecord record = DigestRecord.builder()
-                .chatId(1001L)
-                .url("https://github.com/test/repo")
-                .message("Test issue")
-                .linkId(UUID.randomUUID())
-                .build();
+            .chatId(1001L)
+            .url("https://github.com/test/repo")
+            .message("Test issue")
+            .linkId(UUID.randomUUID())
+            .build();
 
+        // Act
         redisService.storeUpdate(
-                Set.of(mockChat(1001L)), mockLink(record.url(), record.linkId()), mockUpdate(record.message()));
+            Set.of(mockChat(1001L)), mockLink(record.url(), record.linkId()), mockUpdate(record.message()));
 
+        // Assert
         List<DigestRecord> results = redisTemplate.opsForList().range(expectedKey, 0, -1);
         var actualDigest = results.getFirst();
 
@@ -109,29 +112,32 @@ public class RedisCacheIntegrationTest {
 
     @Test
     void shouldConsumerRecordsGroupeByChatId() {
+        // Arrange
         DigestRecord rec1 = DigestRecord.builder()
-                .chatId(1L)
-                .url("url1")
-                .message("msg1")
-                .linkId(UUID.randomUUID())
-                .build();
+            .chatId(1L)
+            .url("url1")
+            .message("msg1")
+            .linkId(UUID.randomUUID())
+            .build();
         DigestRecord rec2 = DigestRecord.builder()
-                .chatId(1L)
-                .url("url2")
-                .message("msg2")
-                .linkId(UUID.randomUUID())
-                .build();
+            .chatId(1L)
+            .url("url2")
+            .message("msg2")
+            .linkId(UUID.randomUUID())
+            .build();
         DigestRecord rec3 = DigestRecord.builder()
-                .chatId(2L)
-                .url("url3")
-                .message("msg3")
-                .linkId(UUID.randomUUID())
-                .build();
+            .chatId(2L)
+            .url("url3")
+            .message("msg3")
+            .linkId(UUID.randomUUID())
+            .build();
 
         redisTemplate.opsForList().rightPushAll(expectedKey, rec1, rec2, rec3);
 
+        // Act
         Map<Long, List<DigestRecord>> result = redisService.consumeForTime(testTime);
 
+        // Assert
         assertThat(result).containsKeys(1L, 2L);
         assertThat(result.get(1L)).hasSize(2);
         assertThat(result.get(2L)).hasSize(1);
@@ -139,17 +145,20 @@ public class RedisCacheIntegrationTest {
 
     @Test
     void shouldClearDigestKey() {
+        // Arrange
         DigestRecord record = DigestRecord.builder()
-                .chatId(200L)
-                .url("url")
-                .message("msg")
-                .linkId(UUID.randomUUID())
-                .build();
+            .chatId(200L)
+            .url("url")
+            .message("msg")
+            .linkId(UUID.randomUUID())
+            .build();
 
         redisTemplate.opsForList().rightPush(expectedKey, record);
 
+        // Act
         redisService.clearDigestTimeKey(testTime);
 
+        // Assert
         List<DigestRecord> results = redisTemplate.opsForList().range(expectedKey, 0, -1);
         assertThat(results).isEmpty();
     }
