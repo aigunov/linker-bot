@@ -89,7 +89,6 @@ public class StackOverflowClient extends AbstractUpdateCheckingClient {
 
         } catch (RestClientException e) {
             log.error("RestClientException while accessing StackOverflow API for link {}: {}", link, e.getMessage());
-            //            throw new ScrapperServicesApiException("StackOverflow API error", e);
             return Optional.empty();
         }
     }
