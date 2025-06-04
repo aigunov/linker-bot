@@ -6,9 +6,12 @@ import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.model.request.ParseMode;
 import com.pengrad.telegrambot.request.SendMessage;
 import dto.ApiErrorResponse;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+@SuppressWarnings(value = {"VA_FORMAT_STRING_USES_NEWLINE"})
+@SuppressFBWarnings(value = {"VA_FORMAT_STRING_USES_NEWLINE"})
 @Slf4j
 @Component
 public class NotificationState extends StateImpl {

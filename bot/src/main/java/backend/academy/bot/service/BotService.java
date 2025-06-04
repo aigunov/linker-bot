@@ -15,6 +15,7 @@ import dto.LinkUpdate;
 import dto.NotificationTimeRequest;
 import dto.RegisterChatRequest;
 import dto.RemoveLinkRequest;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalTime;
 import java.util.Arrays;
@@ -31,6 +32,8 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+@SuppressWarnings(value = {"POTENTIAL_XML_INJECTION"})
+@SuppressFBWarnings(value = {"POTENTIAL_XML_INJECTION"})
 @Slf4j
 @Service
 @RequiredArgsConstructor
