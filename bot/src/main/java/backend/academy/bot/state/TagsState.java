@@ -10,8 +10,8 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-@SuppressWarnings(value = {"POTENTIAL_XML_INJECTION"})
-@SuppressFBWarnings(value = {"POTENTIAL_XML_INJECTION"})
+@SuppressWarnings(value = {"POTENTIAL_XML_INJECTION", "VA_FORMAT_STRING_USES_NEWLINE"})
+@SuppressFBWarnings(value = {"POTENTIAL_XML_INJECTION", "VA_FORMAT_STRING_USES_NEWLINE"})
 @Slf4j
 @Component("tags-state")
 public class TagsState extends StateImpl {

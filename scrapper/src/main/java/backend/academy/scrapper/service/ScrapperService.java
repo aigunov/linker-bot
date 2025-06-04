@@ -115,7 +115,8 @@ public class ScrapperService {
             return;
         }
 
-        UpdateInfo updateInfo = updateInfoOpt.get();
+        UpdateInfo updateInfo = updateInfoOpt.orElseThrow(
+                () -> new IllegalStateException("UpdateInfo was expected to be present, but was empty."));
         if (link.lastUpdate() != null && !updateInfo.date().isAfter(link.lastUpdate())) {
             return;
         }
