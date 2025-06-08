@@ -29,7 +29,7 @@ public class ListState extends StateImpl {
             bot.execute(new SendMessage(chatId, message)
                     .replyMarkup(keyboardFactory.getBackStateKeyboard())
                     .parseMode(ParseMode.HTML));
-            var message = handleScrapperResponse(botService.getTrackingLinks(chatId));
+            var message = handleScrapperResponse(botService.getAllLinks(chatId));
             bot.execute(new SendMessage(chatId, message).parseMode(ParseMode.HTML));
         } catch (TelegramApiException e) {
             log.info("Error while sending feedback request message: {}", e.getMessage());

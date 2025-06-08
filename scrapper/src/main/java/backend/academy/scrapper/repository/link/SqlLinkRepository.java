@@ -1,5 +1,6 @@
 package backend.academy.scrapper.repository.link;
 
+import backend.academy.scrapper.data.model.Chat;
 import backend.academy.scrapper.data.model.Link;
 import backend.academy.scrapper.exception.SqlRepositoryException;
 import java.util.ArrayList;
@@ -197,7 +198,7 @@ public class SqlLinkRepository implements LinkRepository {
             saveLinkToTag(link);
             saveLinkToFilter(link);
 
-            return existingLink.get();
+            return existingLink.orElseThrow(() -> new IllegalStateException("Existing link expected to be present"));
         } else {
             KeyHolder keyHolder = new GeneratedKeyHolder();
             String insertLinkSql =
@@ -235,19 +236,17 @@ public class SqlLinkRepository implements LinkRepository {
     }
 
     private void saveLinkToChat(Link link) {
-        if (link.chats().stream().findFirst().isEmpty()) {
-            throw new SqlRepositoryException("No chat found");
-        }
+        Optional<Chat> firstChatOptional = link.chats().stream().findFirst();
+        Chat chat = firstChatOptional.orElseThrow(() -> new SqlRepositoryException("No chat found"));
 
         var linkChatSql =
                 """
-            INSERT INTO link_to_chat(chat_id, link_id)
-            VALUES (:chatId, :linkId)
-            """;
+        INSERT INTO link_to_chat(chat_id, link_id)
+        VALUES (:chatId, :linkId)
+        """;
 
-        var linkChatParams = new MapSqlParameterSource()
-                .addValue("chatId", link.chats().stream().findFirst().get().id())
-                .addValue("linkId", link.id());
+        var linkChatParams =
+                new MapSqlParameterSource().addValue("chatId", chat.id()).addValue("linkId", link.id());
 
         jdbc.update(linkChatSql, linkChatParams);
     }

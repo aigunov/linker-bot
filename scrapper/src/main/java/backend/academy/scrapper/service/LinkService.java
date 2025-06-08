@@ -61,15 +61,19 @@ public class LinkService {
         Set<Tag> tags = new HashSet<>();
 
         if (!request.tags().isEmpty()) {
-            tags = (Set<Tag>) tagRepository.saveAll(request.tags().stream()
+            var res = tagRepository.saveAll(request.tags().stream()
                     .map(tag -> Mapper.tagDtoToTag(tag, chat))
                     .toList());
+
+            for (var tag : res) {
+                tags.add(tag);
+            }
         }
 
         Set<Filter> filters = new HashSet<>();
 
         if (!request.filters().isEmpty()) {
-            filters = (Set<Filter>) filterRepository.saveAll(request.filters().stream()
+            var res = filterRepository.saveAll(request.filters().stream()
                     .map(filter -> filter.split(":"))
                     .map(filterValues -> {
                         var param = filterValues[0];
@@ -77,10 +81,14 @@ public class LinkService {
                         return Mapper.filterDtoToFilter(param, value, chat);
                     })
                     .toList());
+
+            for (var filter : res) {
+                filters.add(filter);
+            }
         }
 
         var linkToSave = Mapper.linkRequestToLink(request.uri(), chat, tags, filters);
-        log.info("Link t o save: {}", linkToSave);
+        log.info("Link to save: {}", linkToSave);
         var link = linkRepository.save(linkToSave);
         return Mapper.linkToLinkResponse(link);
     }

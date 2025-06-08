@@ -1,10 +1,20 @@
 package backend.academy.bot.service;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.Optional;
 import java.util.regex.Pattern;
 import lombok.experimental.UtilityClass;
+import lombok.extern.slf4j.Slf4j;
 
+@SuppressWarnings(value = {"REDOS"})
+@SuppressFBWarnings(value = {"REDOS"})
+@Slf4j
 @UtilityClass
 public class Validator {
+    private static final DateTimeFormatter format = DateTimeFormatter.ofPattern("HH:mm");
     private static final String FILTER_PATTERN =
             "^(?:[a-zA-Z0-9_-]+:[a-zA-Z0-9_.,-]+(?: [a-zA-Z0-9_-]+:[a-zA-Z0-9_.,-]+)*)?$";
     private static final Pattern FILTER_REGEX = Pattern.compile(FILTER_PATTERN);
@@ -28,5 +38,15 @@ public class Validator {
 
         var matcher = TAG_REGEX.matcher(tag);
         return matcher.matches();
+    }
+
+    public static Optional<LocalTime> parseTime(String timeStr) {
+        DateTimeFormatter format = DateTimeFormatter.ofPattern("HH:mm");
+        try {
+            return Optional.of(LocalTime.parse(timeStr.trim(), format));
+        } catch (DateTimeParseException e) {
+            log.warn("Invalid time format: {}", timeStr);
+            return Optional.empty();
+        }
     }
 }

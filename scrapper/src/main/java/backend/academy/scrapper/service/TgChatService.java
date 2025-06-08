@@ -2,6 +2,7 @@ package backend.academy.scrapper.service;
 
 import backend.academy.scrapper.exception.ChatException;
 import backend.academy.scrapper.repository.chat.ChatRepository;
+import dto.NotificationTimeRequest;
 import dto.RegisterChatRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,5 +36,15 @@ public class TgChatService {
         chatRepository.deleteById(chatToDelete.id());
         log.info("Deleted chat: {}", chatToDelete);
         return "Chat successfully deleted";
+    }
+
+    @Transactional
+    public String setDigestTime(Long chatId, NotificationTimeRequest request) {
+        var chatToSetTime =
+                chatRepository.findByTgId(chatId).orElseThrow(() -> new ChatException("chat %d not found", chatId));
+
+        chatRepository.setDigestTime(chatId, request.time());
+        log.info("Set time for chat: {}", chatToSetTime);
+        return "Time successfully set";
     }
 }

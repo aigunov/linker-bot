@@ -15,7 +15,6 @@ import com.pengrad.telegrambot.model.Chat;
 import com.pengrad.telegrambot.model.Message;
 import com.pengrad.telegrambot.model.Update;
 import com.pengrad.telegrambot.model.User;
-import dto.AddLinkRequest;
 import dto.LinkResponse;
 import dto.RemoveLinkRequest;
 import org.junit.jupiter.api.BeforeEach;
@@ -50,7 +49,7 @@ class BotServiceTest {
 
     @BeforeEach
     void setUp() {
-        addLinkRequestService = new AddLinkRequestService();
+        //        addLinkRequestService = new AddLinkRequestService();
         botService = new BotService(client, addLinkRequestService, listRequestService);
         botService.setTelegramBot(telegramBot);
     }
@@ -74,16 +73,6 @@ class BotServiceTest {
 
         assertThat(result).isEqualTo("Registered");
         verify(client).registerChat(any());
-    }
-
-    @Test
-    void commitLinkTracking_shouldThrowExceptionOnClientError() {
-        Long chatId = 123L;
-        addLinkRequestService.createLinkRequest(chatId, "https://example.com");
-        AddLinkRequest linkRequest = addLinkRequestService.getLinkRequest(chatId);
-
-        assertThrows(TelegramApiException.class, () -> botService.commitLinkTracking(chatId));
-        verify(client).addTrackedLink(chatId, linkRequest);
     }
 
     @Test

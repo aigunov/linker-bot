@@ -10,12 +10,23 @@ app:
   db:
     access-type: sql
 
+  message:
+    transport: kafka
+    kafka:
+      topic:
+        notification: notification-topic
+        digest: digest-topic
+        dead-letter: notification-dead-letter-topic
+
   bot:
     url: http://localhost:8080
   scrapper:
     threads-count: ${THREADS_COUNT}
     scheduled-time: ${SCHEDULED_TIME}
     page-size: ${PAGE_SIZE}
+  digest:
+    scheduler-time: ${REDIS_SCHEDULED_TIME:60000}
+    threads-count: ${REDIS_THREADS_COUNT:4}
 
 
 spring:
@@ -32,6 +43,14 @@ spring:
     hibernate:
       ddl-auto: validate
     open-in-view: false
+  kafka:
+    bootstrap-servers: localhost:9092
+  data:
+    redis:
+      username: ${REDIS_USERNAME}
+      password: ${REDIS_PASSWORD}
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
 
 server:
   port: 8081

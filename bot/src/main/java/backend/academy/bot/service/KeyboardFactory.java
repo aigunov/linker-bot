@@ -16,7 +16,7 @@ public class KeyboardFactory {
 
         rows.add(new KeyboardButton[] {new KeyboardButton("/list"), new KeyboardButton("/help")});
 
-        rows.add(new KeyboardButton[] {new KeyboardButton("/tags")});
+        rows.add(new KeyboardButton[] {new KeyboardButton("/tags"), new KeyboardButton("/notifications")});
         return new ReplyKeyboardMarkup(rows.toArray(new KeyboardButton[0][]))
                 .resizeKeyboard(true)
                 .oneTimeKeyboard(true)
@@ -27,6 +27,17 @@ public class KeyboardFactory {
         List<KeyboardButton[]> rows = new ArrayList<>();
 
         rows.add(new KeyboardButton[] {new KeyboardButton("Назад")});
+
+        return new ReplyKeyboardMarkup(rows.toArray(new KeyboardButton[0][]))
+                .resizeKeyboard(true)
+                .oneTimeKeyboard(true)
+                .selective(true);
+    }
+
+    public ReplyKeyboardMarkup getNotificationTimeSetKeyboard() {
+        List<KeyboardButton[]> rows = new ArrayList<>();
+
+        rows.add(new KeyboardButton[] {new KeyboardButton("Назад"), new KeyboardButton("Сразу")});
 
         return new ReplyKeyboardMarkup(rows.toArray(new KeyboardButton[0][]))
                 .resizeKeyboard(true)

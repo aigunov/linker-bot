@@ -3,7 +3,6 @@ package backend.academy.scrapper.client;
 import backend.academy.scrapper.data.dto.GitHubIssue;
 import backend.academy.scrapper.data.dto.GitHubPullRequest;
 import backend.academy.scrapper.data.dto.UpdateInfo;
-import backend.academy.scrapper.exception.GitHubApiException;
 import backend.academy.scrapper.service.LinkToApiRequestConverter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -29,7 +28,7 @@ public class GitHubClient extends AbstractUpdateCheckingClient {
     }
 
     @Override
-    public Optional<UpdateInfo> checkUpdates(String link) {
+    public Optional<UpdateInfo> checkUpdates(String link) throws JsonProcessingException {
         String apiUrl = converterApi.convertGithubUrlToApi(link);
         log.info("Checking for updates... {}", apiUrl);
 
@@ -39,13 +38,12 @@ public class GitHubClient extends AbstractUpdateCheckingClient {
                     .get()
                     .uri(apiUrl + "/issues?state=all")
                     .retrieve()
-                    .onStatus(HttpStatusCode::is4xxClientError, (request, response) -> {
-                        log.error("GitHub API returned client error for Issues: {}", apiUrl);
-                        throw new RestClientException("GitHub API client error");
-                    })
-                    .onStatus(HttpStatusCode::is5xxServerError, (request, response) -> {
-                        log.error("GitHub API returned server error for Issues: {}", apiUrl);
-                        throw new RestClientException("GitHub API server error");
+                    .onStatus(HttpStatusCode::isError, (request, response) -> {
+                        log.error(
+                                "GitHub API returned error for Issues [{}]: status={}",
+                                apiUrl,
+                                response.getStatusCode());
+                        throw new RestClientException("GitHub API error for issues");
                     })
                     .toEntity(String.class);
 
@@ -58,13 +56,12 @@ public class GitHubClient extends AbstractUpdateCheckingClient {
                     .get()
                     .uri(apiUrl + "/pulls?state=all")
                     .retrieve()
-                    .onStatus(HttpStatusCode::is4xxClientError, (request, response) -> {
-                        log.error("GitHub API returned client error for Pull Requests: {}", apiUrl);
-                        throw new RestClientException("GitHub API client error");
-                    })
-                    .onStatus(HttpStatusCode::is5xxServerError, (request, response) -> {
-                        log.error("GitHub API returned server error for Pull Requests: {}", apiUrl);
-                        throw new RestClientException("GitHub API server error");
+                    .onStatus(HttpStatusCode::isError, (request, response) -> {
+                        log.error(
+                                "GitHub API returned error for Pull Requests [{}]: status={}",
+                                apiUrl,
+                                response.getStatusCode());
+                        throw new RestClientException("GitHub API error for pull requests");
                     })
                     .toEntity(String.class);
 
@@ -72,6 +69,7 @@ public class GitHubClient extends AbstractUpdateCheckingClient {
                     prsResponse.getBody(),
                     objectMapper.getTypeFactory().constructCollectionType(List.class, GitHubPullRequest.class));
 
+            // Находим последнее обновление
             Optional<UpdateInfo> latestIssue = issues.stream()
                     .max(Comparator.comparing(GitHubIssue::createdAt))
                     .map(issue -> UpdateInfo.builder()
@@ -92,23 +90,14 @@ public class GitHubClient extends AbstractUpdateCheckingClient {
                             .preview(pr.body() != null ? StringUtils.substring(pr.body(), 0, 200) : "")
                             .build());
 
-            var latestUpdate = Stream.of(latestIssue, latestPullRequest)
+            return Stream.of(latestIssue, latestPullRequest)
                     .filter(Optional::isPresent)
                     .map(Optional::get)
                     .max(Comparator.comparing(UpdateInfo::date));
 
-            if (latestUpdate.isPresent()) {
-                var update = latestUpdate.get();
-                log.info("Latest {} update on link ({}), \n is: {}", update.type(), link, update);
-                return latestUpdate;
-            }
-            return Optional.empty();
-        } catch (JsonProcessingException e) {
-            log.error("Error parsing GitHub response", e);
-            throw new GitHubApiException("Error parsing GitHub response", e);
         } catch (RestClientException e) {
-            log.error("Error accessing GitHub API", e);
-            throw new GitHubApiException("Error accessing GitHub API", e);
+            log.error("RestClientException occurred while checking updates for link {}: {}", link, e.getMessage());
+            return Optional.empty();
         }
     }
 }

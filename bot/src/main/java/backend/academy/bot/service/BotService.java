@@ -5,13 +5,19 @@ import backend.academy.bot.configs.TelegramBot;
 import backend.academy.bot.exception.FailedIncomingUpdatesHandleException;
 import backend.academy.bot.exception.TelegramApiException;
 import com.pengrad.telegrambot.model.Update;
+import com.pengrad.telegrambot.model.request.ParseMode;
 import com.pengrad.telegrambot.request.SendMessage;
 import dto.AddLinkRequest;
 import dto.ApiErrorResponse;
+import dto.Digest;
 import dto.GetLinksRequest;
 import dto.LinkUpdate;
+import dto.NotificationTimeRequest;
 import dto.RegisterChatRequest;
 import dto.RemoveLinkRequest;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import jakarta.validation.constraints.NotNull;
+import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -20,10 +26,14 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+@SuppressWarnings(value = {"POTENTIAL_XML_INJECTION"})
+@SuppressFBWarnings(value = {"POTENTIAL_XML_INJECTION"})
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -40,11 +50,15 @@ public class BotService {
         this.telegramBot = telegramBot;
     }
 
-    public Object getTrackingLinks(Long chatId) {
+    // todo: имя кэша конфигурируемое
+    @NotNull
+    @Cacheable(value = "trackedLinks", key = "#chatId", unless = "#result instanceof T(dto.ApiErrorResponse)")
+    public Object getAllLinks(Long chatId) {
         try {
             log.info("Fetching tracked links for chatId: {}", chatId);
             var requestBody = listRequestService.getListRequest(chatId);
-            var responseEntity = client.getAllTrackedLinks(
+            listRequestService.clearLinkRequest(chatId);
+            var responseEntity = client.getAllLinks(
                     chatId, requestBody == null ? GetLinksRequest.builder().build() : requestBody);
 
             if (responseEntity.getStatusCode().is2xxSuccessful()) {
@@ -62,6 +76,7 @@ public class BotService {
         }
     }
 
+    @NotNull
     public Object getTags(long chatId) {
         try {
             log.info("Fetching tags for chatId: {}", chatId);
@@ -80,6 +95,7 @@ public class BotService {
         }
     }
 
+    @NotNull
     public Object chatRegistration(Update update) {
         var message = update.message();
         var tgUser = message.from();
@@ -103,9 +119,12 @@ public class BotService {
         }
     }
 
+    @NotNull
+    @CacheEvict(value = "trackedLinks", key = "#chatId")
     public Object commitLinkTracking(Long chatId) {
         try {
             AddLinkRequest linkRequest = addLinkRequestService.getLinkRequest(chatId);
+            addLinkRequestService.clearLinkRequest(chatId);
             if (linkRequest == null) {
                 throw new IllegalArgumentException("Link request is null");
             }
@@ -113,7 +132,6 @@ public class BotService {
             var responseEntity = client.addTrackedLink(chatId, linkRequest);
 
             if (responseEntity.getStatusCode().is2xxSuccessful()) {
-                addLinkRequestService.clearLinkRequest(chatId);
                 log.info("Successfully track link for chatId: {}", chatId);
             } else {
                 log.warn(
@@ -126,6 +144,28 @@ public class BotService {
         }
     }
 
+    @NotNull
+    public Object changeDigestTime(Long chatId, LocalTime time) {
+        try {
+            var responseEntity = client.setNotificationTime(chatId, new NotificationTimeRequest(time));
+
+            if (responseEntity.getStatusCode().is2xxSuccessful()) {
+                log.info("Successfully changed time for chatId: {}", chatId);
+            } else {
+                log.warn(
+                        "Failed to change time for chatId: {}. Status code: {}",
+                        chatId,
+                        responseEntity.getStatusCode());
+            }
+            return responseEntity.getBody();
+        } catch (Exception ex) {
+            log.error("Unexpected error while fetching tracked links for chatId: {}", chatId, ex);
+            throw new TelegramApiException("Произошла ошибка взаимодействия с сервисом Scrapper. Попробуйте позже.");
+        }
+    }
+
+    @NotNull
+    @CacheEvict(value = "trackedLinks", key = "#chatId")
     public Object commitLinkUntrack(Long chatId, String message) {
         try {
             var responseEntity = client.removeTrackedLink(chatId, new RemoveLinkRequest(message));
@@ -169,5 +209,35 @@ public class BotService {
 
     private List<String> convertStackTraceToList(StackTraceElement[] stackTrace) {
         return Arrays.stream(stackTrace).map(StackTraceElement::toString).collect(Collectors.toList());
+    }
+
+    public void processDigests(Digest digest) {
+        try {
+            telegramBot.execute(new SendMessage(digest.tgId(), formatDigestMessage(digest)).parseMode(ParseMode.HTML));
+            log.info("Update sent to chat {}", digest.tgId());
+        } catch (TelegramApiException e) {
+            throw new FailedIncomingUpdatesHandleException("Failed to send update to chat " + digest.tgId(), e);
+        }
+    }
+
+    private String formatDigestMessage(Digest digest) {
+        if (digest.updates() == null || digest.updates().isEmpty()) {
+            return "Сегодня не было обновлений по вашим отслеживаемым ссылкам.";
+        }
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("📰 Обновления за сегодня:\n\n");
+
+        int count = 1;
+        for (LinkUpdate update : digest.updates()) {
+            sb.append(count++)
+                    .append(". 🔗 <b>")
+                    .append(update.url())
+                    .append("</b>\n")
+                    .append(update.message())
+                    .append("\n\n");
+        }
+
+        return sb.toString().trim();
     }
 }

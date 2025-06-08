@@ -1,6 +1,7 @@
 package backend.academy.scrapper.repository.chat;
 
 import backend.academy.scrapper.data.model.Chat;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -37,6 +38,20 @@ public class SqlChatRepository implements ChatRepository {
         chat.id((UUID) keyHolder.getKeys().get("id"));
 
         return chat;
+    }
+
+    @Override
+    public void setDigestTime(Long chatId, LocalTime time) {
+        var sql =
+                """
+                UPDATE chat
+                SET digest_time = :time
+                WHERE tg_id = :tgId
+            """;
+
+        var params = new MapSqlParameterSource().addValue("tgId", chatId).addValue("time", time);
+
+        jdbc.update(sql, params);
     }
 
     @Transactional(propagation = Propagation.MANDATORY)

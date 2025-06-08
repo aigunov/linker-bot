@@ -11,6 +11,8 @@ import lombok.ToString;
 @Getter
 @RequiredArgsConstructor
 public enum ChatState {
+    REGISTER("register-state"),
+
     MENU("menu-state"),
 
     TRACK("track-state"),
@@ -27,7 +29,7 @@ public enum ChatState {
 
     TAGS("tags-state"),
 
-    REGISTER("register-state");
+    NOTIFICATION("notification-state");
 
     private final String id;
 

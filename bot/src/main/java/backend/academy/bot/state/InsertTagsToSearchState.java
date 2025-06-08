@@ -83,7 +83,7 @@ public class InsertTagsToSearchState extends StateImpl {
         }
         var chatId = update.message().chat().id();
         log.info("Adding tags {}", message);
-        listRequestService.createListRequest(chatId, message);
+        listRequestService.updateListRequestTags(chatId, message);
         stateManager.navigate(update, ChatState.LIST);
     }
 }

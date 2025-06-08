@@ -1,6 +1,15 @@
 app:
   telegram-token: ${TELEGRAM_TOKEN} # env variable
 
+  message:
+    transport: kafka
+    kafka:
+      topic:
+        notification: notification-topic
+        digest: digest-topic
+        dead-letter: notification-dead-letter-topic
+
+
 spring:
   application:
     name: Bot
@@ -10,6 +19,17 @@ spring:
     hibernate:
       ddl-auto: validate
     open-in-view: false
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+  data:
+    redis:
+      username: ${REDIS_BOT_USERNAME}
+      password: ${REDIS_BOT_PASSWORD}
+      host: ${REDIS_BOT_HOST}
+      port: ${REDIS_BOT_PORT}
 
 server:
   port: 8080
@@ -23,5 +43,3 @@ springdoc:
 scrapper:
   api:
     url: http://localhost:8081
-
-

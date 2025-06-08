@@ -2,7 +2,6 @@ package backend.academy.scrapper.client;
 
 import backend.academy.scrapper.data.dto.StackOverflowResponse;
 import backend.academy.scrapper.data.dto.UpdateInfo;
-import backend.academy.scrapper.exception.StackOverflowApiException;
 import backend.academy.scrapper.service.LinkToApiRequestConverter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.time.LocalDateTime;
@@ -27,22 +26,21 @@ public class StackOverflowClient extends AbstractUpdateCheckingClient {
     }
 
     @Override
-    public Optional<UpdateInfo> checkUpdates(String link) {
+    public Optional<UpdateInfo> checkUpdates(String link) throws JsonProcessingException {
         String apiUrl = converterApi.convertStackOverflowUrlToApi(link);
-        log.info("Checking for updates... {}", apiUrl);
+        log.info("Checking for StackOverflow updates... {}", apiUrl);
 
         try {
             ResponseEntity<String> fullResponse = restClient
                     .get()
                     .uri(apiUrl)
                     .retrieve()
-                    .onStatus(HttpStatusCode::is4xxClientError, (request, response) -> {
-                        log.error("StackOverflow API returned client error for URL: {}", apiUrl);
-                        throw new RestClientException("StackOverflow API client error");
-                    })
-                    .onStatus(HttpStatusCode::is5xxServerError, (request, response) -> {
-                        log.error("StackOverflow API returned server error for URL: {}", apiUrl);
-                        throw new RestClientException("StackOverflow API server error");
+                    .onStatus(HttpStatusCode::isError, (request, response) -> {
+                        log.error(
+                                "StackOverflow API returned error for URL: {} (status: {})",
+                                apiUrl,
+                                response.getStatusCode());
+                        throw new RestClientException("StackOverflow API error for URL: " + apiUrl);
                     })
                     .toEntity(String.class);
 
@@ -84,24 +82,14 @@ public class StackOverflowClient extends AbstractUpdateCheckingClient {
                                     .build())
                     : Optional.empty();
 
-            Optional<UpdateInfo> latestUpdate = Stream.of(latestAnswer, latestComment)
+            return Stream.of(latestAnswer, latestComment)
                     .filter(Optional::isPresent)
                     .map(Optional::get)
                     .max(Comparator.comparing(UpdateInfo::date));
 
-            if (latestUpdate.isPresent()) {
-                var update = latestUpdate.get();
-                log.info("Latest {} update on link ({}), \n is: {}", update.type(), link, update);
-                return latestUpdate;
-            }
-            return Optional.empty();
-
-        } catch (JsonProcessingException e) {
-            log.error("Ошибка при обработке JSON-ответа StackOverflow", e);
-            throw new StackOverflowApiException("Ошибка при обработке JSON-ответа StackOverflow", e);
         } catch (RestClientException e) {
-            log.error("Ошибка при доступе к StackOverflow API", e);
-            throw new StackOverflowApiException("Ошибка при доступе к StackOverflow API", e);
+            log.error("RestClientException while accessing StackOverflow API for link {}: {}", link, e.getMessage());
+            return Optional.empty();
         }
     }
 }
