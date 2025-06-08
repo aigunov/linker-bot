@@ -11,6 +11,7 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.common.Slf4jNotifier;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import com.github.tomakehurst.wiremock.stubbing.ServeEvent;
@@ -133,6 +134,11 @@ public class RetryIntegrationTest {
         registry.add("client.resilience-scrapper.stackoverflow-client.timeout", () -> "100s");
         registry.add("client.resilience-scrapper.stackoverflow-client.wait-duration", () -> "5s");
 
+        registry.add("spring.data.redis.host", () -> "localhost");
+        registry.add("spring.data.redis.port", () -> "6379");
+        registry.add("spring.data.redis.username", () -> "aigunov");
+        registry.add("spring.data.redis.password", () -> "12345");
+
         registry.add("client.resilience-scrapper.github-client.timeout", () -> "100s");
         registry.add("client.resilience-scrapper.github-client.wait-duration", () -> "5s");
     }
@@ -173,9 +179,10 @@ public class RetryIntegrationTest {
             .willReturn(aResponse().withStatus(200).withBody(stackoverflowBody)));
 
 
-
+        //When
         Optional<UpdateInfo> result = stackOverflowClient.checkUpdates(stackoverflowURL);
 
+        //Assert
         assertThat(result).isNotEmpty();
 
         verify(2, getRequestedFor(urlPathEqualTo("/2.3/questions/60200966"))
@@ -187,25 +194,62 @@ public class RetryIntegrationTest {
 
     @Test
     void gitHubClient_shouldRetryOnServerError() throws JsonProcessingException {
-        when(converterApi.convertGithubUrlToApi(githubURL)).thenReturn("http://localhost:9090/repos/central-university-dev/java-aigunov");
+        String expectedGitHubApiUrl = "http://localhost:9090/repos/central-university-dev/java-aigunov";
+        String fullGitHubUrl = "https://github.com/central-university-dev/java-aigunov";
+
+        String issuesResponse = """
+        [
+            {
+                "title": "Issue #1",
+                "created_at": "2024-06-01T12:00:00",
+                "user": { "login": "issue-author" },
+                "body": "Issue body text"
+            }
+        ]
+        """;
+
+        String prsResponse = """
+        [
+            {
+                "title": "PR #1",
+                "created_at": "2024-06-02T15:30:00",
+                "user": { "login": "pr-author" },
+                "body": "Pull request body"
+            }
+        ]
+        """;
+
+        when(converterApi.convertGithubUrlToApi(fullGitHubUrl)).thenReturn(expectedGitHubApiUrl);
         when(converterApi.isGithubUrl(anyString())).thenReturn(true);
 
-        stubFor(get(urlMatching("/repos/central-university-dev/java-aigunov/issues\\?state=all"))
+        wireMockServer.resetAll();
+
+        stubFor(get(urlEqualTo("/repos/central-university-dev/java-aigunov/issues?state=all"))
             .inScenario("GitHub Retry")
             .whenScenarioStateIs(STARTED)
             .willReturn(aResponse().withStatus(503))
             .willSetStateTo("Second Attempt"));
 
-        stubFor(get(urlMatching("/repos/central-university-dev/java-aigunov/issues\\?state=all"))
+        stubFor(get(urlEqualTo("/repos/central-university-dev/java-aigunov/issues?state=all"))
             .inScenario("GitHub Retry")
             .whenScenarioStateIs("Second Attempt")
-            .willReturn(aResponse().withStatus(200).withBody("[]")));
+            .willReturn(aResponse().withStatus(200).withBody(issuesResponse)));
 
-        stubFor(get(urlMatching("/repos/central-university-dev/java-aigunov/pulls\\?state=all"))
-            .willReturn(aResponse().withStatus(200).withBody("[]")));
+        stubFor(get(urlEqualTo("/repos/central-university-dev/java-aigunov/pulls?state=all"))
+            .willReturn(aResponse().withStatus(200).withBody(prsResponse)));
 
-        Optional<?> result = gitHubClient.checkUpdates(githubURL);
-        assertThat(result).isNotNull();
+        // When
+        Optional<UpdateInfo> result = gitHubClient.checkUpdates(fullGitHubUrl);
+
+        // Then
+        assertThat(result).isPresent();
+        UpdateInfo update = result.get();
+
+        assertThat(update.title()).isEqualTo("PR #1");
+        assertThat(update.username()).isEqualTo("pr-author");
+        assertThat(update.type()).isEqualTo("pull-request");
+        assertThat(update.preview()).contains("Pull request body");
+        assertThat(update.date()).isEqualTo(LocalDateTime.of(2024, 6, 2, 15, 30));
     }
 }
 
