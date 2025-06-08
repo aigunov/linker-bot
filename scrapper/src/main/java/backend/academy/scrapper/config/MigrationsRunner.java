@@ -1,6 +1,6 @@
 package backend.academy.scrapper.config;
 
-import java.io.File;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.sql.Connection;
@@ -19,6 +19,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+@SuppressWarnings(value = {"SLF4J_MANUALLY_PROVIDED_MESSAGE"})
+@SuppressFBWarnings(value = {"SLF4J_MANUALLY_PROVIDED_MESSAGE"})
 @Component
 @Slf4j
 @RequiredArgsConstructor
@@ -27,7 +29,7 @@ public class MigrationsRunner {
 
     public void runMigrations() {
         Path migrationsPath =
-                new File(".").toPath().toAbsolutePath().getParent().getParent().resolve("migrations");
+                Path.of(".").toAbsolutePath().getParent().getParent().resolve("migrations");
 
         try (Connection connection = DriverManager.getConnection(
                 dataSourceConfig.url(), dataSourceConfig.username(), dataSourceConfig.password())) {

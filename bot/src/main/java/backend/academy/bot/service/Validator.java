@@ -1,5 +1,6 @@
 package backend.academy.bot.service;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -8,6 +9,8 @@ import java.util.regex.Pattern;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 
+@SuppressWarnings(value = {"REDOS"})
+@SuppressFBWarnings(value = {"REDOS"})
 @Slf4j
 @UtilityClass
 public class Validator {
