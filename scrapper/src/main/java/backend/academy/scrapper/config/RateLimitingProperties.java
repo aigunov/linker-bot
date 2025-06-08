@@ -7,11 +7,5 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@Getter
-@Setter
-@RequiredArgsConstructor
 @ConfigurationProperties(prefix = "rate-limiting")
-public class RateLimitingProperties {
-    private int capacity;
-    private Duration duration;
-}
+public record RateLimitingProperties(int capacity, Duration duration) {}
