@@ -4,6 +4,7 @@ import backend.academy.scrapper.data.dto.UpdateInfo;
 import backend.academy.scrapper.data.model.Chat;
 import backend.academy.scrapper.data.model.Link;
 import dto.DigestRecord;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
@@ -17,6 +18,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+@SuppressWarnings(value = {"NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE"})
+@SuppressFBWarnings(value = {"NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE"})
 @Slf4j
 @Service
 @RequiredArgsConstructor

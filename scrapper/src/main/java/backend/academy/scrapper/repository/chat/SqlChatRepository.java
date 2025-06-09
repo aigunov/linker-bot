@@ -1,6 +1,8 @@
 package backend.academy.scrapper.repository.chat;
 
 import backend.academy.scrapper.data.model.Chat;
+import backend.academy.scrapper.exception.SqlRepositoryException;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +17,8 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+@SuppressWarnings(value = {"NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE"})
+@SuppressFBWarnings(value = {"NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE"})
 @Repository
 @RequiredArgsConstructor
 @ConditionalOnProperty(prefix = "app.db", name = "access-type", havingValue = "sql")
@@ -29,13 +33,18 @@ public class SqlChatRepository implements ChatRepository {
 
         var sql =
                 """
-            INSERT INTO chat (tg_id, nickname)
-            VALUES (:tgId, :nickname)
-            """;
+                INSERT INTO chat (tg_id, nickname)
+                VALUES (:tgId, :nickname)
+                """;
         var params = new MapSqlParameterSource().addValue("tgId", chat.tgId()).addValue("nickname", chat.nickname());
 
         jdbc.update(sql, params, keyHolder);
-        chat.id((UUID) keyHolder.getKeys().get("id"));
+        // Изменение начинается со строки 38
+        if (keyHolder.getKeys() != null && keyHolder.getKeys().containsKey("id")) {
+            chat.id((UUID) keyHolder.getKeys().get("id"));
+        } else {
+            throw new SqlRepositoryException("Failed to retrieve generated ID for chat");
+        }
 
         return chat;
     }
@@ -44,10 +53,10 @@ public class SqlChatRepository implements ChatRepository {
     public void setDigestTime(Long chatId, LocalTime time) {
         var sql =
                 """
-                UPDATE chat
-                SET digest_time = :time
-                WHERE tg_id = :tgId
-            """;
+                    UPDATE chat
+                    SET digest_time = :time
+                    WHERE tg_id = :tgId
+                """;
 
         var params = new MapSqlParameterSource().addValue("tgId", chatId).addValue("time", time);
 
@@ -99,7 +108,7 @@ public class SqlChatRepository implements ChatRepository {
             WHERE id = :id
             """;
         var result = jdbc.query(sql, new MapSqlParameterSource("id", id), new ChatResultSetExtractor());
-        return result.isEmpty() ? Optional.empty() : Optional.of(result.getFirst());
+        return result.stream().findFirst();
     }
 
     @Override
@@ -110,7 +119,7 @@ public class SqlChatRepository implements ChatRepository {
             WHERE tg_id = :tgId
             """;
         var result = jdbc.query(sql, new MapSqlParameterSource("tgId", tgId), new ChatResultSetExtractor());
-        return result.isEmpty() ? Optional.empty() : Optional.of(result.getFirst());
+        return result.stream().findFirst();
     }
 
     @Override

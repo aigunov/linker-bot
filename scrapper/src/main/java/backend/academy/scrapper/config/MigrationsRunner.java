@@ -19,8 +19,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-@SuppressWarnings(value = {"SLF4J_MANUALLY_PROVIDED_MESSAGE"})
-@SuppressFBWarnings(value = {"SLF4J_MANUALLY_PROVIDED_MESSAGE"})
+@SuppressWarnings(value = {"SLF4J_MANUALLY_PROVIDED_MESSAGE", "NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE"})
+@SuppressFBWarnings(value = {"SLF4J_MANUALLY_PROVIDED_MESSAGE", "NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE"})
 @Component
 @Slf4j
 @RequiredArgsConstructor

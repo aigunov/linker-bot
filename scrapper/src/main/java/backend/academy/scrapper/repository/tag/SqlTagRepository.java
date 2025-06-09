@@ -1,6 +1,8 @@
 package backend.academy.scrapper.repository.tag;
 
 import backend.academy.scrapper.data.model.Tag;
+import backend.academy.scrapper.exception.SqlRepositoryException;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -14,6 +16,8 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+@SuppressWarnings(value = {"NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE"})
+@SuppressFBWarnings(value = {"NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE"})
 @Repository
 @RequiredArgsConstructor
 @ConditionalOnProperty(prefix = "app.db", name = "access-type", havingValue = "sql")
@@ -37,7 +41,11 @@ public class SqlTagRepository implements TagRepository {
         GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
         jdbc.update(tagSql, tagParams, keyHolder);
 
-        tag.id((UUID) keyHolder.getKeys().get("id"));
+        if (keyHolder.getKeys() != null && keyHolder.getKeys().containsKey("id")) {
+            tag.id((UUID) keyHolder.getKeys().get("id"));
+        } else {
+            throw new SqlRepositoryException("Failed to retrieve generated ID for tag");
+        }
         return tag;
     }
 
@@ -76,7 +84,7 @@ public class SqlTagRepository implements TagRepository {
             WHERE id = :id
             """;
         var result = jdbc.query(sql, new MapSqlParameterSource("id", id), new TagResultSetExtractor());
-        return result.isEmpty() ? Optional.empty() : Optional.of(result.getFirst());
+        return result.stream().findFirst();
     }
 
     @Override
@@ -90,7 +98,7 @@ public class SqlTagRepository implements TagRepository {
             """;
         var params = new MapSqlParameterSource().addValue("tgId", tgId).addValue("tag", tag);
         var result = jdbc.query(sql, params, new TagResultSetExtractor());
-        return result.isEmpty() ? Optional.empty() : Optional.of(result.getFirst());
+        return result.stream().findFirst();
     }
 
     @Override

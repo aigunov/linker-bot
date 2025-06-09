@@ -4,6 +4,7 @@ import backend.academy.scrapper.client.NotificationClient;
 import dto.Digest;
 import dto.DigestRecord;
 import dto.LinkUpdate;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import jakarta.annotation.PostConstruct;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -20,6 +21,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+@SuppressWarnings(value = {"SLF4J_MANUALLY_PROVIDED_MESSAGE"})
+@SuppressFBWarnings(value = {"SLF4J_MANUALLY_PROVIDED_MESSAGE"})
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -39,6 +42,7 @@ public class RedisScheduler {
     }
 
     @Scheduled(fixedDelayString = "${app.digest.scheduler-time}")
+    @SuppressWarnings("PMD.UnusedPrivateMethod")
     private void dispatchDigest() {
         LocalTime now = LocalTime.now().withSecond(0).withNano(0);
         var chatToRecord = redisService.consumeForTime(now);

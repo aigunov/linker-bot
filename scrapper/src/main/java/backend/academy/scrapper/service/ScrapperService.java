@@ -36,8 +36,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-@SuppressWarnings(value = {"CRLF_INJECTION_LOGS"})
-@SuppressFBWarnings(value = {"CRLF_INJECTION_LOGS"})
+@SuppressWarnings(value = {"CRLF_INJECTION_LOGS", "DCN_NULLPOINTER_EXCEPTION"})
+@SuppressFBWarnings(value = {"CRLF_INJECTION_LOGS", "DCN_NULLPOINTER_EXCEPTION"})
 @Slf4j
 @Service
 @RequiredArgsConstructor

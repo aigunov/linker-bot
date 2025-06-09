@@ -19,7 +19,7 @@ public class TagsController {
 
     @GetMapping
     public ResponseEntity<GetTagsResponse> getAllTags(@RequestHeader("Tg-Chat-Id") Long id) {
-        log.info("Get all tags for chat  ID: {}", id);
+        log.info("Get all tags for chat  ID: {}", id.toString().replaceAll("[\r\n]", ""));
         var response = tagsService.getUserTags(id);
         return ResponseEntity.ok(response);
     }

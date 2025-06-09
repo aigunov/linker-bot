@@ -24,9 +24,9 @@ public class MenuState extends StateImpl {
     private final ListRequestService listRequestService;
 
     @Autowired
-    public MenuState(ListRequestService listRequestService, ListRequestService listRequestService1) {
+    public MenuState(ListRequestService listRequestService) {
         super(ChatState.MENU, "Главное меню");
-        this.listRequestService = listRequestService1;
+        this.listRequestService = listRequestService;
     }
 
     @Override

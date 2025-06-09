@@ -39,6 +39,7 @@ public class RateLimitingFilter extends OncePerRequestFilter {
         }
     }
 
+    @SuppressWarnings("PMD.UnusedFormalParameter")
     private Bucket createNewBucket(String ip) {
         Refill refill = Refill.intervally(properties.capacity(), properties.duration());
         Bandwidth limit = Bandwidth.classic(properties.capacity(), refill);

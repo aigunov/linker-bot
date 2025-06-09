@@ -81,15 +81,14 @@ public class ListState extends StateImpl {
     }
 
     public String formatErrorResponse(ApiErrorResponse error) {
-
         return String.format(
                 """
-                    ❗ <b>Ошибка при выполнении запроса:</b>
-                    📝 <b>Описание:</b>  %s
-                    📋 <b>Код ошибки:</b> %s
-                    🚨 <b>Тип исключения:</b> %s
-                    💥 <b>Сообщение исключения:</b> %s
-                    """,
-                error.description(), error.code(), error.exceptionName(), error.exceptionMessage());
+                ❗ <b>Ошибка при выполнении запроса:</b>
+                📝 <b>Описание:</b>  %s
+                📋 <b>Код ошибки:</b> %s
+                🚨 <b>Тип исключения:</b> %s
+                💥 <b>Сообщение исключения:</b> %s
+                """,
+                " " + error.description(), error.code(), error.exceptionName(), error.exceptionMessage());
     }
 }

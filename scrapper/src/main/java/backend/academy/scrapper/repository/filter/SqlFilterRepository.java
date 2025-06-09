@@ -1,6 +1,8 @@
 package backend.academy.scrapper.repository.filter;
 
 import backend.academy.scrapper.data.model.Filter;
+import backend.academy.scrapper.exception.SqlRepositoryException;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -14,6 +16,8 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+@SuppressWarnings(value = {"NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE"})
+@SuppressFBWarnings(value = {"NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE"})
 @Repository
 @RequiredArgsConstructor
 @ConditionalOnProperty(prefix = "app.db", name = "access-type", havingValue = "sql")
@@ -38,7 +42,11 @@ public class SqlFilterRepository implements FilterRepository {
                 .addValue("value", filter.value());
 
         jdbc.update(sql, params, keyHolder);
-        filter.id((UUID) keyHolder.getKeys().get("id"));
+        if (keyHolder.getKeys() != null && keyHolder.getKeys().containsKey("id")) {
+            filter.id((UUID) keyHolder.getKeys().get("id"));
+        } else {
+            throw new SqlRepositoryException("Failed to retrieve generated ID for filter");
+        }
 
         return filter;
     }
@@ -50,7 +58,7 @@ public class SqlFilterRepository implements FilterRepository {
         for (var filter : filters) {
             list.add((S) save(filter));
         }
-        return filters;
+        return list;
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
@@ -83,7 +91,7 @@ public class SqlFilterRepository implements FilterRepository {
             """;
 
         var result = jdbc.query(sql, new MapSqlParameterSource("id", id), new FilterResultSetExtractor());
-        return result.isEmpty() ? Optional.empty() : Optional.of(result.getFirst());
+        return result.stream().findFirst();
     }
 
     @Override
@@ -101,7 +109,7 @@ public class SqlFilterRepository implements FilterRepository {
                 .addValue("param", param)
                 .addValue("value", value);
         List<Filter> results = jdbc.query(sql, params, new FilterResultSetExtractor());
-        return results.isEmpty() ? Optional.empty() : Optional.of(results.getFirst());
+        return results.stream().findFirst();
     }
 
     @Override

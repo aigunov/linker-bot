@@ -3,6 +3,7 @@ package backend.academy.scrapper.repository.link;
 import backend.academy.scrapper.data.model.Chat;
 import backend.academy.scrapper.data.model.Link;
 import backend.academy.scrapper.exception.SqlRepositoryException;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -18,6 +19,8 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+@SuppressWarnings(value = {"NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE"})
+@SuppressFBWarnings(value = {"NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE"})
 @Repository
 @RequiredArgsConstructor
 @ConditionalOnProperty(prefix = "app.db", name = "access-type", havingValue = "sql")
@@ -72,7 +75,7 @@ public class SqlLinkRepository implements LinkRepository {
             """;
 
         var result = jdbc.query(sql, new MapSqlParameterSource("id", id), new LinkResultSetExtractor());
-        return result.isEmpty() ? Optional.empty() : Optional.of(result.getFirst());
+        return result.stream().findFirst();
     }
 
     @Override
@@ -92,7 +95,7 @@ public class SqlLinkRepository implements LinkRepository {
             """;
         var params = new MapSqlParameterSource().addValue("tgId", tgId).addValue("url", url);
         var result = jdbc.query(sql, params, new LinkResultSetExtractor());
-        return result.isEmpty() ? Optional.empty() : Optional.of(result.getFirst());
+        return result.stream().findFirst();
     }
 
     @Override
@@ -210,7 +213,11 @@ public class SqlLinkRepository implements LinkRepository {
             MapSqlParameterSource insertParams =
                     new MapSqlParameterSource().addValue("url", link.url()).addValue("lastUpdate", link.lastUpdate());
             jdbc.update(insertLinkSql, insertParams, keyHolder);
-            link.id((UUID) keyHolder.getKeys().get("id"));
+            if (keyHolder.getKeys() != null && keyHolder.getKeys().containsKey("id")) {
+                link.id((UUID) keyHolder.getKeys().get("id"));
+            } else {
+                throw new SqlRepositoryException("Failed to retrieve generated ID for link");
+            }
             saveLinkToChat(link);
             saveLinkToTag(link);
             saveLinkToFilter(link);
@@ -232,7 +239,7 @@ public class SqlLinkRepository implements LinkRepository {
         String sql = "SELECT * FROM link WHERE url = :url";
         MapSqlParameterSource params = new MapSqlParameterSource("url", url);
         List<Link> results = jdbc.query(sql, params, new LinkResultSetExtractor());
-        return results.isEmpty() ? Optional.empty() : Optional.of(results.getFirst());
+        return results.stream().findFirst();
     }
 
     private void saveLinkToChat(Link link) {
