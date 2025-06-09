@@ -60,6 +60,11 @@ public class CircuitBreakerIntegrationTest {
 
     @DynamicPropertySource
     static void registerDynamicProps(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", postgresContainer::getJdbcUrl);
+        registry.add("spring.datasource.username", postgresContainer::getUsername);
+        registry.add("spring.datasource.password", postgresContainer::getPassword);
+        registry.add("spring.datasource.driver-class-name", postgresContainer::getDriverClassName);
+
         registry.add("app.message.transport", () -> "HTTP");
 
         registry.add("client.resilience-scrapper.stackoverflow-client.timeout", () -> "100s");

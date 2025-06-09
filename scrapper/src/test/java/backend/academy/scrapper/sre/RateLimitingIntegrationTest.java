@@ -2,6 +2,7 @@ package backend.academy.scrapper.sre;
 
 import dto.RegisterChatRequest;
 import java.time.Duration;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -10,8 +11,11 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+@Slf4j
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @Testcontainers
 @TestPropertySource(
@@ -19,18 +23,26 @@ import org.testcontainers.junit.jupiter.Testcontainers;
             "server.port=8081",
             "rate-limiting.capacity=5",
             "rate-limiting.duration=1s",
-            "spring.datasource.url=jdbc:postgresql://localhost:6432/scrapper_db",
-            "spring.datasource.username=aigunov",
-            "spring.datasource.password=12345",
-            "spring.jpa.hibernate.ddl-auto=none"
+            "spring.jpa.hibernate.ddl-auto=validate",
+            "spring.jpa.hibernate.ddl-auto=create"
         })
 public class RateLimitingIntegrationTest {
     private static final String BASE_URL = "http://localhost:8081";
 
     private WebTestClient webClient;
 
+    @Container
+    static final PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres:17.4")
+            .withDatabaseName("scrapper_db")
+            .withUsername("aigunov")
+            .withPassword("12345");
+
     @DynamicPropertySource
     static void registerDynamicProps(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", postgresContainer::getJdbcUrl);
+        registry.add("spring.datasource.username", postgresContainer::getUsername);
+        registry.add("spring.datasource.password", postgresContainer::getPassword);
+        registry.add("spring.datasource.driver-class-name", postgresContainer::getDriverClassName);
         registry.add("app.message.transport", () -> "HTTP");
 
         registry.add("client.resilience-scrapper.stackoverflow-client.timeout", () -> "100s");
@@ -53,8 +65,8 @@ public class RateLimitingIntegrationTest {
     void setUp() {
         this.webClient = WebTestClient.bindToServer()
                 .baseUrl(BASE_URL)
-                .responseTimeout(Duration.ofSeconds(3))
-                .defaultHeader("X-Forwarded-For", "1.2.3.4") // фиксируем IP для лимитирования
+                .responseTimeout(Duration.ofMinutes(5))
+                .defaultHeader("X-Forwarded-For", "1.2.3.4")
                 .build();
     }
 
@@ -67,7 +79,8 @@ public class RateLimitingIntegrationTest {
 
         // 5 успешных запросов
         for (int i = 0; i < 5; i++) {
-            webClient.post().uri(testUrl).bodyValue(request).exchange();
+            var response = webClient.post().uri(testUrl).bodyValue(request).exchange();
+            log.info(response.expectBody().toString());
         }
 
         // 6-й запрос должен быть ограничен
