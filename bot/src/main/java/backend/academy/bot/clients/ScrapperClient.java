@@ -69,7 +69,7 @@ public class ScrapperClient {
         Map<String, String> headers = new HashMap<>();
         headers.put("Tg-Chat-Id", String.valueOf(chatId));
         return makeAndSendRequest(
-            TG_CHAT + "/time/{chatId}", HttpMethod.POST, headers, notificationTimeRequest, String.class, chatId);
+                TG_CHAT + "/time/{chatId}", HttpMethod.POST, headers, notificationTimeRequest, String.class, chatId);
     }
 
     public ResponseEntity<Object> getAllLinks(final Long chatId, final GetLinksRequest linksRequest) {
@@ -101,21 +101,21 @@ public class ScrapperClient {
     }
 
     private <T, E> ResponseEntity<Object> makeAndSendRequest(
-        String uri,
-        HttpMethod httpMethod,
-        Map<String, String> headers,
-        T body,
-        Class<E> responseType,
-        Object... uriParameters) {
+            String uri,
+            HttpMethod httpMethod,
+            Map<String, String> headers,
+            T body,
+            Class<E> responseType,
+            Object... uriParameters) {
 
         log.info("Request: {} {}, headers: {}, body: {}", httpMethod, uri, headers, body);
 
         RestClient.RequestHeadersSpec<?> requestSpec = restClient
-            .method(httpMethod)
-            .uri(uri, uriParameters)
-            .body(body != null ? body : new Object())
-            .header(HttpHeaders.CONTENT_TYPE, String.valueOf(MediaType.APPLICATION_JSON))
-            .headers(httpHeaders -> headers.forEach(httpHeaders::add));
+                .method(httpMethod)
+                .uri(uri, uriParameters)
+                .body(body != null ? body : new Object())
+                .header(HttpHeaders.CONTENT_TYPE, String.valueOf(MediaType.APPLICATION_JSON))
+                .headers(httpHeaders -> headers.forEach(httpHeaders::add));
 
         Retry retry = retryRegistry.retry("scrapperClient");
         CircuitBreaker circuitBreaker = circuitBreakerRegistry.circuitBreaker("scrapperClient");
@@ -136,23 +136,23 @@ public class ScrapperClient {
         });
 
         Supplier<ResponseEntity<Object>> decoratedSupplier = Decorators.ofSupplier(() -> {
-                try {
-                    return timeLimiter.executeFutureSupplier(supplier);
-                } catch (Exception e) {
-                    throw new CompletionException(e);
-                }
-            })
-            .withRetry(retry)
-            .withCircuitBreaker(circuitBreaker)
-            .withFallback(List.of(Throwable.class), t -> {
-                log.warn("Fallback executed due to: {}", t.getMessage());
-                return createDefaultErrorResponse(
-                    HttpStatus.SERVICE_UNAVAILABLE.value(),
-                    t.getMessage(),
-                    t.getClass().getSimpleName(),
-                    convertStackTraceToList(t.getStackTrace()));
-            })
-            .decorate();
+                    try {
+                        return timeLimiter.executeFutureSupplier(supplier);
+                    } catch (Exception e) {
+                        throw new CompletionException(e);
+                    }
+                })
+                .withRetry(retry)
+                .withCircuitBreaker(circuitBreaker)
+                .withFallback(List.of(Throwable.class), t -> {
+                    log.warn("Fallback executed due to: {}", t.getMessage());
+                    return createDefaultErrorResponse(
+                            HttpStatus.SERVICE_UNAVAILABLE.value(),
+                            t.getMessage(),
+                            t.getClass().getSimpleName(),
+                            convertStackTraceToList(t.getStackTrace()));
+                })
+                .decorate();
 
         return decoratedSupplier.get();
     }
@@ -166,30 +166,30 @@ public class ScrapperClient {
         } catch (IOException parseEx) {
             log.error("Ошибка парсинга ответа: {}", parseEx.getMessage());
             return createDefaultErrorResponse(
-                ex.getStatusCode().value(),
-                ex.getMessage(),
-                ex.getClass().getSimpleName(),
-                convertStackTraceToList(ex.getStackTrace()));
+                    ex.getStatusCode().value(),
+                    ex.getMessage(),
+                    ex.getClass().getSimpleName(),
+                    convertStackTraceToList(ex.getStackTrace()));
         }
     }
 
     private ResponseEntity<Object> handleRestClientException(RestClientException ex) {
         return createDefaultErrorResponse(
-            HttpStatus.INTERNAL_SERVER_ERROR.value(),
-            ex.getMessage(),
-            ex.getClass().getSimpleName(),
-            convertStackTraceToList(ex.getStackTrace()));
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                ex.getMessage(),
+                ex.getClass().getSimpleName(),
+                convertStackTraceToList(ex.getStackTrace()));
     }
 
     private ResponseEntity<Object> createDefaultErrorResponse(
-        int statusCode, String message, String exceptionName, List<String> stacktrace) {
+            int statusCode, String message, String exceptionName, List<String> stacktrace) {
         ApiErrorResponse errorResponse = ApiErrorResponse.builder()
-            .description("Ошибка запроса к сервису Scrapper: " + message)
-            .code(String.valueOf(statusCode))
-            .exceptionName(exceptionName)
-            .exceptionMessage(message)
-            .stacktrace(stacktrace)
-            .build();
+                .description("Ошибка запроса к сервису Scrapper: " + message)
+                .code(String.valueOf(statusCode))
+                .exceptionName(exceptionName)
+                .exceptionMessage(message)
+                .stacktrace(stacktrace)
+                .build();
         return ResponseEntity.status(statusCode).body(errorResponse);
     }
 

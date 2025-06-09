@@ -12,7 +12,7 @@ public class TestClientConfig {
     @Bean
     public RestClient restClient() {
         return RestClient.builder()
-//                .baseUrl("http://localhost:8089/repos")
+                //                .baseUrl("http://localhost:8089/repos")
                 .requestFactory(clientHttpRequestFactory())
                 .requestInterceptor((request, body, execution) -> {
                     System.out.println(">>> " + request.getURI());

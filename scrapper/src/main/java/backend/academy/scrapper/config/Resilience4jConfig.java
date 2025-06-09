@@ -16,7 +16,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClientException;
 
-
 @Configuration
 @RequiredArgsConstructor
 public class Resilience4jConfig {
@@ -31,7 +30,9 @@ public class Resilience4jConfig {
 
         Predicate<Object> predicate = result -> {
             if (result instanceof ResponseEntity<?> response) {
-                return stackoverflow.retryStatuses().contains(response.getStatusCode().value());
+                return stackoverflow
+                        .retryStatuses()
+                        .contains(response.getStatusCode().value());
             }
             if (result instanceof RestClientException || result instanceof TimeoutException) {
                 return true;
@@ -39,28 +40,36 @@ public class Resilience4jConfig {
             return false;
         };
 
+        registry.addConfiguration(
+                "githubRetryConfig",
+                RetryConfig.custom()
+                        .maxAttempts(github.maxAttempts())
+                        .waitDuration(github.waitDuration())
+                        .retryOnResult(predicate)
+                        .retryExceptions(Exception.class)
+                        .build());
 
-        registry.addConfiguration("githubRetryConfig", RetryConfig.custom()
-            .maxAttempts(github.maxAttempts())
-            .waitDuration(github.waitDuration())
-            .retryOnResult(predicate)
-            .retryExceptions(Exception.class)
-            .build());
+        registry.addConfiguration(
+                "stackoverflowRetryConfig",
+                RetryConfig.custom()
+                        .maxAttempts(stackoverflow.maxAttempts())
+                        .waitDuration(stackoverflow.waitDuration())
+                        .retryOnResult(predicate)
+                        .retryExceptions(Exception.class)
+                        .build());
 
-        registry.addConfiguration("stackoverflowRetryConfig", RetryConfig.custom()
-            .maxAttempts(stackoverflow.maxAttempts())
-            .waitDuration(stackoverflow.waitDuration())
-            .retryOnResult(predicate)
-            .retryExceptions(Exception.class)
-            .build());
-
-        registry.addConfiguration("botRetryConfig", RetryConfig.custom()
-            .maxAttempts(bot.maxAttempts())
-            .waitDuration(bot.waitDuration())
-            .retryOnException(e ->
-                e instanceof org.springframework.web.reactive.function.client.WebClientResponseException ex &&
-                    bot.retryStatuses().contains(ex.getStatusCode().value()))
-            .build());
+        registry.addConfiguration(
+                "botRetryConfig",
+                RetryConfig.custom()
+                        .maxAttempts(bot.maxAttempts())
+                        .waitDuration(bot.waitDuration())
+                        .retryOnException(e -> e
+                                        instanceof
+                                        org.springframework.web.reactive.function.client.WebClientResponseException
+                                        ex
+                                && bot.retryStatuses()
+                                        .contains(ex.getStatusCode().value()))
+                        .build());
 
         return registry;
     }
@@ -84,20 +93,26 @@ public class Resilience4jConfig {
     public TimeLimiterRegistry timeLimiterRegistry() {
         TimeLimiterRegistry registry = TimeLimiterRegistry.ofDefaults();
 
-        registry.addConfiguration("githubTimeLimiter", TimeLimiterConfig.custom()
-            .timeoutDuration(github.timeout())
-            .cancelRunningFuture(false)
-            .build());
+        registry.addConfiguration(
+                "githubTimeLimiter",
+                TimeLimiterConfig.custom()
+                        .timeoutDuration(github.timeout())
+                        .cancelRunningFuture(false)
+                        .build());
 
-        registry.addConfiguration("stackoverflowTimeLimiter", TimeLimiterConfig.custom()
-            .timeoutDuration(stackoverflow.timeout())
-            .cancelRunningFuture(false)
-            .build());
+        registry.addConfiguration(
+                "stackoverflowTimeLimiter",
+                TimeLimiterConfig.custom()
+                        .timeoutDuration(stackoverflow.timeout())
+                        .cancelRunningFuture(false)
+                        .build());
 
-        registry.addConfiguration("botTimeLimiter", TimeLimiterConfig.custom()
-            .timeoutDuration(bot.timeout())
-            .cancelRunningFuture(false)
-            .build());
+        registry.addConfiguration(
+                "botTimeLimiter",
+                TimeLimiterConfig.custom()
+                        .timeoutDuration(bot.timeout())
+                        .cancelRunningFuture(false)
+                        .build());
 
         return registry;
     }
@@ -131,6 +146,4 @@ public class Resilience4jConfig {
     public CircuitBreaker stackoverflowCircuitBreaker(CircuitBreakerRegistry registry) {
         return registry.circuitBreaker("stackoverflowClient");
     }
-
-
 }

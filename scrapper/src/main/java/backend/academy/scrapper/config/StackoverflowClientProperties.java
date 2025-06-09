@@ -6,11 +6,9 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @ConfigurationProperties(prefix = "client.resilience.stackoverflow-client")
 public record StackoverflowClientProperties(
-    Duration timeout,
-    Integer maxAttempts,
-    Duration waitDuration,
-    List<Integer> retryStatuses,
-    Integer rateLimitForPeriod,
-    Duration rateLimitRefreshPeriod
-) {
-}
+        Duration timeout,
+        Integer maxAttempts,
+        Duration waitDuration,
+        List<Integer> retryStatuses,
+        Integer rateLimitForPeriod,
+        Duration rateLimitRefreshPeriod) {}

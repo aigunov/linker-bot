@@ -1,5 +1,10 @@
 package backend.academy.scrapper.sre;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.when;
+
 import backend.academy.scrapper.ScrapperApplication;
 import backend.academy.scrapper.client.StackOverflowClient;
 import backend.academy.scrapper.data.dto.UpdateInfo;
@@ -8,6 +13,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.common.Slf4jNotifier;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
+import java.util.Optional;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -19,35 +25,30 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-import java.util.Optional;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.when;
-
 @SpringBootTest(classes = ScrapperApplication.class)
 @Testcontainers
-@TestPropertySource(properties = {
-    "app.db.access-type=orm",
-    "spring.jpa.hibernate.ddl-auto=create",
-    "app.scrapper.page-size=10",
-    "app.scrapper.threads-count=1",
-    "app.scrapper.scheduled-time=100000",
-    "app.digest.threads-count=4",
-    "app.message.transport=HTTP",
-    "app.digest.scheduler-time=60000",
-    "client.stackoverflow.url=http://localhost:9090"
-})
+@TestPropertySource(
+        properties = {
+            "app.db.access-type=orm",
+            "spring.jpa.hibernate.ddl-auto=create",
+            "app.scrapper.page-size=10",
+            "app.scrapper.threads-count=1",
+            "app.scrapper.scheduled-time=100000",
+            "app.digest.threads-count=4",
+            "app.message.transport=HTTP",
+            "app.digest.scheduler-time=60000",
+            "client.stackoverflow.url=http://localhost:9090"
+        })
 public class CircuitBreakerIntegrationTest {
 
-    private final String stackoverflowURL = "https://stackoverflow.com/questions/60200966/docker-compose-gives-invalid-environment-type-error";
+    private final String stackoverflowURL =
+            "https://stackoverflow.com/questions/60200966/docker-compose-gives-invalid-environment-type-error";
 
     @Container
     static final PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres:17.4")
-        .withDatabaseName("scrapper_db")
-        .withUsername("aigunov")
-        .withPassword("12345");
+            .withDatabaseName("scrapper_db")
+            .withUsername("aigunov")
+            .withPassword("12345");
 
     static WireMockServer wireMockServer;
 
@@ -79,9 +80,8 @@ public class CircuitBreakerIntegrationTest {
 
     @BeforeAll
     static void setupWireMock() {
-        wireMockServer = new WireMockServer(WireMockConfiguration.options()
-            .port(9090)
-            .notifier(new Slf4jNotifier(true)));
+        wireMockServer =
+                new WireMockServer(WireMockConfiguration.options().port(9090).notifier(new Slf4jNotifier(true)));
         wireMockServer.start();
         configureFor("localhost", 9090);
     }
@@ -98,16 +98,17 @@ public class CircuitBreakerIntegrationTest {
 
     @Test
     void stackOverflowClient_shouldOpenCircuitBreaker_OnFastFailure() throws JsonProcessingException {
-        String expectedApiUrl = "http://localhost:9090/2.3/questions/60200966?order=desc&sort=activity&site=ru.stackoverflow";
+        String expectedApiUrl =
+                "http://localhost:9090/2.3/questions/60200966?order=desc&sort=activity&site=ru.stackoverflow";
 
         when(converterApi.convertStackOverflowUrlToApi(stackoverflowURL)).thenReturn(expectedApiUrl);
         when(converterApi.isStackOverflowUrl(anyString())).thenReturn(true);
 
         stubFor(get(urlEqualTo("/2.3/questions/60200966?order=desc&sort=activity&site=ru.stackoverflow"))
-            .willReturn(aResponse()
-                .withFixedDelay(5000) // задержка больше таймаута, чтобы триггерить timeout
-                .withStatus(200)
-                .withBody("{\"items\":[]}")));
+                .willReturn(aResponse()
+                        .withFixedDelay(5000) // задержка больше таймаута, чтобы триггерить timeout
+                        .withStatus(200)
+                        .withBody("{\"items\":[]}")));
 
         Optional<UpdateInfo> result = stackOverflowClient.checkUpdates(stackoverflowURL);
 
@@ -121,6 +122,4 @@ public class CircuitBreakerIntegrationTest {
         // Проверим, что оба запроса ушли (один открыл circuit, второй вернул fallback)
         verify(2, getRequestedFor(urlPathEqualTo("/2.3/questions/60200966")));
     }
-
-
 }

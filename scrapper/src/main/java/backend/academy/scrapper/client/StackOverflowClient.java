@@ -6,12 +6,9 @@ import backend.academy.scrapper.service.LinkToApiRequestConverter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
-import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import io.github.resilience4j.decorators.Decorators;
 import io.github.resilience4j.retry.Retry;
-import io.github.resilience4j.retry.RetryRegistry;
 import io.github.resilience4j.timelimiter.TimeLimiter;
-import io.github.resilience4j.timelimiter.TimeLimiterRegistry;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Comparator;
@@ -38,12 +35,11 @@ public class StackOverflowClient extends AbstractUpdateCheckingClient {
     private final TimeLimiter timeLimiter;
 
     public StackOverflowClient(
-        RestClient restClient,
-        LinkToApiRequestConverter converterApi,
-        @Qualifier("stackoverflowCircuitBreaker") CircuitBreaker stackoverflowCircuitBreaker,
-        @Qualifier("stackoverflowRetry") Retry stackoverflowRetry,
-        @Qualifier("stackoverflowTimeLimiter") TimeLimiter stackoverflowTimeLimiter
-    ) {
+            RestClient restClient,
+            LinkToApiRequestConverter converterApi,
+            @Qualifier("stackoverflowCircuitBreaker") CircuitBreaker stackoverflowCircuitBreaker,
+            @Qualifier("stackoverflowRetry") Retry stackoverflowRetry,
+            @Qualifier("stackoverflowTimeLimiter") TimeLimiter stackoverflowTimeLimiter) {
         super(restClient, converterApi);
         objectMapper.registerModule(new JavaTimeModule());
 
@@ -58,19 +54,19 @@ public class StackOverflowClient extends AbstractUpdateCheckingClient {
         log.info("Checking for StackOverflow updates... {}", apiUrl);
 
         Supplier<Optional<UpdateInfo>> decoratedSupplier = Decorators.ofSupplier(() -> {
-                try {
-                    return fetchResponseWithTimeLimiter(apiUrl);
-                } catch (Exception e) {
-                    throw new CompletionException(e);
-                }
-            })
-            .withRetry(retry)
-            .withCircuitBreaker(circuitBreaker)
-            .withFallback(List.of(Throwable.class), t -> {
-                log.warn("Fallback executed for StackOverflowClient due to: {}", t.getMessage());
-                return Optional.empty();
-            })
-            .decorate();
+                    try {
+                        return fetchResponseWithTimeLimiter(apiUrl);
+                    } catch (Exception e) {
+                        throw new CompletionException(e);
+                    }
+                })
+                .withRetry(retry)
+                .withCircuitBreaker(circuitBreaker)
+                .withFallback(List.of(Throwable.class), t -> {
+                    log.warn("Fallback executed for StackOverflowClient due to: {}", t.getMessage());
+                    return Optional.empty();
+                })
+                .decorate();
 
         return decoratedSupplier.get();
     }
@@ -87,14 +83,15 @@ public class StackOverflowClient extends AbstractUpdateCheckingClient {
     }
 
     private StackOverflowResponse fetchResponse(String apiUrl) throws JsonProcessingException {
-        var response = restClient.get()
-            .uri(apiUrl)
-            .retrieve()
-            .onStatus(HttpStatusCode::isError, (req, res) -> {
-                log.error("StackOverflow API error for URL: {} (status: {})", apiUrl, res.getStatusCode());
-                throw new RestClientException("StackOverflow API error for URL: " + apiUrl);
-            })
-            .toEntity(String.class);
+        var response = restClient
+                .get()
+                .uri(apiUrl)
+                .retrieve()
+                .onStatus(HttpStatusCode::isError, (req, res) -> {
+                    log.error("StackOverflow API error for URL: {} (status: {})", apiUrl, res.getStatusCode());
+                    throw new RestClientException("StackOverflow API error for URL: " + apiUrl);
+                })
+                .toEntity(String.class);
         return objectMapper.readValue(response.getBody(), StackOverflowResponse.class);
     }
 
@@ -106,33 +103,35 @@ public class StackOverflowClient extends AbstractUpdateCheckingClient {
         var item = parsedResponse.items().getFirst();
         var title = item.title();
 
-        Optional<UpdateInfo> latestAnswer = item.answers() != null && !item.answers().isEmpty()
-            ? item.answers().stream()
-            .max(Comparator.comparingLong(StackOverflowResponse.StackOverflowItem.Answer::creationDate))
-            .map(ans -> UpdateInfo.builder()
-                .date(LocalDateTime.ofEpochSecond(ans.creationDate(), 0, ZoneOffset.UTC))
-                .title(title)
-                .username(ans.owner().displayName())
-                .type("answer")
-                .preview(StringUtils.substring(ans.body(), 0, 200))
-                .build())
-            : Optional.empty();
+        Optional<UpdateInfo> latestAnswer = item.answers() != null
+                        && !item.answers().isEmpty()
+                ? item.answers().stream()
+                        .max(Comparator.comparingLong(StackOverflowResponse.StackOverflowItem.Answer::creationDate))
+                        .map(ans -> UpdateInfo.builder()
+                                .date(LocalDateTime.ofEpochSecond(ans.creationDate(), 0, ZoneOffset.UTC))
+                                .title(title)
+                                .username(ans.owner().displayName())
+                                .type("answer")
+                                .preview(StringUtils.substring(ans.body(), 0, 200))
+                                .build())
+                : Optional.empty();
 
-        Optional<UpdateInfo> latestComment = item.comments() != null && !item.comments().isEmpty()
-            ? item.comments().stream()
-            .max(Comparator.comparingLong(StackOverflowResponse.StackOverflowItem.Comment::creationDate))
-            .map(c -> UpdateInfo.builder()
-                .date(LocalDateTime.ofEpochSecond(c.creationDate(), 0, ZoneOffset.UTC))
-                .title(title)
-                .username(c.owner().displayName())
-                .type("comment")
-                .preview(StringUtils.substring(c.body(), 0, 200))
-                .build())
-            : Optional.empty();
+        Optional<UpdateInfo> latestComment = item.comments() != null
+                        && !item.comments().isEmpty()
+                ? item.comments().stream()
+                        .max(Comparator.comparingLong(StackOverflowResponse.StackOverflowItem.Comment::creationDate))
+                        .map(c -> UpdateInfo.builder()
+                                .date(LocalDateTime.ofEpochSecond(c.creationDate(), 0, ZoneOffset.UTC))
+                                .title(title)
+                                .username(c.owner().displayName())
+                                .type("comment")
+                                .preview(StringUtils.substring(c.body(), 0, 200))
+                                .build())
+                : Optional.empty();
 
         return Stream.of(latestAnswer, latestComment)
-            .filter(Optional::isPresent)
-            .map(Optional::get)
-            .max(Comparator.comparing(UpdateInfo::date));
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .max(Comparator.comparing(UpdateInfo::date));
     }
 }

@@ -18,10 +18,15 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableScheduling
 @EnableCaching
 @SpringBootApplication
-@EnableConfigurationProperties({GitHubConfig.class, StackOverflowConfig.class,
-    DataSourceConfig.class, RateLimitingProperties.class, GithubClientProperties.class,
+@EnableConfigurationProperties({
+    GitHubConfig.class,
+    StackOverflowConfig.class,
+    DataSourceConfig.class,
+    RateLimitingProperties.class,
+    GithubClientProperties.class,
     StackoverflowClientProperties.class,
-    BotClientProperties.class})
+    BotClientProperties.class
+})
 public class ScrapperApplication {
     public static void main(String[] args) {
         SpringApplication.run(ScrapperApplication.class, args);

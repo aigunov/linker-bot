@@ -6,16 +6,14 @@ import io.github.bucket4j.Bucket;
 import io.github.bucket4j.Refill;
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;
+import java.io.IOException;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-
-import java.io.IOException;
-import java.time.Duration;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @Component
@@ -27,9 +25,8 @@ public class RateLimitingFilter extends OncePerRequestFilter {
     private final Map<String, Bucket> ipBuckets = new ConcurrentHashMap<>();
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
         String ip = extractClientIp(request);
         Bucket bucket = ipBuckets.computeIfAbsent(ip, this::createNewBucket);
 
@@ -51,7 +48,7 @@ public class RateLimitingFilter extends OncePerRequestFilter {
     private String extractClientIp(HttpServletRequest request) {
         String forwardedFor = request.getHeader("X-Forwarded-For");
         return (forwardedFor != null && !forwardedFor.isBlank())
-            ? forwardedFor.split(",")[0].trim()
-            : request.getRemoteAddr();
+                ? forwardedFor.split(",")[0].trim()
+                : request.getRemoteAddr();
     }
 }

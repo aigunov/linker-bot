@@ -34,12 +34,11 @@ public class GitHubClient extends AbstractUpdateCheckingClient {
     private final TimeLimiter timeLimiter;
 
     public GitHubClient(
-        RestClient restClient,
-        LinkToApiRequestConverter converterApi,
-        @Qualifier("githubCircuitBreaker") CircuitBreaker circuitBreaker,
-        @Qualifier("githubRetry") Retry retry,
-        @Qualifier("githubTimeLimiter") TimeLimiter timeLimiter
-    ) {
+            RestClient restClient,
+            LinkToApiRequestConverter converterApi,
+            @Qualifier("githubCircuitBreaker") CircuitBreaker circuitBreaker,
+            @Qualifier("githubRetry") Retry retry,
+            @Qualifier("githubTimeLimiter") TimeLimiter timeLimiter) {
         super(restClient, converterApi);
         this.objectMapper.registerModule(new JavaTimeModule());
         this.circuitBreaker = circuitBreaker;
@@ -53,13 +52,13 @@ public class GitHubClient extends AbstractUpdateCheckingClient {
         log.info("Checking GitHub updates for: {}", apiUrl);
 
         Supplier<Optional<UpdateInfo>> decoratedSupplier = Decorators.ofSupplier(() -> fetchWithResilience(apiUrl))
-            .withRetry(retry)
-            .withCircuitBreaker(circuitBreaker)
-            .withFallback(List.of(Throwable.class), t -> {
-                log.warn("Fallback executed for GitHubClient: {}", t.getMessage());
-                return Optional.empty();
-            })
-            .decorate();
+                .withRetry(retry)
+                .withCircuitBreaker(circuitBreaker)
+                .withFallback(List.of(Throwable.class), t -> {
+                    log.warn("Fallback executed for GitHubClient: {}", t.getMessage());
+                    return Optional.empty();
+                })
+                .decorate();
 
         return decoratedSupplier.get();
     }
@@ -81,57 +80,66 @@ public class GitHubClient extends AbstractUpdateCheckingClient {
     }
 
     private List<GitHubIssue> fetchIssues(String apiUrl) throws JsonProcessingException {
-        var response = restClient.get()
-            .uri(apiUrl + "/issues?state=all")
-            .retrieve()
-            .onStatus(HttpStatusCode::isError, (req, res) -> {
-                log.error("GitHub API returned error for Issues [{}]: status={}", apiUrl, res.getStatusCode());
-                throw new RestClientException("GitHub API error for issues");
-            })
-            .toEntity(String.class);
+        var response = restClient
+                .get()
+                .uri(apiUrl + "/issues?state=all")
+                .retrieve()
+                .onStatus(HttpStatusCode::isError, (req, res) -> {
+                    log.error("GitHub API returned error for Issues [{}]: status={}", apiUrl, res.getStatusCode());
+                    throw new RestClientException("GitHub API error for issues");
+                })
+                .toEntity(String.class);
 
-        return objectMapper.readValue(response.getBody(),
-            objectMapper.getTypeFactory().constructCollectionType(List.class, GitHubIssue.class));
+        return objectMapper.readValue(
+                response.getBody(),
+                objectMapper.getTypeFactory().constructCollectionType(List.class, GitHubIssue.class));
     }
 
     private List<GitHubPullRequest> fetchPullRequests(String apiUrl) throws JsonProcessingException {
-        var response = restClient.get()
-            .uri(apiUrl + "/pulls?state=all")
-            .retrieve()
-            .onStatus(HttpStatusCode::isError, (req, res) -> {
-                log.error("GitHub API returned error for Pull Requests [{}]: status={}", apiUrl, res.getStatusCode());
-                throw new RestClientException("GitHub API error for pull requests");
-            })
-            .toEntity(String.class);
+        var response = restClient
+                .get()
+                .uri(apiUrl + "/pulls?state=all")
+                .retrieve()
+                .onStatus(HttpStatusCode::isError, (req, res) -> {
+                    log.error(
+                            "GitHub API returned error for Pull Requests [{}]: status={}", apiUrl, res.getStatusCode());
+                    throw new RestClientException("GitHub API error for pull requests");
+                })
+                .toEntity(String.class);
 
-        return objectMapper.readValue(response.getBody(),
-            objectMapper.getTypeFactory().constructCollectionType(List.class, GitHubPullRequest.class));
+        return objectMapper.readValue(
+                response.getBody(),
+                objectMapper.getTypeFactory().constructCollectionType(List.class, GitHubPullRequest.class));
     }
 
     private Optional<UpdateInfo> determineLatestUpdate(List<GitHubIssue> issues, List<GitHubPullRequest> pullRequests) {
         var latestIssue = issues.stream()
-            .max(Comparator.comparing(GitHubIssue::createdAt))
-            .map(issue -> UpdateInfo.builder()
-                .date(issue.createdAt())
-                .username(issue.user().login())
-                .title(issue.title())
-                .type("issue")
-                .preview(Optional.ofNullable(issue.body()).map(b -> StringUtils.substring(b, 0, 200)).orElse(""))
-                .build());
+                .max(Comparator.comparing(GitHubIssue::createdAt))
+                .map(issue -> UpdateInfo.builder()
+                        .date(issue.createdAt())
+                        .username(issue.user().login())
+                        .title(issue.title())
+                        .type("issue")
+                        .preview(Optional.ofNullable(issue.body())
+                                .map(b -> StringUtils.substring(b, 0, 200))
+                                .orElse(""))
+                        .build());
 
         var latestPR = pullRequests.stream()
-            .max(Comparator.comparing(GitHubPullRequest::createdAt))
-            .map(pr -> UpdateInfo.builder()
-                .date(pr.createdAt())
-                .username(pr.user().login())
-                .title(pr.title())
-                .type("pull-request")
-                .preview(Optional.ofNullable(pr.body()).map(b -> StringUtils.substring(b, 0, 200)).orElse(""))
-                .build());
+                .max(Comparator.comparing(GitHubPullRequest::createdAt))
+                .map(pr -> UpdateInfo.builder()
+                        .date(pr.createdAt())
+                        .username(pr.user().login())
+                        .title(pr.title())
+                        .type("pull-request")
+                        .preview(Optional.ofNullable(pr.body())
+                                .map(b -> StringUtils.substring(b, 0, 200))
+                                .orElse(""))
+                        .build());
 
         return Stream.of(latestIssue, latestPR)
-            .filter(Optional::isPresent)
-            .map(Optional::get)
-            .max(Comparator.comparing(UpdateInfo::date));
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .max(Comparator.comparing(UpdateInfo::date));
     }
 }

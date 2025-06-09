@@ -108,7 +108,6 @@ public class KafkaIntegrationTest {
             assertThat(record.value()).isNotNull();
             assertThat(record.value().url()).isEqualTo("https://github.com/test/repo");
             assertThat(record.value().message()).contains("Issue");
-            //            assertThat(record.value().tgChatIds()).contains(123L, 456L);
         }
     }
 

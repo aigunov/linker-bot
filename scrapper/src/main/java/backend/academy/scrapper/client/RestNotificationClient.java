@@ -27,8 +27,13 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 public class RestNotificationClient implements NotificationClient {
 
     private final WebClient webClient;
-    @Qualifier("botRetry") private final Retry botRetry;
-    @Qualifier("botTimeLimiter") private final TimeLimiter botTimeLimiter;
+
+    @Qualifier("botRetry")
+    private final Retry botRetry;
+
+    @Qualifier("botTimeLimiter")
+    private final TimeLimiter botTimeLimiter;
+
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
     @Value("${app.message.kafka.topic.notification}")
@@ -51,7 +56,10 @@ public class RestNotificationClient implements NotificationClient {
 
     @Override
     public void sendDigest(Digest digest) {
-        log.info("Sending digest: chatId={} size={}", digest.tgId(), digest.updates().size());
+        log.info(
+                "Sending digest: chatId={} size={}",
+                digest.tgId(),
+                digest.updates().size());
         try {
             sendRequest("/updates/digest", digest);
         } catch (Exception e) {
@@ -61,29 +69,28 @@ public class RestNotificationClient implements NotificationClient {
 
     private <T> void sendRequest(String uri, T body) {
         Supplier<Void> decorated = Decorators.ofSupplier(() -> {
-                try {
-                    return botTimeLimiter.executeFutureSupplier(() ->
-                        webClient.post()
-                            .uri(uri)
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .bodyValue(body)
-                            .retrieve()
-                            .toBodilessEntity()
-                            .doOnSuccess(res -> log.info("Success: {}", uri))
-                            .doOnError(WebClientResponseException.class, e -> throwError(uri, e))
-                            .then()
-                            .toFuture()
-                    );
-                } catch (Exception e) {
-                    throw new CompletionException(e);
-                }
-            })
-            .withRetry(botRetry)
-            .withFallback(List.of(Throwable.class), t -> {
-                log.error("HTTP fallback for {}: {}", uri, t.getMessage());
-                throw new BotServiceException("Failed after retries", t);
-            })
-            .decorate();
+                    try {
+                        return botTimeLimiter.executeFutureSupplier(() -> webClient
+                                .post()
+                                .uri(uri)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue(body)
+                                .retrieve()
+                                .toBodilessEntity()
+                                .doOnSuccess(res -> log.info("Success: {}", uri))
+                                .doOnError(WebClientResponseException.class, e -> throwError(uri, e))
+                                .then()
+                                .toFuture());
+                    } catch (Exception e) {
+                        throw new CompletionException(e);
+                    }
+                })
+                .withRetry(botRetry)
+                .withFallback(List.of(Throwable.class), t -> {
+                    log.error("HTTP fallback for {}: {}", uri, t.getMessage());
+                    throw new BotServiceException("Failed after retries", t);
+                })
+                .decorate();
 
         decorated.get();
     }
@@ -95,7 +102,14 @@ public class RestNotificationClient implements NotificationClient {
 
     private void fallback(Object message) {
         log.warn("Falling back to Kafka...");
-        fallbackClient = new KafkaNotificationClient(kafkaTemplate, webClient, botRetry, botTimeLimiter);
+        fallbackClient = KafkaNotificationClient.builder()
+                .kafkaTemplate(kafkaTemplate)
+                .webClient(webClient)
+                .retry(botRetry)
+                .timeLimiter(botTimeLimiter)
+                .notificationTopic(notificationTopic)
+                .digestTopic(digestTopic)
+                .build();
         if (message instanceof LinkUpdate lu) fallbackClient.sendLinkUpdate(lu);
         if (message instanceof Digest d) fallbackClient.sendDigest(d);
         fallbackClient = null;

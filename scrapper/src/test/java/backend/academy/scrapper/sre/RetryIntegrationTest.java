@@ -1,5 +1,18 @@
 package backend.academy.scrapper.sre;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
+
 import backend.academy.scrapper.ScrapperApplication;
 import backend.academy.scrapper.client.GitHubClient;
 import backend.academy.scrapper.client.RestNotificationClient;
@@ -12,9 +25,7 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.common.Slf4jNotifier;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
-import com.github.tomakehurst.wiremock.stubbing.ServeEvent;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -28,40 +39,30 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.kafka.ConfluentKafkaContainer;
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.verify;
-import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
 
 @SpringBootTest(classes = ScrapperApplication.class)
 @Testcontainers
-@TestPropertySource(properties = {
-    "app.db.access-type=orm",
-    "spring.jpa.hibernate.ddl-auto=create",
-    "app.scrapper.page-size=10",
-    "app.scrapper.threads-count=1",
-    "app.scrapper.scheduled-time=100000",
-    "app.digest.threads-count=4",
-    "app.message.transport=HTTP",
-    "app.digest.scheduler-time=60000",
-    "client.stackoverflow.url=http://localhost:9090",
-    "client.github.url=http://localhost:9090",
-    "client.bot.url=http://localhost:9090",
-})
+@TestPropertySource(
+        properties = {
+            "app.db.access-type=orm",
+            "spring.jpa.hibernate.ddl-auto=create",
+            "app.scrapper.page-size=10",
+            "app.scrapper.threads-count=1",
+            "app.scrapper.scheduled-time=100000",
+            "app.digest.threads-count=4",
+            "app.message.transport=HTTP",
+            "app.digest.scheduler-time=60000",
+            "client.stackoverflow.url=http://localhost:9090",
+            "client.github.url=http://localhost:9090",
+            "client.bot.url=http://localhost:9090",
+        })
 public class RetryIntegrationTest {
 
-    private final String stackoverflowURL = "https://stackoverflow.com/questions/60200966/docker-compose-gives-invalid-environment-type-error";
+    private final String stackoverflowURL =
+            "https://stackoverflow.com/questions/60200966/docker-compose-gives-invalid-environment-type-error";
     private final String githubURL = "https://github.com/central-university-dev/java-aigunov";
-    private final String stackoverflowBody = """
+    private final String stackoverflowBody =
+            """
         {
           "items": [
             {
@@ -97,15 +98,14 @@ public class RetryIntegrationTest {
         }
         """;
 
-
     @Container
     static final ConfluentKafkaContainer kafka = new ConfluentKafkaContainer("confluentinc/cp-kafka:7.4.0");
 
     @Container
     static final PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres:17.4")
-        .withDatabaseName("scrapper_db")
-        .withUsername("aigunov")
-        .withPassword("12345");
+            .withDatabaseName("scrapper_db")
+            .withUsername("aigunov")
+            .withPassword("12345");
 
     static WireMockServer wireMockServer;
 
@@ -145,9 +145,8 @@ public class RetryIntegrationTest {
 
     @BeforeAll
     static void setupWireMock() {
-        wireMockServer = new WireMockServer(WireMockConfiguration.options()
-            .port(9090)
-            .notifier(new Slf4jNotifier(true)));
+        wireMockServer =
+                new WireMockServer(WireMockConfiguration.options().port(9090).notifier(new Slf4jNotifier(true)));
         wireMockServer.start();
         WireMock.configureFor("localhost", 9090);
     }
@@ -159,45 +158,46 @@ public class RetryIntegrationTest {
 
     @Test
     void stackOverflowClient_shouldRetryOnServerError() throws JsonProcessingException {
-        String expectedStackOverflowApiUrl = "http://localhost:9090/2.3/questions/60200966?order=desc&sort=activity&site=ru.stackoverflow";
+        String expectedStackOverflowApiUrl =
+                "http://localhost:9090/2.3/questions/60200966?order=desc&sort=activity&site=ru.stackoverflow";
 
         when(converterApi.convertStackOverflowUrlToApi(stackoverflowURL)).thenReturn(expectedStackOverflowApiUrl);
         when(converterApi.isStackOverflowUrl(anyString())).thenReturn(true);
 
-
         wireMockServer.resetAll();
 
         stubFor(get(urlEqualTo("/2.3/questions/60200966?order=desc&sort=activity&site=ru.stackoverflow"))
-            .inScenario("Retry Scenario")
-            .whenScenarioStateIs(STARTED)
-            .willReturn(aResponse().withStatus(503))
-            .willSetStateTo("Second Attempt"));
+                .inScenario("Retry Scenario")
+                .whenScenarioStateIs(STARTED)
+                .willReturn(aResponse().withStatus(503))
+                .willSetStateTo("Second Attempt"));
 
         stubFor(get(urlEqualTo("/2.3/questions/60200966?order=desc&sort=activity&site=ru.stackoverflow"))
-            .inScenario("Retry Scenario")
-            .whenScenarioStateIs("Second Attempt")
-            .willReturn(aResponse().withStatus(200).withBody(stackoverflowBody)));
+                .inScenario("Retry Scenario")
+                .whenScenarioStateIs("Second Attempt")
+                .willReturn(aResponse().withStatus(200).withBody(stackoverflowBody)));
 
-
-        //When
+        // When
         Optional<UpdateInfo> result = stackOverflowClient.checkUpdates(stackoverflowURL);
 
-        //Assert
+        // Assert
         assertThat(result).isNotEmpty();
 
-        verify(2, getRequestedFor(urlPathEqualTo("/2.3/questions/60200966"))
-            .withQueryParam("order", equalTo("desc"))
-            .withQueryParam("sort", equalTo("activity"))
-            .withQueryParam("site", equalTo("ru.stackoverflow")));
+        verify(
+                2,
+                getRequestedFor(urlPathEqualTo("/2.3/questions/60200966"))
+                        .withQueryParam("order", equalTo("desc"))
+                        .withQueryParam("sort", equalTo("activity"))
+                        .withQueryParam("site", equalTo("ru.stackoverflow")));
     }
-
 
     @Test
     void gitHubClient_shouldRetryOnServerError() throws JsonProcessingException {
         String expectedGitHubApiUrl = "http://localhost:9090/repos/central-university-dev/java-aigunov";
         String fullGitHubUrl = "https://github.com/central-university-dev/java-aigunov";
 
-        String issuesResponse = """
+        String issuesResponse =
+                """
         [
             {
                 "title": "Issue #1",
@@ -208,7 +208,8 @@ public class RetryIntegrationTest {
         ]
         """;
 
-        String prsResponse = """
+        String prsResponse =
+                """
         [
             {
                 "title": "PR #1",
@@ -225,18 +226,18 @@ public class RetryIntegrationTest {
         wireMockServer.resetAll();
 
         stubFor(get(urlEqualTo("/repos/central-university-dev/java-aigunov/issues?state=all"))
-            .inScenario("GitHub Retry")
-            .whenScenarioStateIs(STARTED)
-            .willReturn(aResponse().withStatus(503))
-            .willSetStateTo("Second Attempt"));
+                .inScenario("GitHub Retry")
+                .whenScenarioStateIs(STARTED)
+                .willReturn(aResponse().withStatus(503))
+                .willSetStateTo("Second Attempt"));
 
         stubFor(get(urlEqualTo("/repos/central-university-dev/java-aigunov/issues?state=all"))
-            .inScenario("GitHub Retry")
-            .whenScenarioStateIs("Second Attempt")
-            .willReturn(aResponse().withStatus(200).withBody(issuesResponse)));
+                .inScenario("GitHub Retry")
+                .whenScenarioStateIs("Second Attempt")
+                .willReturn(aResponse().withStatus(200).withBody(issuesResponse)));
 
         stubFor(get(urlEqualTo("/repos/central-university-dev/java-aigunov/pulls?state=all"))
-            .willReturn(aResponse().withStatus(200).withBody(prsResponse)));
+                .willReturn(aResponse().withStatus(200).withBody(prsResponse)));
 
         // When
         Optional<UpdateInfo> result = gitHubClient.checkUpdates(fullGitHubUrl);
@@ -252,4 +253,3 @@ public class RetryIntegrationTest {
         assertThat(update.date()).isEqualTo(LocalDateTime.of(2024, 6, 2, 15, 30));
     }
 }
-
