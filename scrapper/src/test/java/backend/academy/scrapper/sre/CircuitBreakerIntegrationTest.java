@@ -106,6 +106,7 @@ public class CircuitBreakerIntegrationTest {
         String expectedApiUrl =
                 "http://localhost:9090/2.3/questions/60200966?order=desc&sort=activity&site=ru.stackoverflow";
 
+        //Arrange
         when(converterApi.convertStackOverflowUrlToApi(stackoverflowURL)).thenReturn(expectedApiUrl);
         when(converterApi.isStackOverflowUrl(anyString())).thenReturn(true);
 
@@ -115,16 +116,16 @@ public class CircuitBreakerIntegrationTest {
                         .withStatus(200)
                         .withBody("{\"items\":[]}")));
 
+        //Act
         Optional<UpdateInfo> result = stackOverflowClient.checkUpdates(stackoverflowURL);
 
+        //Assert
         assertThat(result).isEmpty();
 
-        // Повторный вызов должен пройти fallback, т.к. цепочка сработала с timeout и открыла circuit breaker
         Optional<UpdateInfo> result2 = stackOverflowClient.checkUpdates(stackoverflowURL);
 
         assertThat(result2).isEmpty();
 
-        // Проверим, что оба запроса ушли (один открыл circuit, второй вернул fallback)
         verify(2, getRequestedFor(urlPathEqualTo("/2.3/questions/60200966")));
     }
 }

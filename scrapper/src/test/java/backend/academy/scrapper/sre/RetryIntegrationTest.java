@@ -161,6 +161,7 @@ public class RetryIntegrationTest {
         String expectedStackOverflowApiUrl =
                 "http://localhost:9090/2.3/questions/60200966?order=desc&sort=activity&site=ru.stackoverflow";
 
+        //Arrange
         when(converterApi.convertStackOverflowUrlToApi(stackoverflowURL)).thenReturn(expectedStackOverflowApiUrl);
         when(converterApi.isStackOverflowUrl(anyString())).thenReturn(true);
 
@@ -177,7 +178,7 @@ public class RetryIntegrationTest {
                 .whenScenarioStateIs("Second Attempt")
                 .willReturn(aResponse().withStatus(200).withBody(stackoverflowBody)));
 
-        // When
+        // Act
         Optional<UpdateInfo> result = stackOverflowClient.checkUpdates(stackoverflowURL);
 
         // Assert
@@ -196,6 +197,7 @@ public class RetryIntegrationTest {
         String expectedGitHubApiUrl = "http://localhost:9090/repos/central-university-dev/java-aigunov";
         String fullGitHubUrl = "https://github.com/central-university-dev/java-aigunov";
 
+        //Arrange
         String issuesResponse =
                 """
         [
@@ -239,10 +241,10 @@ public class RetryIntegrationTest {
         stubFor(get(urlEqualTo("/repos/central-university-dev/java-aigunov/pulls?state=all"))
                 .willReturn(aResponse().withStatus(200).withBody(prsResponse)));
 
-        // When
+        // Act
         Optional<UpdateInfo> result = gitHubClient.checkUpdates(fullGitHubUrl);
 
-        // Then
+        // Assert
         assertThat(result).isPresent();
         UpdateInfo update = result.get();
 

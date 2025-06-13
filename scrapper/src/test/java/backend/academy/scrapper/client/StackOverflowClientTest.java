@@ -87,10 +87,10 @@ class StackOverflowClientTest {
 
     @Test
     void checkUpdates_ShouldReturnLatestAnswer_WhenAnswersExist() throws JsonProcessingException {
-        // Given
         String questionUrl = "https://stackoverflow.com/questions/12345678/some-question";
         String apiUrl = "http://localhost:8089/stackoverflow/12345678?order=desc&sort=activity&site=ru.stackoverflow";
 
+        // Arrange
         when(converterApi.convertStackOverflowUrlToApi(questionUrl)).thenReturn(apiUrl);
         when(converterApi.isGithubUrl(anyString())).thenReturn(true);
 
@@ -119,16 +119,17 @@ class StackOverflowClientTest {
             }
             """;
 
+
         stubFor(get(anyUrl())
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withHeader("Content-Type", "application/json")
                         .withBody(responseJson)));
 
-        // When
+        // Act
         Optional<UpdateInfo> updateInfo = stackOverflowClient.checkUpdates(questionUrl);
 
-        // Then
+        // Assert
         assertThat(updateInfo).isPresent();
         assertThat(updateInfo.get().type()).isEqualTo("answer");
         assertThat(updateInfo.get().username()).isEqualTo("user1");
