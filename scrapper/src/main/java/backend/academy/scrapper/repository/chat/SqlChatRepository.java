@@ -2,7 +2,6 @@ package backend.academy.scrapper.repository.chat;
 
 import backend.academy.scrapper.data.model.Chat;
 import backend.academy.scrapper.exception.SqlRepositoryException;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,8 +16,6 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-@SuppressWarnings(value = {"NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE"})
-@SuppressFBWarnings(value = {"NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE"})
 @Repository
 @RequiredArgsConstructor
 @ConditionalOnProperty(prefix = "app.db", name = "access-type", havingValue = "sql")
@@ -33,15 +30,21 @@ public class SqlChatRepository implements ChatRepository {
 
         var sql =
                 """
-                INSERT INTO chat (tg_id, nickname)
-                VALUES (:tgId, :nickname)
-                """;
+            INSERT INTO chat (tg_id, nickname)
+            VALUES (:tgId, :nickname)
+            """;
         var params = new MapSqlParameterSource().addValue("tgId", chat.tgId()).addValue("nickname", chat.nickname());
 
         jdbc.update(sql, params, keyHolder);
-        // Изменение начинается со строки 38
-        if (keyHolder.getKeys() != null && keyHolder.getKeys().containsKey("id")) {
-            chat.id((UUID) keyHolder.getKeys().get("id"));
+
+        var keys = keyHolder.getKeys();
+        if (keys != null && keys.containsKey("id")) {
+            Object idValue = keys.get("id");
+            if (idValue instanceof UUID uuid) {
+                chat.id(uuid);
+            } else {
+                throw new SqlRepositoryException("Generated ID 'id' is not a UUID or is null for chat");
+            }
         } else {
             throw new SqlRepositoryException("Failed to retrieve generated ID for chat");
         }
@@ -107,7 +110,10 @@ public class SqlChatRepository implements ChatRepository {
             FROM chat
             WHERE id = :id
             """;
-        var result = jdbc.query(sql, new MapSqlParameterSource("id", id), new ChatResultSetExtractor());
+        List<Chat> result = jdbc.query(sql, new MapSqlParameterSource("id", id), new ChatResultSetExtractor());
+        if (result == null) {
+            return Optional.empty();
+        }
         return result.stream().findFirst();
     }
 
@@ -118,7 +124,10 @@ public class SqlChatRepository implements ChatRepository {
             FROM chat
             WHERE tg_id = :tgId
             """;
-        var result = jdbc.query(sql, new MapSqlParameterSource("tgId", tgId), new ChatResultSetExtractor());
+        List<Chat> result = jdbc.query(sql, new MapSqlParameterSource("tgId", tgId), new ChatResultSetExtractor());
+        if (result == null) {
+            return Optional.empty();
+        }
         return result.stream().findFirst();
     }
 

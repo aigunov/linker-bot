@@ -2,9 +2,9 @@ package backend.academy.scrapper.repository.filter;
 
 import backend.academy.scrapper.data.model.Filter;
 import backend.academy.scrapper.exception.SqlRepositoryException;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -16,19 +16,18 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-@SuppressWarnings(value = {"NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE"})
-@SuppressFBWarnings(value = {"NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE"})
 @Repository
 @RequiredArgsConstructor
 @ConditionalOnProperty(prefix = "app.db", name = "access-type", havingValue = "sql")
 public class SqlFilterRepository implements FilterRepository {
     private final NamedParameterJdbcTemplate jdbc;
 
-    @Transactional(propagation = Propagation.MANDATORY)
     @Override
+    @Transactional(propagation = Propagation.MANDATORY)
     public Filter save(final Filter filter) {
         GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
-        var sql =
+
+        String sql =
                 """
             INSERT INTO filter (chat_id, parameter, value)
             VALUES (:chatId, :parameter, :value)
@@ -36,14 +35,22 @@ public class SqlFilterRepository implements FilterRepository {
             DO UPDATE SET parameter = :parameter, value = :value
             RETURNING id
             """;
+
         var params = new MapSqlParameterSource()
                 .addValue("chatId", filter.chat().id())
                 .addValue("parameter", filter.parameter())
                 .addValue("value", filter.value());
 
         jdbc.update(sql, params, keyHolder);
-        if (keyHolder.getKeys() != null && keyHolder.getKeys().containsKey("id")) {
-            filter.id((UUID) keyHolder.getKeys().get("id"));
+
+        Map<String, Object> keys = keyHolder.getKeys();
+        if (keys != null && keys.containsKey("id")) {
+            Object idValue = keys.get("id");
+            if (idValue instanceof UUID uuid) {
+                filter.id(uuid);
+            } else {
+                throw new SqlRepositoryException("Generated ID 'id' is not a UUID or is null for filter");
+            }
         } else {
             throw new SqlRepositoryException("Failed to retrieve generated ID for filter");
         }
@@ -66,10 +73,10 @@ public class SqlFilterRepository implements FilterRepository {
     public void deleteById(final UUID id) {
         var deleteLinkFilterSql =
                 """
-            DELETE
-            FROM link_to_filter
-            WHERE filter_id = :filterId
-            """;
+                DELETE
+                FROM link_to_filter
+                WHERE filter_id = :filterId
+                """;
 
         jdbc.update(deleteLinkFilterSql, new MapSqlParameterSource("filterId", id));
 
@@ -91,6 +98,9 @@ public class SqlFilterRepository implements FilterRepository {
             """;
 
         var result = jdbc.query(sql, new MapSqlParameterSource("id", id), new FilterResultSetExtractor());
+        if (result == null) {
+            return Optional.empty();
+        }
         return result.stream().findFirst();
     }
 
@@ -98,17 +108,20 @@ public class SqlFilterRepository implements FilterRepository {
     public Optional<Filter> findByTgIdAndFilter(final Long tgId, final String param, final String value) {
         var sql =
                 """
-            SELECT *
-            FROM filter AS f
-            JOIN chat AS c ON c.id = f.chat_id
-            WHERE c.tg_id = :tgId AND f.parameter = :param AND f.value = :value
-            """;
+                SELECT *
+                FROM filter AS f
+                JOIN chat AS c ON c.id = f.chat_id
+                WHERE c.tg_id = :tgId AND f.parameter = :param AND f.value = :value
+                """;
 
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("tgId", tgId)
                 .addValue("param", param)
                 .addValue("value", value);
         List<Filter> results = jdbc.query(sql, params, new FilterResultSetExtractor());
+        if (results == null) {
+            return Optional.empty();
+        }
         return results.stream().findFirst();
     }
 
@@ -116,11 +129,11 @@ public class SqlFilterRepository implements FilterRepository {
     public List<Filter> findAllByChatIdAndNotInLinkToFilterTable(final UUID chatId) {
         var sql =
                 """
-            SELECT f.*
-            FROM filter as f
-            WHERE f.chat_id = :chatId AND f.id NOT IN (SELECT filter_id
-                                                       FROM link_to_filter)
-            """;
+                SELECT f.*
+                FROM filter as f
+                WHERE f.chat_id = :chatId AND f.id NOT IN (SELECT filter_id
+                                                           FROM link_to_filter)
+                """;
         var params = new MapSqlParameterSource().addValue("chatId", chatId);
         return jdbc.query(sql, params, new FilterResultSetExtractor());
     }
