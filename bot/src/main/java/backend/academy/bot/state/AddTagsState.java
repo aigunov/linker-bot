@@ -1,6 +1,5 @@
 package backend.academy.bot.state;
 
-import backend.academy.bot.exception.TelegramApiException;
 import backend.academy.bot.service.AddLinkRequestService;
 import backend.academy.bot.service.Validator;
 import com.pengrad.telegrambot.model.Update;
@@ -33,25 +32,12 @@ public class AddTagsState extends StateImpl {
     }
 
     @Override
-    public void show(long chatId) {
-        log.info("Current state: {}", state);
-        try {
-            bot.execute(new SendMessage(chatId, message)
-                    .replyMarkup(keyboardFactory.getNextAndBackButtonKeyboard())
-                    .parseMode(ParseMode.HTML));
-        } catch (TelegramApiException e) {
-            log.info("Error while sending feedback request message: {}", e.getMessage());
-        }
-    }
-
-    @Override
     public void handle(Update update) {
         if (update.message().text() != null) {
-            var message = update.message().text();
-            switch (message) {
+            switch (update.message().text()) {
                 case next_button -> continueWithoutTags(update);
                 case back_button -> cancelLinkInsertion(update);
-                default -> addTagsToLink(update, message);
+                default -> addTagsToLink(update, update.message().text());
             }
         } else {
             showUnsupportedActionMessage(update);
