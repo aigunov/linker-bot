@@ -161,7 +161,7 @@ public class RetryIntegrationTest {
         String expectedStackOverflowApiUrl =
                 "http://localhost:9090/2.3/questions/60200966?order=desc&sort=activity&site=ru.stackoverflow";
 
-        //Arrange
+        // Arrange
         when(converterApi.convertStackOverflowUrlToApi(stackoverflowURL)).thenReturn(expectedStackOverflowApiUrl);
         when(converterApi.isStackOverflowUrl(anyString())).thenReturn(true);
 
@@ -197,7 +197,7 @@ public class RetryIntegrationTest {
         String expectedGitHubApiUrl = "http://localhost:9090/repos/central-university-dev/java-aigunov";
         String fullGitHubUrl = "https://github.com/central-university-dev/java-aigunov";
 
-        //Arrange
+        // Arrange
         String issuesResponse =
                 """
         [

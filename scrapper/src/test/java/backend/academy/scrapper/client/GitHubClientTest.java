@@ -82,7 +82,7 @@ class GitHubClientTest {
         String fullUrl = "https://github.com/aigunov/java-shareit";
         String apiUrl = "http://localhost:8089/repos" + repoPath;
 
-        //Arrange
+        // Arrange
         when(converterApi.convertGithubUrlToApi(fullUrl)).thenReturn(apiUrl);
         when(converterApi.isGithubUrl(anyString())).thenReturn(true);
 
@@ -122,10 +122,10 @@ class GitHubClientTest {
                         .withHeader("Content-Type", "application/json")
                         .withBody(prsJson)));
 
-        //Act
+        // Act
         Optional<UpdateInfo> updateInfoOpt = gitHubClient.checkUpdates(fullUrl);
 
-        //Assert
+        // Assert
         assertThat(updateInfoOpt).isPresent();
         UpdateInfo updateInfo = updateInfoOpt.get();
 

@@ -85,7 +85,7 @@ public class NotificationFallbackIntegrationTest {
 
     @Test
     void shouldFallbackToKafka_whenHttpFails() {
-        //Arrange
+        // Arrange
         Properties props = new Properties();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafka.getBootstrapServers());
         props.put(ConsumerConfig.GROUP_ID_CONFIG, "test-fallback-group");
@@ -105,10 +105,10 @@ public class NotificationFallbackIntegrationTest {
                     .tgChatIds(Set.of(1L, 2L))
                     .build();
 
-            //Act
+            // Act
             restNotificationClient.sendLinkUpdate(update);
 
-            //Assert
+            // Assert
             ConsumerRecords<String, LinkUpdate> records = consumer.poll(Duration.ofSeconds(10));
             assertThat(records.count()).isGreaterThan(0);
 

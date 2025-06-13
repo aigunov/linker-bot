@@ -74,17 +74,17 @@ public class RateLimitingIntegrationTest {
     void shouldReturn429TooManyRequests_WhenRateLimitExceeded() {
         String testUrl = "/tg-chat/123";
 
-        //Arrange
+        // Arrange
         RegisterChatRequest request =
                 RegisterChatRequest.builder().chatId(123L).name("test-chat").build();
 
         for (int i = 0; i < 5; i++) {
-            //Act
+            // Act
             var response = webClient.post().uri(testUrl).bodyValue(request).exchange();
             log.info(response.expectBody().toString());
         }
 
-        //Assert
+        // Assert
         webClient
                 .post()
                 .uri(testUrl)

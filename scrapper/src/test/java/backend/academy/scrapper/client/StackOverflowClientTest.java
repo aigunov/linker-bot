@@ -119,7 +119,6 @@ class StackOverflowClientTest {
             }
             """;
 
-
         stubFor(get(anyUrl())
                 .willReturn(aResponse()
                         .withStatus(200)

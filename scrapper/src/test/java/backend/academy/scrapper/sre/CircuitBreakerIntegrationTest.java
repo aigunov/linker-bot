@@ -106,7 +106,7 @@ public class CircuitBreakerIntegrationTest {
         String expectedApiUrl =
                 "http://localhost:9090/2.3/questions/60200966?order=desc&sort=activity&site=ru.stackoverflow";
 
-        //Arrange
+        // Arrange
         when(converterApi.convertStackOverflowUrlToApi(stackoverflowURL)).thenReturn(expectedApiUrl);
         when(converterApi.isStackOverflowUrl(anyString())).thenReturn(true);
 
@@ -116,10 +116,10 @@ public class CircuitBreakerIntegrationTest {
                         .withStatus(200)
                         .withBody("{\"items\":[]}")));
 
-        //Act
+        // Act
         Optional<UpdateInfo> result = stackOverflowClient.checkUpdates(stackoverflowURL);
 
-        //Assert
+        // Assert
         assertThat(result).isEmpty();
 
         Optional<UpdateInfo> result2 = stackOverflowClient.checkUpdates(stackoverflowURL);
