@@ -10,11 +10,21 @@ import dto.ListLinkResponse;
 import dto.NotificationTimeRequest;
 import dto.RegisterChatRequest;
 import dto.RemoveLinkRequest;
+import io.github.resilience4j.circuitbreaker.CircuitBreaker;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
+import io.github.resilience4j.decorators.Decorators;
+import io.github.resilience4j.retry.Retry;
+import io.github.resilience4j.retry.RetryRegistry;
+import io.github.resilience4j.timelimiter.TimeLimiter;
+import io.github.resilience4j.timelimiter.TimeLimiterRegistry;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,6 +48,9 @@ public class ScrapperClient {
 
     private final RestClient restClient;
     private final JsonToApiErrorResponse convertJsonToApiErrorResponse;
+    private final RetryRegistry retryRegistry;
+    private final CircuitBreakerRegistry circuitBreakerRegistry;
+    private final TimeLimiterRegistry timeLimiterRegistry;
 
     public ResponseEntity<Object> registerChat(final RegisterChatRequest chat) {
         log.info("Request: register chat {}", chat);
@@ -94,7 +107,9 @@ public class ScrapperClient {
             T body,
             Class<E> responseType,
             Object... uriParameters) {
+
         log.info("Request: {} {}, headers: {}, body: {}", httpMethod, uri, headers, body);
+
         RestClient.RequestHeadersSpec<?> requestSpec = restClient
                 .method(httpMethod)
                 .uri(uri, uriParameters)
@@ -102,18 +117,44 @@ public class ScrapperClient {
                 .header(HttpHeaders.CONTENT_TYPE, String.valueOf(MediaType.APPLICATION_JSON))
                 .headers(httpHeaders -> headers.forEach(httpHeaders::add));
 
-        try {
+        Retry retry = retryRegistry.retry("scrapperClient");
+        CircuitBreaker circuitBreaker = circuitBreakerRegistry.circuitBreaker("scrapperClient");
+        TimeLimiter timeLimiter = timeLimiterRegistry.timeLimiter("scrapperClient");
 
-            ResponseEntity<E> response = requestSpec.retrieve().toEntity(responseType);
-            log.info("Response: {} {}", response.getStatusCode(), response.getBody());
-            return ResponseEntity.status(response.getStatusCode()).body(response.getBody());
-        } catch (RestClientResponseException ex) {
-            log.error("Client error: {}", ex.getMessage());
-            return handleRestClientResponseException(ex);
-        } catch (RestClientException ex) {
-            log.error("Unexpected error: {}", ex.getMessage());
-            return handleRestClientException(ex);
-        }
+        Supplier<CompletableFuture<ResponseEntity<Object>>> supplier = () -> CompletableFuture.supplyAsync(() -> {
+            try {
+                ResponseEntity<E> response = requestSpec.retrieve().toEntity(responseType);
+                log.info("Response: {} {}", response.getStatusCode(), response.getBody());
+                return ResponseEntity.status(response.getStatusCode()).body(response.getBody());
+            } catch (RestClientResponseException ex) {
+                log.error("Client error: {}", ex.getMessage());
+                return handleRestClientResponseException(ex);
+            } catch (RestClientException ex) {
+                log.error("Unexpected error: {}", ex.getMessage());
+                return handleRestClientException(ex);
+            }
+        });
+
+        Supplier<ResponseEntity<Object>> decoratedSupplier = Decorators.ofSupplier(() -> {
+                    try {
+                        return timeLimiter.executeFutureSupplier(supplier);
+                    } catch (Exception e) {
+                        throw new CompletionException(e);
+                    }
+                })
+                .withRetry(retry)
+                .withCircuitBreaker(circuitBreaker)
+                .withFallback(List.of(Throwable.class), t -> {
+                    log.warn("Fallback executed due to: {}", t.getMessage());
+                    return createDefaultErrorResponse(
+                            HttpStatus.SERVICE_UNAVAILABLE.value(),
+                            t.getMessage(),
+                            t.getClass().getSimpleName(),
+                            convertStackTraceToList(t.getStackTrace()));
+                })
+                .decorate();
+
+        return decoratedSupplier.get();
     }
 
     private ResponseEntity<Object> handleRestClientResponseException(RestClientResponseException ex) {

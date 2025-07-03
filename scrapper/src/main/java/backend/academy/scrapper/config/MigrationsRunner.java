@@ -1,6 +1,5 @@
 package backend.academy.scrapper.config;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.sql.Connection;
@@ -19,8 +18,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-@SuppressWarnings(value = {"SLF4J_MANUALLY_PROVIDED_MESSAGE"})
-@SuppressFBWarnings(value = {"SLF4J_MANUALLY_PROVIDED_MESSAGE"})
 @Component
 @Slf4j
 @RequiredArgsConstructor
@@ -28,8 +25,16 @@ public class MigrationsRunner {
     private final DataSourceConfig dataSourceConfig;
 
     public void runMigrations() {
-        Path migrationsPath =
-                Path.of(".").toAbsolutePath().getParent().getParent().resolve("migrations");
+        Path currentPath = Path.of(".").toAbsolutePath();
+        Path parent1 = currentPath.getParent();
+        if (parent1 == null) {
+            throw new RuntimeException("Could not find parent directory for: " + currentPath);
+        }
+        Path parent2 = parent1.getParent();
+        if (parent2 == null) {
+            throw new RuntimeException("Could not find grandparent directory for: " + currentPath);
+        }
+        Path migrationsPath = parent2.resolve("migrations");
 
         try (Connection connection = DriverManager.getConnection(
                 dataSourceConfig.url(), dataSourceConfig.username(), dataSourceConfig.password())) {
@@ -46,7 +51,7 @@ public class MigrationsRunner {
                 try {
                     updateCommand.execute();
                 } catch (LiquibaseException e) {
-                    log.error("Произошла ошибка во время выполнения команды Liquibase: {}", e.getMessage(), e);
+                    log.error("Произошла ошибка во время выполнения команды Liquibase", e);
                     throw new RuntimeException(e);
                 }
             });
@@ -54,10 +59,10 @@ public class MigrationsRunner {
             log.info("Миграции Liquibase успешно применены.");
 
         } catch (SQLException e) {
-            log.error("Ошибка подключения к базе данных: {}", e.getMessage(), e);
+            log.error("Ошибка подключения к базе данных", e);
             throw new RuntimeException(e);
         } catch (LiquibaseException | IOException e) {
-            log.error("Произошла ошибка во время инициализации Liquibase: {}", e.getMessage(), e);
+            log.error("Произошла ошибка во время инициализации Liquibase", e);
             throw new RuntimeException(e);
         } catch (Exception e) {
             throw new RuntimeException(e);

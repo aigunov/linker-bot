@@ -1,4 +1,4 @@
-package backend.academy.bot.configs;
+package backend.academy.bot.config;
 
 import dto.AddLinkRequest;
 import dto.GetLinksRequest;

@@ -12,7 +12,7 @@ public record UpdateInfo(String title, String username, LocalDateTime date, Stri
         String formattedDate = date.format(formatter);
 
         return String.format(
-                "Название: %s\nПользователь: %s\nВремя: %s\nТип: %s\nПревью: %s",
+                "Название: %s%nПользователь: %s%nВремя: %s%nТип: %s%nПревью: %s",
                 title, username, formattedDate, type, preview);
     }
 }

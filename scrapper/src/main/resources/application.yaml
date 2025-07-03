@@ -55,9 +55,80 @@ spring:
 server:
   port: 8081
 
+rate-limiting:
+  capacity: 100
+  duration: 1m
+
 springdoc:
   swagger-ui:
     enabled: true
     path: /swagger-ui
 
 
+resilience4j:
+  circuitbreaker:
+    instances:
+      gitHubClient:
+        registerHealthIndicator: true
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 1
+        minimumNumberOfCalls: 1
+        failureRateThreshold: 100
+        permittedNumberOfCallsInHalfOpenState: 1
+        waitDurationInOpenState: 1s
+
+      stackOverflowClient:
+        registerHealthIndicator: true
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 1
+        minimumNumberOfCalls: 1
+        failureRateThreshold: 100
+        permittedNumberOfCallsInHalfOpenState: 1
+        waitDurationInOpenState: 1s
+
+client:
+  resilience:
+    github-client:
+      timeout: 10s
+      max-attempts: 3
+      wait-duration: 21s
+      retry-statuses:
+        - 502
+        - 503
+        - 504
+      rate-limit-for-period: 20
+      rate-limit-refresh-period: 10s
+
+    stackoverflow-client:
+      timeout: 10s
+      max-attempts: 3
+      wait-duration: 2s
+      retry-statuses:
+        - 502
+        - 503
+        - 504
+      rate-limit-for-period: 20
+      rate-limit-refresh-period: 10s
+
+
+    bot-client:
+      timeout: 2s
+      max-attempts: 3
+      wait-duration: 1s
+      retry-statuses:
+        - 502
+        - 503
+        - 504
+        - 500
+        - 429
+      rate-limit-for-period: 20
+      rate-limit-refresh-period: 10s
+
+logging:
+  level:
+    org.springframework.web.client: DEBUG
+    com.github.tomakehurst.wiremock: DEBUG
+    wiremock.org.eclipse.jetty: DEBUG
+    wiremock.org.eclipse.jetty.server: DEBUG
+    wiremock.org.eclipse.jetty.util: DEBUG
+    com.github.tomakehurst.wiremock.common.Slf4jNotifier: DEBUG

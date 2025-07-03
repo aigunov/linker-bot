@@ -24,8 +24,7 @@ public class TagsState extends StateImpl {
         log.info("Current state: {}", state);
         try {
             bot.execute(new SendMessage(chatId, message).parseMode(ParseMode.HTML));
-            var message = handleScrapperResponse(botService.getTags(chatId));
-            bot.execute(new SendMessage(chatId, message)
+            bot.execute(new SendMessage(chatId, handleTagsList(botService.getTags(chatId)))
                     .replyMarkup(keyboardFactory.getBackStateKeyboard())
                     .parseMode(ParseMode.HTML));
         } catch (TelegramApiException e) {
@@ -42,11 +41,11 @@ public class TagsState extends StateImpl {
         }
     }
 
-    public String handleScrapperResponse(Object trackingLinks) {
-        return switch (trackingLinks) {
-            case GetTagsResponse links -> formatTags((GetTagsResponse) links);
-            case ApiErrorResponse error -> formatErrorResponse((ApiErrorResponse) error);
-            default -> throw new TelegramApiException("Неизвестный тип");
+    public String handleTagsList(Object chatTags) {
+        return switch (chatTags) {
+            case GetTagsResponse links -> formatTags(links);
+            case ApiErrorResponse error -> formatErrorResponse(error);
+            default -> throw new TelegramApiException("Неизвестный тип ответа для списка тегов.");
         };
     }
 

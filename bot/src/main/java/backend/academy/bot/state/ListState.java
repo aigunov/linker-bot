@@ -29,7 +29,7 @@ public class ListState extends StateImpl {
             bot.execute(new SendMessage(chatId, message)
                     .replyMarkup(keyboardFactory.getBackStateKeyboard())
                     .parseMode(ParseMode.HTML));
-            var message = handleScrapperResponse(botService.getAllLinks(chatId));
+            var message = handleLinksList(botService.getAllLinks(chatId));
             bot.execute(new SendMessage(chatId, message).parseMode(ParseMode.HTML));
         } catch (TelegramApiException e) {
             log.info("Error while sending feedback request message: {}", e.getMessage());
@@ -45,11 +45,11 @@ public class ListState extends StateImpl {
         }
     }
 
-    public String handleScrapperResponse(Object trackingLinks) {
+    public String handleLinksList(Object trackingLinks) {
         return switch (trackingLinks) {
-            case ListLinkResponse links -> formatLinks((ListLinkResponse) links);
-            case ApiErrorResponse error -> formatErrorResponse((ApiErrorResponse) error);
-            default -> throw new TelegramApiException("Неизвестный тип");
+            case ListLinkResponse links -> formatLinks(links);
+            case ApiErrorResponse error -> formatErrorResponse(error);
+            default -> throw new TelegramApiException("Неизвестный тип ответа для списка ссылок.");
         };
     }
 
@@ -81,15 +81,14 @@ public class ListState extends StateImpl {
     }
 
     public String formatErrorResponse(ApiErrorResponse error) {
-
         return String.format(
                 """
-                    ❗ <b>Ошибка при выполнении запроса:</b>
-                    📝 <b>Описание:</b>  %s
-                    📋 <b>Код ошибки:</b> %s
-                    🚨 <b>Тип исключения:</b> %s
-                    💥 <b>Сообщение исключения:</b> %s
-                    """,
-                error.description(), error.code(), error.exceptionName(), error.exceptionMessage());
+                ❗ <b>Ошибка при выполнении запроса:</b>
+                📝 <b>Описание:</b>  %s
+                📋 <b>Код ошибки:</b> %s
+                🚨 <b>Тип исключения:</b> %s
+                💥 <b>Сообщение исключения:</b> %s
+                """,
+                " " + error.description(), error.code(), error.exceptionName(), error.exceptionMessage());
     }
 }

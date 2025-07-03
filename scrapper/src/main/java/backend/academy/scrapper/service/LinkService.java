@@ -14,6 +14,7 @@ import dto.GetLinksRequest;
 import dto.LinkResponse;
 import dto.ListLinkResponse;
 import dto.RemoveLinkRequest;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -22,6 +23,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@SuppressWarnings(value = {"CRLF_INJECTION_LOGS"})
+@SuppressFBWarnings(value = {"CRLF_INJECTION_LOGS"})
 @Slf4j
 @Service
 @RequiredArgsConstructor

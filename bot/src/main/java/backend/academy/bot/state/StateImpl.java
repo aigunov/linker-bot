@@ -1,6 +1,6 @@
 package backend.academy.bot.state;
 
-import backend.academy.bot.configs.TelegramBot;
+import backend.academy.bot.config.TelegramBot;
 import backend.academy.bot.exception.TelegramApiException;
 import backend.academy.bot.service.BotService;
 import backend.academy.bot.service.ChatStateService;
@@ -48,7 +48,16 @@ public abstract class StateImpl implements State {
     }
 
     @Override
-    public void show(long chatId) {}
+    public void show(long chatId) {
+        log.info("Current state: {}", state);
+        try {
+            bot.execute(new SendMessage(chatId, message)
+                    .replyMarkup(keyboardFactory.getNextAndBackButtonKeyboard())
+                    .parseMode(ParseMode.HTML));
+        } catch (TelegramApiException e) {
+            log.info("Error while sending feedback request message: {}", e.getMessage());
+        }
+    }
 
     @Override
     public void handle(Update update) {

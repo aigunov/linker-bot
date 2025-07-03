@@ -48,7 +48,7 @@ public class RedisService {
         String key = getRedisKey(now);
         List<DigestRecord> rawRecords = redisTemplate.opsForList().range(key, 0, -1);
 
-        if (rawRecords.isEmpty()) {
+        if (rawRecords == null || rawRecords.isEmpty()) {
             return Collections.emptyMap();
         }
 

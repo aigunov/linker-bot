@@ -1,6 +1,5 @@
 package backend.academy.bot.state;
 
-import backend.academy.bot.exception.TelegramApiException;
 import backend.academy.bot.service.ListRequestService;
 import backend.academy.bot.service.Validator;
 import com.pengrad.telegrambot.model.Update;
@@ -30,19 +29,6 @@ public class InsertTagsToSearchState extends StateImpl {
     public InsertTagsToSearchState(ListRequestService listRequestService) {
         super(ChatState.INSERT_TAGS_TO_SEARCH, message);
         this.listRequestService = listRequestService;
-    }
-
-    @Override
-    public void show(long chatId) {
-        log.info("Current state: {}", state);
-        try {
-            bot.execute(new SendMessage(chatId, message)
-                    .replyMarkup(keyboardFactory.getNextAndBackButtonKeyboard())
-                    .parseMode(ParseMode.HTML));
-            //            listRequestService.createListRequest(chatId);
-        } catch (TelegramApiException e) {
-            log.info("Error while sending feedback request message: {}", e.getMessage());
-        }
     }
 
     @Override

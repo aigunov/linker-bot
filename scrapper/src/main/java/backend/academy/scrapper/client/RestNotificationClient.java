@@ -1,14 +1,21 @@
 package backend.academy.scrapper.client;
 
 import backend.academy.scrapper.exception.BotServiceException;
-import backend.academy.scrapper.exception.BotServiceInternalErrorException;
 import dto.Digest;
 import dto.LinkUpdate;
+import io.github.resilience4j.decorators.Decorators;
+import io.github.resilience4j.retry.Retry;
+import io.github.resilience4j.timelimiter.TimeLimiter;
+import java.util.List;
+import java.util.concurrent.CompletionException;
+import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
@@ -16,45 +23,95 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 @Service
 @Slf4j
 @RequiredArgsConstructor
-@ConditionalOnProperty(value = "app.message.transport", havingValue = "HTTP")
+@ConditionalOnProperty(value = "app.message.transport", havingValue = "HTTP", matchIfMissing = true)
 public class RestNotificationClient implements NotificationClient {
 
     private final WebClient webClient;
 
+    @Qualifier("botRetry")
+    private final Retry botRetry;
+
+    @Qualifier("botTimeLimiter")
+    private final TimeLimiter botTimeLimiter;
+
+    private final KafkaTemplate<String, Object> kafkaTemplate;
+
+    @Value("${app.message.kafka.topic.notification}")
+    private String notificationTopic;
+
+    @Value("${app.message.kafka.topic.digest}")
+    private String digestTopic;
+
+    private KafkaNotificationClient fallbackClient = null;
+
     @Override
     public void sendLinkUpdate(LinkUpdate linkUpdate) {
-        log.info("Sending single update: {}", linkUpdate);
-        sendRequest("/updates", linkUpdate);
+        log.info("Sending update: {}", linkUpdate);
+        try {
+            sendRequest("/updates", linkUpdate);
+        } catch (Exception e) {
+            fallback(linkUpdate);
+        }
     }
 
     @Override
     public void sendDigest(Digest digest) {
-        log.info("Sending digest with {} updates for chatId={}", digest, digest.tgId());
-        sendRequest("/updates/digest/", digest);
+        log.info(
+                "Sending digest: chatId={} size={}",
+                digest.tgId(),
+                digest.updates().size());
+        try {
+            sendRequest("/updates/digest", digest);
+        } catch (Exception e) {
+            fallback(digest);
+        }
     }
 
     private <T> void sendRequest(String uri, T body) {
-        webClient
-                .post()
-                .uri(uri)
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(body)
-                .retrieve()
-                .toBodilessEntity()
-                .doOnSuccess(res -> log.info("Successfully sent request to {}", uri))
-                .doOnError(WebClientResponseException.class, e -> {
-                    if (e.getStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR) {
-                        log.error("Bot service returned 500 for request to {}: {}", uri, e.getMessage());
-                        throw new BotServiceInternalErrorException("Internal error from bot service", e);
-                    } else {
-                        log.error("Failed to send request to {}: {}", uri, e.getMessage());
-                        throw new BotServiceException("Failed to send request", e);
+        Supplier<Void> decorated = Decorators.ofSupplier(() -> {
+                    try {
+                        return botTimeLimiter.executeFutureSupplier(() -> webClient
+                                .post()
+                                .uri(uri)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .bodyValue(body)
+                                .retrieve()
+                                .toBodilessEntity()
+                                .doOnSuccess(res -> log.info("Success: {}", uri))
+                                .doOnError(WebClientResponseException.class, e -> throwError(uri, e))
+                                .then()
+                                .toFuture());
+                    } catch (Exception e) {
+                        throw new CompletionException(e);
                     }
                 })
-                .doOnError(Exception.class, e -> {
-                    log.error("Error during request to {}: {}", uri, e.getMessage());
-                    throw new BotServiceException("Failed to send request", e);
+                .withRetry(botRetry)
+                .withFallback(List.of(Throwable.class), t -> {
+                    log.error("HTTP fallback for {}: {}", uri, t.getMessage());
+                    throw new BotServiceException("Failed after retries", t);
                 })
-                .subscribe();
+                .decorate();
+
+        decorated.get();
+    }
+
+    private void throwError(String uri, WebClientResponseException e) {
+        log.error("HTTP error {} for {}: {}", e.getStatusCode(), uri, e.getMessage());
+        throw new BotServiceException("Failed to send request", e);
+    }
+
+    private void fallback(Object message) {
+        log.warn("Falling back to Kafka...");
+        fallbackClient = KafkaNotificationClient.builder()
+                .kafkaTemplate(kafkaTemplate)
+                .webClient(webClient)
+                .retry(botRetry)
+                .timeLimiter(botTimeLimiter)
+                .notificationTopic(notificationTopic)
+                .digestTopic(digestTopic)
+                .build();
+        if (message instanceof LinkUpdate lu) fallbackClient.sendLinkUpdate(lu);
+        if (message instanceof Digest d) fallbackClient.sendDigest(d);
+        fallbackClient = null;
     }
 }

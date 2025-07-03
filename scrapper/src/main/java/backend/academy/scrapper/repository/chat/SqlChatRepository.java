@@ -1,6 +1,7 @@
 package backend.academy.scrapper.repository.chat;
 
 import backend.academy.scrapper.data.model.Chat;
+import backend.academy.scrapper.exception.SqlRepositoryException;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,7 +36,18 @@ public class SqlChatRepository implements ChatRepository {
         var params = new MapSqlParameterSource().addValue("tgId", chat.tgId()).addValue("nickname", chat.nickname());
 
         jdbc.update(sql, params, keyHolder);
-        chat.id((UUID) keyHolder.getKeys().get("id"));
+
+        var keys = keyHolder.getKeys();
+        if (keys != null && keys.containsKey("id")) {
+            Object idValue = keys.get("id");
+            if (idValue instanceof UUID uuid) {
+                chat.id(uuid);
+            } else {
+                throw new SqlRepositoryException("Generated ID 'id' is not a UUID or is null for chat");
+            }
+        } else {
+            throw new SqlRepositoryException("Failed to retrieve generated ID for chat");
+        }
 
         return chat;
     }
@@ -44,10 +56,10 @@ public class SqlChatRepository implements ChatRepository {
     public void setDigestTime(Long chatId, LocalTime time) {
         var sql =
                 """
-                UPDATE chat
-                SET digest_time = :time
-                WHERE tg_id = :tgId
-            """;
+                    UPDATE chat
+                    SET digest_time = :time
+                    WHERE tg_id = :tgId
+                """;
 
         var params = new MapSqlParameterSource().addValue("tgId", chatId).addValue("time", time);
 
@@ -98,8 +110,11 @@ public class SqlChatRepository implements ChatRepository {
             FROM chat
             WHERE id = :id
             """;
-        var result = jdbc.query(sql, new MapSqlParameterSource("id", id), new ChatResultSetExtractor());
-        return result.isEmpty() ? Optional.empty() : Optional.of(result.getFirst());
+        List<Chat> result = jdbc.query(sql, new MapSqlParameterSource("id", id), new ChatResultSetExtractor());
+        if (result == null) {
+            return Optional.empty();
+        }
+        return result.stream().findFirst();
     }
 
     @Override
@@ -109,8 +124,11 @@ public class SqlChatRepository implements ChatRepository {
             FROM chat
             WHERE tg_id = :tgId
             """;
-        var result = jdbc.query(sql, new MapSqlParameterSource("tgId", tgId), new ChatResultSetExtractor());
-        return result.isEmpty() ? Optional.empty() : Optional.of(result.getFirst());
+        List<Chat> result = jdbc.query(sql, new MapSqlParameterSource("tgId", tgId), new ChatResultSetExtractor());
+        if (result == null) {
+            return Optional.empty();
+        }
+        return result.stream().findFirst();
     }
 
     @Override

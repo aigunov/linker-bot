@@ -1,8 +1,10 @@
 package backend.academy.scrapper.repository.tag;
 
 import backend.academy.scrapper.data.model.Tag;
+import backend.academy.scrapper.exception.SqlRepositoryException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +25,7 @@ public class SqlTagRepository implements TagRepository {
     @Override
     @Transactional(propagation = Propagation.MANDATORY)
     public Tag save(Tag tag) {
-        var tagSql =
+        String tagSql =
                 """
             INSERT INTO tag(chat_id, tag)
             VALUES (:chatId, :tag)
@@ -31,13 +33,25 @@ public class SqlTagRepository implements TagRepository {
             DO UPDATE SET tag = EXCLUDED.tag
             RETURNING id
             """;
+
         var tagParams =
                 new MapSqlParameterSource().addValue("chatId", tag.chat().id()).addValue("tag", tag.tag());
 
         GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
         jdbc.update(tagSql, tagParams, keyHolder);
 
-        tag.id((UUID) keyHolder.getKeys().get("id"));
+        Map<String, Object> keys = keyHolder.getKeys();
+        if (keys != null && keys.containsKey("id")) {
+            Object idValue = keys.get("id");
+            if (idValue instanceof UUID uuid) {
+                tag.id(uuid);
+            } else {
+                throw new SqlRepositoryException("Generated ID 'id' is not a UUID or is null for tag");
+            }
+        } else {
+            throw new SqlRepositoryException("Failed to retrieve generated ID for tag");
+        }
+
         return tag;
     }
 
@@ -56,9 +70,9 @@ public class SqlTagRepository implements TagRepository {
     public void deleteById(UUID id) {
         var deleteLinkTagSql =
                 """
-            DELETE FROM tag_to_link
-            WHERE tag_id = :tagId
-            """;
+                DELETE FROM tag_to_link
+                WHERE tag_id = :tagId
+                """;
         jdbc.update(deleteLinkTagSql, new MapSqlParameterSource("tagId", id));
 
         var deleteTagSql = """
@@ -76,32 +90,38 @@ public class SqlTagRepository implements TagRepository {
             WHERE id = :id
             """;
         var result = jdbc.query(sql, new MapSqlParameterSource("id", id), new TagResultSetExtractor());
-        return result.isEmpty() ? Optional.empty() : Optional.of(result.getFirst());
+        if (result == null) {
+            return Optional.empty();
+        }
+        return result.stream().findFirst();
     }
 
     @Override
     public Optional<Tag> findByTgIdAndTag(final Long tgId, final String tag) {
         var sql =
                 """
-            SELECT t.*
-            FROM tag AS t
-            JOIN chat AS c ON t.chat_id = c.id
-            WHERE c.tg_id = :tgId AND t.tag = :tag
-            """;
+                SELECT t.*
+                FROM tag AS t
+                JOIN chat AS c ON t.chat_id = c.id
+                WHERE c.tg_id = :tgId AND t.tag = :tag
+                """;
         var params = new MapSqlParameterSource().addValue("tgId", tgId).addValue("tag", tag);
         var result = jdbc.query(sql, params, new TagResultSetExtractor());
-        return result.isEmpty() ? Optional.empty() : Optional.of(result.getFirst());
+        if (result == null) {
+            return Optional.empty();
+        }
+        return result.stream().findFirst();
     }
 
     @Override
     public List<Tag> findAllByChatIdAndNotInTagToLinkTable(final UUID chatId) {
         var sql =
                 """
-            SELECT *
-            FROM tag
-            WHERE chat_id = :chatId AND id NOT IN (SELECT tag_id
-                                                   FROM tag_to_link)
-            """;
+                SELECT *
+                FROM tag
+                WHERE chat_id = :chatId AND id NOT IN (SELECT tag_id
+                                                       FROM tag_to_link)
+                """;
         var params = new MapSqlParameterSource().addValue("chatId", chatId);
         return jdbc.query(sql, params, new TagResultSetExtractor());
     }
@@ -128,11 +148,11 @@ public class SqlTagRepository implements TagRepository {
     public List<Tag> findAllByTgId(final Long tgId) {
         var sql =
                 """
-            SELECT t.*
-            FROM tag AS t
-            JOIN chat AS c ON t.chat_id = c.id
-            WHERE c.tg_id = :tgId
-            """;
+                SELECT t.*
+                FROM tag AS t
+                JOIN chat AS c ON t.chat_id = c.id
+                WHERE c.tg_id = :tgId
+                """;
         return jdbc.query(sql, new MapSqlParameterSource("tgId", tgId), new TagResultSetExtractor());
     }
 
